@@ -157,11 +157,11 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums, make_fols=F
         for root, fols, files in os.walk(os.getcwd()):
             for slab in unique_list_of_dicts:
                 os.mkdir(os.path.join(root, r'{}/{}_{}_{}'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'])))
-                    if make_input_files is True:
-                        vis = DictSet(structure=slab['slab'],config_dict=PBEsol_slab_config, potcar_functional=potcar_functional, user_incar_settings=update_incar, user_potcar_settings=update_potcar, user_kpoints_settings=update_kpoints)
-                        vis.write_input(os.path.join(root, r'{}/{}_{}_{}'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'])))
-                    else:
-                        slab['slab'].to(fmt='poscar',filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],slab['slab_t'], slab['vac_t'], slab['s_index']))
+                if make_input_files is True:
+                    vis = DictSet(structure=slab['slab'],config_dict=PBEsol_slab_config, potcar_functional=potcar_functional, user_incar_settings=update_incar, user_potcar_settings=update_potcar, user_kpoints_settings=update_kpoints)
+                    vis.write_input(os.path.join(root, r'{}/{}_{}_{}'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'])))
+                else:
+                    slab['slab'].to(fmt='poscar',filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],slab['slab_t'], slab['vac_t'], slab['s_index']))
 
     #omits folders, makes POSCAR_hkl_slab_vac_index files in the root folder
     else:
