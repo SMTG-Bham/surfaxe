@@ -9,7 +9,7 @@ PBEsol_slab_config = {
   'KPOINTS': {'reciprocal_density': 90},
   'POTCAR': {'Ac': 'Ac', 'Ag': 'Ag', 'Al': 'Al', 'Ar': 'Ar', 'As': 'As', 'Au':  'Au', 'B': 'B',
              'Ba': 'Ba_sv', 'Be': 'Be_sv', 'Bi': 'Bi', 'Br': 'Br', 'C': 'C', 'Ca': 'Ca_sv',
-             'Cd': 'Cd', 'Ce': 'Ce', 'Cl': 'Cl', 'Co': 'Co', 'Cr': 'Cr_pv', 'Cs': 'Cs_sv', 'Cu': 'Cu', 'Dy': 'Dy_3', 'Er': 'Er_3', 'Eu': 'Eu', 'F': 'F', 'Fe': 'Fe_pv', 'Ga': 'Ga_d', 'Gd': 'Gd', 'Ge': 'Ge_d', 'H': 'H', 'He': 'He','Hf': 'Hf_pv', 'Hg': 'Hg', 'Ho': 'Ho_3', 'I': 'I', 'In': 'In_d', 'Ir': 'Ir', 'K': 'K_sv', 'Kr': 'Kr', 'La': 'La', 'Li': 'Li_sv', 'Lu': 'Lu_3', 'Mg': 'Mg_pv', 'Mn': 'Mn_pv', 'Mo': 'Mo_pv', 'N': 'N', 'Na': 'Na_pv', 'Nb': 'Nb_pv', 'Nd': 'Nd_3', 'Ne': 'Ne', 'Ni': 'Ni_pv', 'Np': 'Np', 'O': 'O', 'Os': 'Os_pv', 'P': 'P', 'Pa': 'Pa', 'Pb': 'Pb_d', 'Pd': 'Pd', 'Pm': 'Pm_3', 'Pr': 'Pr_3', 'Pt': 'Pt', 'Pu': 'Pu', 'Rb': 'Rb_sv', 'Re': 'Re_pv', 'Rh': 'Rh_pv', 'Ru': 'Ru_pv', 'S': 'S', 'Sb': 'Sb', 'Sc': 'Sc_sv', 'Se': 'Se', 'Si': 'Si', 'Sm': 'Sm_3', 'Sn': 'Sn_d', 'Sr': 'Sr_sv', 'Ta': 'Ta_pv', 'Tb': 'Tb_3', 'Tc': 'Tc_pv', 'Te': 'Te', 'Th': 'Th', 'Ti': 'Ti_sv', 'Tl': 'Tl_d', 'Tm': 'Tm_3', 'U': 'U', 'V': 'V_pv', 'W': 'W_pv', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn', 'Zr': 'Zr_sv'}}
+             'Cd': 'Cd', 'Ce': 'Ce', 'Cl': 'Cl', 'Co': 'Co', 'Cr': 'Cr_pv', 'Cs': 'Cs_sv', 'Cu': 'Cu', 'Dy': 'Dy_3', 'Er': 'Er_3', 'Eu': 'Eu', 'F': 'F', 'Fe': 'Fe_pv', 'Ga': 'Ga_d', 'Gd': 'Gd', 'Ge': 'Ge_d', 'H': 'H', 'He': 'He','Hf': 'Hf_pv', 'Hg': 'Hg', 'Ho': 'Ho_3', 'I': 'I', 'In': 'In_d', 'Ir': 'Ir', 'K': 'K_sv', 'Kr': 'Kr', 'La': 'La', 'Li': 'Li_sv', 'Lu': 'Lu_3', 'Mg': 'Mg_pv', 'Mn': 'Mn_pv', 'Mo': 'Mo_pv', 'N': 'N', 'Na': 'Na_pv', 'Nb': 'Nb_pv', 'Nd': 'Nd_3', 'Ne': 'Ne', 'Ni': 'Ni_pv', 'Np': 'Np', 'O': 'O', 'Os': 'Os_pv', 'P': 'P', 'Pa': 'Pa', 'Pb': 'Pb_d', 'Pd': 'Pd', 'Pm': 'Pm_3', 'Pr': 'Pr_3', 'Pt': 'Pt', 'Pu': 'Pu', 'Rb': 'Rb_sv', 'Re': 'Re_pv', 'Rh': 'Rh_pv', 'Ru': 'Ru_pv', 'S': 'S', 'Sb': 'Sb', 'Sc': 'Sc_sv', 'Se': 'Se', 'Si': 'Si', 'Sm': 'Sm_3', 'Sn': 'Sn_d', 'Sr': 'Sr_sv', 'Ta': 'Ta_pv', 'Tb': 'Tb_3', 'Tc': 'Tc_pv', 'Te': 'Te', 'Th': 'Th', 'Ti': 'Ti_sv', 'Tl': 'Tl_d', 'Tm': 'Tm_3', 'U': 'U', 'V': 'V_pv', 'W': 'W', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn', 'Zr': 'Zr_sv'}}
 
 def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make_input_files=False, lll_reduce=True, center_slab=True, ox_states=None, max_size=500, potcar_functional='PBE', update_incar=None, update_potcar=None, update_kpoints=None, **kwargs):
     """
@@ -29,15 +29,15 @@ def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make
     Returns:
         POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with POSCARs or hkl/slab_vac_index with all input files
     """
-
+    #import bulk relaxed structure, add oxidation states for slab dipole calculations
     struc = Structure.from_file(structure)
     if ox_states is not None:
         struc.add_oxidation_state_by_element(ox_states)
     else:
         struc.add_oxidation_state_by_guess()
 
+    #iterate through vacuums and thicknessses to get all zero dipole symmetric slabs
     provisional = []
-
     for thickness in thicknesses:
         for vacuum in vacuums:
             slabgen = SlabGenerator(struc, hkl, thickness, vacuum,lll_reduce=lll_reduce, center_slab=center_slab)
@@ -46,6 +46,7 @@ def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make
                 if (slab.is_polar() == False) and (slab.is_symmetric() == True):
                     provisional.append({'hkl': ''.join(map(str, slab.miller_index)), 'slab_t': thickness, 'vac_t': vacuum, 's_index': i, 'slab': slab})
 
+    #iterate though provisional slabs to extract the unique slabs
     unique_list = []
     unique_list_of_dicts = []
     repeat = []
@@ -61,9 +62,7 @@ def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make
         else:
             repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
 
-    for slab in unique_list_of_dicts:
-        slab['slab'].to(fmt='poscar',filename='POSCAR_{}_{}_{}_{}.vasp'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
-
+    #warnings for large and repeated slabs
     if repeat:
         print('warning: not all combinations slab/vac thickness were generated because of repeat structures. make sure to manually check the missing slabs.')
         print('the repeat slabs are: ' + ', '.join(map(str, repeat)))
@@ -72,6 +71,7 @@ def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make
         print('warning: some generated slabs exceed the max size specified')
         print('slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
+    #makes folders hkl/slab_vac_index with POSCAR, POTCAR, INCAR and KPOINTS
     if make_fols is True:
         for root, fols, files in os.walk(os.getcwd()):
             for slab in unique_list_of_dicts:
@@ -82,6 +82,7 @@ def get_one_hkl_slab(structure, hkl, thicknesses, vacuums, make_fols=False, make
                         else:
                             slab['slab'].to(fmt='poscar',filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],slab['slab_t'], slab['vac_t'], slab['s_index']))
 
+    #omits folders, makes POSCAR_hkl_slab_vac_index files in the root directory
     else:
         for slab in unique_list_of_dicts:
             slab['slab'].to(fmt='poscar',filename='POSCAR_{}_{}_{}_{}.vasp'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
@@ -93,8 +94,8 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums, make_fols=F
     generates all unique slabs with specified max hkl, min slab and vacuum thicknesses; including all combinations for multiple zero-dipole symmetric terminations for the same hkl
     Args:
         structure: filename of structure file; oxidation states added by guess
-        hkl (tuple): miller index
-        thicknesses (list): min size in of the slab angstroms
+        max_index (int): maximum Miller index to be considered
+        thicknesses (list): min size in of the slab in angstroms
         vacuums (list): min size in of vacuum in angstroms
         make_fols (bool): makes folders containing POSCARs, default=False
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each of the folders, default=False
@@ -119,7 +120,6 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums, make_fols=F
 
     #iterate through vacuums and thicknessses to get all zero dipole symmetric slabs
     provisional = []
-
     for vacuum in vacuums:
         for thickness in thicknesses:
             all_slabs = generate_all_slabs(struc, max_index=max_index, min_slab_size=thickness, min_vacuum_size=vacuum, lll_reduce=lll_reduce, center_slab=center_slab)
@@ -127,7 +127,7 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums, make_fols=F
                 if (slab.is_polar() == False) and (slab.is_symmetric() == True):
                     provisional.append({'hkl': ''.join(map(str, slab.miller_index)), 'slab_t': thickness, 'vac_t': vacuum, 's_index': i, 'slab': slab})
 
-    #iterate though provisional slabs to extract the unique ones, get warning if repeat slabs are noted and if slabs over a certain set size
+    #iterate though provisional slabs to extract the unique slabs
     unique_list = []
     unique_list_of_dicts = []
     repeat = []
@@ -144,6 +144,7 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums, make_fols=F
         else:
             repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
 
+    #warnings for large and repeated slabs
     if repeat:
         print('warning: not all combinations of hkl or slab/vac thickness were generated because of repeat structures.')
         print('the repeat slabs are: ' + ', '.join(map(str, repeat)))

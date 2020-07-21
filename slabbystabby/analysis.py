@@ -1,30 +1,34 @@
 
-from pymatgen.core.trajectory import Trajectory
 from pymatgen import Structure, Element, Specie
 from pymatgen.core.structure import SiteCollection
-from pymatgen.analysis.local_env import CrystalNN, BrunnerNN_reciprocal, CutOffDictNN, VoronoiNN, MinimumDistanceNN
+from pymatgen.core.lattice import Lattice
+from pymatgen.analysis.local_env import *
+from pymatgen.io.vasp.outputs import Locpot, VolumetricData
 import os
 import math
 import numpy as np
-from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pandas as pd
 import warnings
 warnings.filterwarnings('once')
+
+## Matplotlib
 import matplotlib as mpl
-### Matplotlib style ###
+from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (7.0,6.0)
+mpl.rcParams.update({'font.size': 18})
 
 
-def cart_displacements(start, end, elements, max_disp=0.1):
+def cart_displacements(start, end, elements, max_disp=0.1, csv_fname='cart_displacements.txt'):
     """
-    gives a text? file with all the cartesian displacements of atoms
+    gives a text file with all the cartesian displacements of atoms
 
     Args:
         start (str): initial structure
         end (str): final structure
         elements (list): list of elements in the structure e.g. ['Y', 'Ti', 'O', 'S']
         max_disp (float): maximum displacement shown, default 0.1 Å
+        csv_fname (str): filename of the csv file
     Returns:
         text file w displacements
 
@@ -59,35 +63,46 @@ def cart_displacements(start, end, elements, max_disp=0.1):
                              'displacement': f"{d: .3f}"})
 
     df = pd.DataFrame(disp_list)
-    df.to_csv('cart_displacements.txt', header = True, index = False, sep='\t', mode='w')
+    df.to_csv(csv_fname, header = True, index = False, sep='\t', mode='w')
 
-#raise warning if start, end don't have the same number of sites; raise warning if all disp smaller than the max_disp;
 
-def slab_thickness(start, end=None, end_zmax=None):
+def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     """
     finds the thickness of the slab in c-direction based on the difference between the maximum and minimum cartesian coordinates of the slab
     allows for slab thickness comparison between the bulk-like and relaxed/reconstructed surface slab by setting end to final structure filename
     Args:
-        start (str?): intial structure filename
+        start (str): intial structure filename
+        start_zmax (float): the cartesian coordinate of the maximum coordinate in c-direction, used if the slab was not centred and some atoms moved to the other side of the unit cell; default: None
         end (str): end structure filename, default: None
         end_zmax (float): the cartesian coordinate of the maximum coordinate in c-direction, used if the slab was not centred and some atoms moved to the other side of the unit cell; default: None
     Returns
-        slab thickness
+        prints slab thickness to terminal
     """
     start_struc = Structure.from_file(start)
     start_struc = start_struc.cart_coords
 
-    if end is None:
+    #just one slab
+    if end is None and start_zmax is None:
         s_xmax, s_ymax, s_zmax = start_struc.max(axis = 0)
         s_xmin, s_ymin, s_zmin = start_struc.min(axis = 0)
 
         thickness = s_zmax - s_zmin
 
-        print('the slab thickness is {:.3f}'.format(thickness))
+        print('the slab thickness is {:.3f} Å'.format(thickness))
 
+    #one slab with specified max cartesian coordinate in z
+    elif end is None and start_zmax is not None:
+        s_xmax, s_ymax, s_zmax = start_struc.max(axis = 0)
+        s_xmin, s_ymin, s_zmin = start_struc.min(axis = 0)
+
+        thickness = start_zmax - s_zmin
+
+        print('the slab thickness is {:.3f} Å'.format(thickness))
+
+    #initial and relaxed structures, no spefcified max coords
     elif end_zmax is None:
         end_struc = Structure.from_file(end)
-        end_struc = contcar.cart_coords
+        end_struc = end_struc.cart_coords
 
         s_xmax, s_ymax, s_zmax = start_struc.max(axis = 0)
         s_xmin, s_ymin, s_zmin = start_struc.min(axis = 0)
@@ -98,11 +113,12 @@ def slab_thickness(start, end=None, end_zmax=None):
         end_thickness = e_zmax - e_zmin
         difference = start_thickness - end_thickness
 
-        print('the initial slab thickness is {:.3f}. the final slab thickness is {:.3f} and the difference between the two is {:.3f}'.format(start_thickness, end_thickness, difference))
+        print('the initial slab thickness is {:.3f} Å. the final slab thickness is {:.3f} Å and the difference between the two is {:.3f} Å'.format(start_thickness, end_thickness, difference))
 
+    #intial and relaxed structure, specified max coord
     else:
         end_struc = Structure.from_file(end)
-        end_struc = contcar.cart_coords
+        end_struc = end_struc.cart_coords
 
         s_xmax, s_ymax, s_zmax = start_struc.max(axis = 0)
         s_xmin, s_ymin, s_zmin = start_struc.min(axis = 0)
@@ -113,22 +129,23 @@ def slab_thickness(start, end=None, end_zmax=None):
         end_thickness = end_zmax - e_zmin
         difference = start_thickness - end_thickness
 
-        print('the initial slab thickness is {:.3f}. the final slab thickness is {:.3f} and the difference between the two is {:.3f}'.format(start_thickness, end_thickness, difference))
+        print('the initial slab thickness is {:.3f} Å. the final slab thickness is {:.3f} Å. the difference between the two is {:.3f} Å'.format(start_thickness, end_thickness, difference))
 
 
 
-def bond_analysis(struc, atoms, nn_method=VoronoiNN(tol=0.1, cutoff=10)):
+def bond_analysis(structure, atoms, nn_method=VoronoiNN(tol=0.1, cutoff=10)):
     """
     parses the structure looking for bonds between atoms
     Args:
-        struc: filename or structure file
+        structure (str): filename
         atoms (list of tuples): list of bonds to compare e.g. [('Y', 'O'), ('Ti', 'S')]
-        nn_method (class?): nearest neighbour method to use to find the coordination environment
+        nn_method (class): pymatgen.analysis.local_env nearest neighbour method to use to find the coordination environment
     Returns:
         csv file
     """
 
     bonds_info = []
+    struc = Structure.from_file(structure)
     struc.add_oxidation_state_by_guess()
 
     for n, pos in enumerate(struc):
@@ -146,14 +163,13 @@ def bond_analysis(struc, atoms, nn_method=VoronoiNN(tol=0.1, cutoff=10)):
     df = pd.DataFrame(bonds_info)
     df.to_csv('bond_analysis_data.csv', index=False)
 
-    return df
 
-
-def plot_bond_analysis(atoms):
+def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', **kwargs):
     """
     plots the bond distance graph thingie luisa introduced to the mix from the csv file generated with bond_analysis
     Args:
         atoms (list of tuples) in the same order as atoms in bond_analysis
+        plt_fname (str): filename of the plot
     Returns:
         plot of bond distance change in c direction
     """
@@ -161,7 +177,6 @@ def plot_bond_analysis(atoms):
     df = pd.read_csv('bond_analysis_data.csv')
     colors = plt.rcParams["axes.prop_cycle"]()
 
-    legend_list = []
     fig, axs = plt.subplots(len(atoms))
 
     i=0
@@ -175,7 +190,59 @@ def plot_bond_analysis(atoms):
         i+=1
 
     plt.xlabel("Fractional coordinates")
-    plt.show()
+    plt.savefig(plt_fname)
+
+def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2, make_csv=True, csv_fname='potential.csv', plt_fname='potential.png', **kwargs):
+    """
+    reads LOCPOT to get the planar and macroscopic potential in specified direction
+    Args:
+        lattice_vector (float): the periodicity of the slab in the specified direction
+        filename (str): path to your locpot file, default='./LOCPOT'
+        axis (int): direction in which the potential is investigated; a=0, b=1, c=2; default=2
+        make_csv (bool): makes a csv file with planar and macroscopic potential, default=True
+        csv_fname (str): filename of the csv file, default='potential.csv'
+        plt_fname (str): filename of the plot of potentials, controls the format, default='potential.png'
+    Returns:
+        plot of planar and macroscopic potential, csv file with both for your open science needs
+    """
+    #read potential and structure data
+    lpt = Locpot.from_file(filename)
+    struc = Structure.from_file(filename)
+
+    #planar potential
+    planar = lpt.get_average_along_axis(axis)
+
+    #divide lattice parameter by no. of grid points in the direction
+    resolution = struc.lattice.abc[axis]/lpt.dim[axis]
+
+    #get number of points over which the rolling average is evaluated
+    points = int(lattice_vector/resolution)
+
+    #need extra points at the start and end of planar potential to evaluate the macroscopic potential
+    #this makes use of the PBC where the end of one unit cell coincides with start of the next one
+    add_to_start = planar[(len(planar) - points): ]
+    add_to_end = planar[0:points]
+    pfm_data = np.concatenate((add_to_start,planar,add_to_end))
+    pfm = pd.DataFrame(data=pfm_data, columns=['y'])
+
+    #macroscopic potential
+    m_data = pfm.y.rolling(window=points, center=True).mean()
+    macroscopic = m_data.iloc[points:(len(planar)+points)]
+    macroscopic.reset_index(drop=True,inplace=True)
+
+    #make csv
+    if make_csv is True:
+        data = pd.DataFrame(data=planar, columns=['planar'])
+        data['macroscopic'] = macroscopic
+        data.to_csv(csv_fname, header = True, index = False)
+
+    #plot both planar and macroscopic, save figure
+    fig,ax = plt.subplots()
+    ax.plot(planar, label='planar')
+    ax.plot(macroscopic, label='macroscopic')
+    ax.legend()
+    plt.ylabel('potential / eV')
+    plt.savefig(plt_fname)
 
 
 #this is still very much a work in progress, i cannot figure out how to make the fkcin nearest neighbour methods work and i am too scared to ask alex again lol

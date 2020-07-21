@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-__author__ = "Kat Brlec"
-__copyright__ = "Copyright Kat Brlec, Daniel W. Davies (2020)"
+__author__ = "Katarina Brlec"
+__copyright__ = "Copyright Katarina Brlec, Daniel W. Davies (2020)"
 __version__ = "0.1"
-__maintainer__ = "Kat Brlec"
+__maintainer__ = "Katarina Brlec"
 __email__ = "katarina.brlec.15@ucl.ac.uk"
 __date__ = "July 12 2020"
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
       long_description=open(os.path.join(module_dir, 'README.md')).read(),
       long_description_content_type='text/markdown',
       url='https://github.com/SMTG-group/',
-      author='Kat Brlec',
+      author='Katarina Brlec',
       author_email='katarina.brlec.15@ucl.ac.uk',
       license='MIT',
       packages=['slabbystabby'],
