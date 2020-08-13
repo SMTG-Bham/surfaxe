@@ -17,17 +17,18 @@ mpl.rcParams['figure.figsize'] = (7.0,6.0)
 mpl.rcParams.update({'font.size': 18})
 
 
-def slab_from_file(hkl, filename):
+def slab_from_file(structure, hkl):
     """
-    reads in structure from the file and returns slab object.
+    Reads in structure from the file and returns slab object.
+
     Args:
-         hkl (tuple): miller index of the slab in the input file.
-         filename (str): structure file in any format
-                   supported by pymatgen
+         structure (str): structure file in any format supported by pymatgen
+         hkl (tuple): Miller index of the slab in the input file.
+
     Returns:
          Slab object
     """
-    slab_input = Structure.from_file(filename)
+    slab_input = Structure.from_file(structure)
     return Slab(slab_input.lattice,
                 slab_input.species_and_occu,
                 slab_input.frac_coords,
@@ -39,13 +40,17 @@ def slab_from_file(hkl, filename):
 
 def parse_fols(hkl, bulk_per_atom):
     """
-    parses the convergence folders to get the surface energy, total energy, energy per atom and time taken for each slab/vacuum thickness combination
+    Parses the convergence folders to get the surface energy, total energy,
+    energy per atom and time taken for each slab and vacuum thickness
+    combination
+
     Args:
-        hkl (tuple): miller index of the slab
-        bulk_per_atom (float): bulk energy per atom from a converged run
+        hkl (tuple): Miller index of the slab
+        bulk_per_atom (float): bulk energy per atom from a converged bulk
+        calculation
 
     Returns:
-        .csv file
+        hkl_data.csv
     """
 
     d = []
@@ -58,26 +63,25 @@ def parse_fols(hkl, bulk_per_atom):
                 psc = '{}/POSCAR'.format(path)
                 vsp = '{}/vasprun.xml'.format(path)
 
-                #instantiate structure, slab and vasprun objects
+                # instantiate structure, slab and vasprun objects
                 structure = Structure.from_file(psc)
                 vasprun = Vasprun(vsp)
                 slab = slab_from_file(hkl, psc)
 
-                #extract the data
+                # extract the data
                 area = slab.surface_area
                 atoms = len(structure.atomic_numbers)
                 slab_energy = vasprun.final_energy
                 energy_per_atom = slab_energy / atoms
                 surf_energy = (slab_energy - bulk_per_atom * atoms)/(2 * area) * 16.02
 
-                #name of fol has to be ./slabthickness_vacthickness_index
+                # name of fol has to be ./slabthickness_vacthickness_index
                 slab_vac_index = fol.split('_')
 
-                #reads the outcar to get the time taken
+                # reads the outcar to get the time taken
                 with open('{}/OUTCAR'.format(path), 'r') as otc:
                     lines = list(otc)
                     line = lines[-8].split(':')
-
 
                 d.append({'slab_thickness': slab_vac_index[0],
                           'vac_thickness': slab_vac_index[1],
@@ -87,125 +91,175 @@ def parse_fols(hkl, bulk_per_atom):
                           'slab_per_atom': energy_per_atom,
                           'time_taken': line[1].strip()})
 
-
     df = pd.DataFrame(d)
     df.to_csv('{}_data.csv'.format(hkl_sorted), index=False)
 
-def plot_surface_energy(hkl, time_taken=True, dpi=300, **kwargs):
+def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
     """
-    does what it says on the tin - reads the csv, makes the plot of surface energy
-    NB does not account for multiple terminations
+    Reads from the csv file created by `parse_fols` to plot the surface energy
+    for all possible terminations
+
     Args:
-        hkl (tuple): miller index
-        time_taken (bool): whether it shows the time taken for calculation to finish on the graph, default=True
-        dpi (int): dots per inch, default=300
+        hkl (tuple): Miller index
+        time_taken (bool): whether it shows the time taken for calculation to
+        finish on the graph; default=True
+        format (str): format for the output file
+        dpi (int): dots per inch; default=300
+
     Returns:
-        hkl_energy_per_atom_conv.png
+        hkl_surface_energy.png
     """
 
-    hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
-    #get the energy values
-    df2 = df.pivot(index='slab_thickness', columns='vac_thickness', values='surface_energy')
-    vals = df2.to_numpy()
+    indices = []
+    vals = []
+    times = []
+    dfs = []
 
-    #get the time values
-    df3 = df.pivot(index='slab_thickness', columns='vac_thickness', values='time_taken')
-    times = df3.to_numpy()
+    # Group the values by termination slab index, create df for time and
+    # energy values. Converts the energy and time values to np arrays for plotting
+    for group in df.groupby('slab_index'):
+        df2 = group[1].pivot(index='slab_thickness',
+                             columns='vac_thickness',
+                             values='surface_energy')
+        df3 = group[1].pivot(index='slab_thickness',
+                             columns='vac_thickness',
+                             values='time_taken')
+        indices.append(group[0])
+        vals.append(df2.to_numpy())
+        times.append(df3.to_numpy())
+        dfs.append(df2)
 
-    #set up axes and im
-    ax = plt.gca()
-    ax.set_yticks(list(range(len(df2.index))))
-    ax.set_yticklabels(df2.columns)
-    ax.set_xticks(list(range(len(df2.columns))))
-    ax.set_xticklabels(df2.columns)
-    im = plt.imshow(vals, cmap='Wistia', interpolation='mitchell')
+    # Plotting segment
+    fig, ax = plt.subplots(ncols=len(indices))
 
+    # The extra args are there because the default leaves a massive gap
+    # between the title and subplot titles, no amount of changing tight_layout
+    # and subplots_adjust helped with the issue
+    fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
+                 va='top', size=22)
 
-    #add the energy per atom value labels
-    for i in range(len(df2.index)):
-        for j in range(len(df2.columns)):
-            for val in vals:
-                text = ax.text(j, i, f"{vals[i, j]: .3f}", ha="center", va="bottom", color="black")
+    # Iterate through the values for plotting, create each plot on a separate ax,
+    # add the colourbar to each ax
+    for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+        ax[i].set_title('Slab index {}'.format(index))
+        ax[i].set_yticks(list(range(len(df.index))))
+        ax[i].set_yticklabels(df.columns)
+        ax[i].set_ylabel('Slab thickness')
+        ax[i].set_xticks(list(range(len(df.columns))))
+        ax[i].set_xticklabels(df.columns)
+        ax[i].set_xlabel('Vacuum thickness')
+        im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+        divider = make_axes_locatable(ax[i])
+        cax = divider.append_axes("right", size="5%", pad=0.2)
+        cbar = plt.colorbar(im, cax=cax)
+        ax[i].invert_yaxis()
+    fig.tight_layout()
 
-    #add the time taken labels
+    # Add the surface energy value labels to the plot
+    for df in dfs:
+        for j in range(len(df.index)):
+            for k in range(len(df.columns)):
+                for i, val in enumerate(vals):
+                    text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                      va="bottom", color="black")
+
+    # Add the time taken labels to the plot
     if time_taken is not False:
-        for i in range(len(df2.index)):
-            for j in range(len(df2.columns)):
-                for time in vals:
-                    text = ax.text(j, i, (f"{times[i, j]: .0f}"+' s'), ha="center", va="top", color="black")
-
-    #invert axis and plot the titles
-    ax.invert_yaxis()
-    plt.ylabel('slab thickness')
-    plt.xlabel('vacuum thickness')
-    plt.title('{} surface energies'.format(hkl))
-
-    #show the colour bar
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.2)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.set_label('surface energy')
-    plt.savefig('{}_surface_energy_conv.png'.format(hkl_sorted), dpi=dpi, bbox_inches='tight')
-    plt.show()
+        for df in dfs:
+            for j in range(len(df.index)):
+                for k in range(len(df.columns)):
+                    for i, time in enumerate(times):
+                        text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                          ha="center", va="top", color="black")
 
 
+    plt.savefig('{}_surface_energy'.format(''.join(map(str, hkl))),
+    format=format, dpi=dpi, bbox_inches='tight')
 
-def plot_energy_per_atom(hkl, time_taken=True, dpi=300, **kwargs):
+
+def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
     """
-    does what it says on the tin - reads the csv, makes the plot of energy per atom
-    NB does not account for multiple terminations
+    Reads from the csv file created by `parse_fols` to plot the energy per atom
+    for all possible terminations
+
     Args:
-        hkl (tuple): miller index
-        time_taken (bool): whether it shows the time taken for calculation to finish on the graph, default=True
-        dpi (int): dots per inch, default=300
+        hkl (tuple): Miller index
+        time_taken (bool): whether it shows the time taken for calculation to
+        finish on the graph; default=True
+        format (str): format for the output file
+        dpi (int): dots per inch; default=300
+
     Returns:
-        hkl_energy_per_atom_conv.png
+        hkl_energy_per_atom.png
     """
 
-    hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
-    #get the energy values
-    df2 = df.pivot(index='slab_thickness', columns='vac_thickness', values='slab_per_atom')
-    vals = df2.to_numpy()
+    indices = []
+    vals = []
+    times = []
+    dfs = []
 
-    #get the time values
-    df3 = df.pivot(index='slab_thickness', columns='vac_thickness', values='time_taken')
-    times = df3.to_numpy()
+    # Group the values by termination slab index, create df for time and
+    # energy values. Converts the energy and time values to np arrays for plotting
+    for group in df.groupby('slab_index'):
+        df2 = group[1].pivot(index='slab_thickness',
+                             columns='vac_thickness',
+                             values='energy_per_atom')
+        df3 = group[1].pivot(index='slab_thickness',
+                             columns='vac_thickness',
+                             values='time_taken')
+        indices.append(group[0])
+        vals.append(df2.to_numpy())
+        times.append(df3.to_numpy())
+        dfs.append(df2)
 
-    #set up axes and im
-    ax = plt.gca()
-    ax.set_yticks(list(range(len(df2.index))))
-    ax.set_yticklabels(df2.columns)
-    ax.set_xticks(list(range(len(df2.columns))))
-    ax.set_xticklabels(df2.columns)
-    im = plt.imshow(vals, cmap='Wistia', interpolation='mitchell')
+    # Plotting segment
+    fig, ax = plt.subplots(ncols=len(indices))
 
-    #add the energy per atom value labels
-    for i in range(len(df2.index)):
-        for j in range(len(df2.columns)):
-            for val in vals:
-                text = ax.text(j, i, f"{vals[i, j]: .3f}", ha="center", va="bottom", color="black")
+    # The extra args are there because the default leaves a massive gap
+    # between the title and subplot titles, no amount of changing tight_layout
+    # and subplots_adjust helped with the issue
+    fig.suptitle('{} energies per atom'.format(hkl), y=0.73, ha='center',
+                 va='top', size=22)
 
-    #add the time taken labels
+    # Iterate through the values for plotting, create each plot on a separate ax,
+    # add the colourbar to each ax
+    for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+        ax[i].set_title('Slab index {}'.format(index))
+        ax[i].set_yticks(list(range(len(df.index))))
+        ax[i].set_yticklabels(df.columns)
+        ax[i].set_ylabel('Slab thickness')
+        ax[i].set_xticks(list(range(len(df.columns))))
+        ax[i].set_xticklabels(df.columns)
+        ax[i].set_xlabel('Vacuum thickness')
+        im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+        divider = make_axes_locatable(ax[i])
+        cax = divider.append_axes("right", size="5%", pad=0.2)
+        cbar = plt.colorbar(im, cax=cax)
+        ax[i].invert_yaxis()
+    fig.tight_layout()
+
+    # Add the surface energy value labels to the plot, the for loop have to be
+    # in this order becuase it breaks the text if i and val are in the first loop
+    for df in dfs:
+        for j in range(len(df.index)):
+            for k in range(len(df.columns)):
+                for i, val in enumerate(vals):
+                    text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                      va="bottom", color="black")
+
+    # Add the time taken labels to the plot, same loop comment as above
     if time_taken is not False:
-        for i in range(len(df2.index)):
-            for j in range(len(df2.columns)):
-                for time in vals:
-                    text = ax.text(j, i, (f"{times[i, j]: .0f}"+' s'), ha="center", va="top", color="black")
+        for df in dfs:
+            for j in range(len(df.index)):
+                for k in range(len(df.columns)):
+                    for i, time in enumerate(times):
+                        text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                          ha="center", va="top", color="black")
 
-    #invert axis and plot the titles
-    ax.invert_yaxis()
-    plt.ylabel('slab thickness')
-    plt.xlabel('vacuum thickness')
-    plt.title('{} energies per atom'.format(hkl))
 
-    #show the colour bar
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.2)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.set_label('energy per atom')
-    plt.savefig('{}_energy_per_atom_conv.png'.format(hkl_sorted), dpi=dpi, bbox_inches='tight')
-    plt.show()
+    plt.savefig('{}_energy_per_atom'.format(''.join(map(str, hkl))),
+    format=format, dpi=dpi, bbox_inches='tight')
