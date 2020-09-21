@@ -288,7 +288,7 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums,
                               user_incar_settings=update_incar,
                               user_potcar_settings=update_potcar,
                               user_kpoints_settings=update_kpoints)
-                vis.write_input(os.path.join(root, r'{}/{}_{}_{}'.format(slab['hkl'],
+                vis.write_input(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
                 slab['slab_t'], slab['vac_t'], slab['s_index'])))
             # Makes the folders with POSCARs
             else:

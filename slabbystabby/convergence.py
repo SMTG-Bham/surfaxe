@@ -66,7 +66,7 @@ def parse_fols(hkl, bulk_per_atom):
                 # instantiate structure, slab and vasprun objects
                 structure = Structure.from_file(psc)
                 vasprun = Vasprun(vsp)
-                slab = slab_from_file(hkl, psc)
+                slab = slab_from_file(psc, hkl)
 
                 # extract the data
                 area = slab.surface_area
@@ -109,7 +109,7 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
     Returns:
         hkl_surface_energy.png
     """
-
+    hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
     indices = []
@@ -131,12 +131,13 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         times.append(df3.to_numpy())
         dfs.append(df2)
 
-    # Plotting segment
+    # Plotting segment - treba narest tako da gre cez columns&rows ce je npr
+    # vec kot 3 indices v skupini
     fig, ax = plt.subplots(ncols=len(indices))
 
     # The extra args are there because the default leaves a massive gap
     # between the title and subplot titles, no amount of changing tight_layout
-    # and subplots_adjust helped with the issue
+    # and subplots_adjust helped with the issue - this is a known mpl issue
     fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
                  va='top', size=22)
 
@@ -195,6 +196,7 @@ def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         hkl_energy_per_atom.png
     """
 
+    hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
     indices = []
