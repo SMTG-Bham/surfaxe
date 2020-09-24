@@ -131,49 +131,86 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         times.append(df3.to_numpy())
         dfs.append(df2)
 
-    # Plotting segment - treba narest tako da gre cez columns&rows ce je npr
-    # vec kot 3 indices v skupini
-    fig, ax = plt.subplots(ncols=len(indices))
+    # Plotting has to be separated into plotting for one and more than one
+    # indices mpl won't let you index axes if there's only one set
+    if len(indices) == 1:
+        fig, ax = plt.subplots(1,1)
+        fig.suptitle('{} surface energies'.format(hkl))
+        for (index, val, time, df) in zip(indices, vals, times, dfs):
+            ax.set_yticks(list(range(len(df.index))))
+            ax.set_yticklabels(df.columns)
+            ax.set_ylabel('Slab thickness')
+            ax.set_xticks(list(range(len(df.columns))))
+            ax.set_xticklabels(df.columns)
+            ax.set_xlabel('Vacuum thickness')
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.2)
+            im = ax.imshow(val, cmap='Wistia', interpolation='mitchell')
+            fig.colorbar(im, cax=cax, orientation='vertical')
+            ax.invert_yaxis()
 
-    # The extra args are there because the default leaves a massive gap
-    # between the title and subplot titles, no amount of changing tight_layout
-    # and subplots_adjust helped with the issue - this is a known mpl issue
-    fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
-                 va='top', size=22)
-
-    # Iterate through the values for plotting, create each plot on a separate ax,
-    # add the colourbar to each ax
-    for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-        ax[i].set_title('Slab index {}'.format(index))
-        ax[i].set_yticks(list(range(len(df.index))))
-        ax[i].set_yticklabels(df.columns)
-        ax[i].set_ylabel('Slab thickness')
-        ax[i].set_xticks(list(range(len(df.columns))))
-        ax[i].set_xticklabels(df.columns)
-        ax[i].set_xlabel('Vacuum thickness')
-        im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
-        divider = make_axes_locatable(ax[i])
-        cax = divider.append_axes("right", size="5%", pad=0.2)
-        cbar = plt.colorbar(im, cax=cax)
-        ax[i].invert_yaxis()
-    fig.tight_layout()
-
-    # Add the surface energy value labels to the plot
-    for df in dfs:
-        for j in range(len(df.index)):
-            for k in range(len(df.columns)):
-                for i, val in enumerate(vals):
-                    text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
-                                      va="bottom", color="black")
-
-    # Add the time taken labels to the plot
-    if time_taken is not False:
+        # Add the surface energy value labels to the plot - the for loops are
+        # needed in this order and they can't be zipped because this is the
+        # only way they display the values correctly
         for df in dfs:
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
-                    for i, time in enumerate(times):
-                        text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                          ha="center", va="top", color="black")
+                    for val in vals:
+                        text = ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                          va="bottom", color="black")
+
+        # Add the time taken labels to the plot
+        if time_taken:
+            for df in dfs:
+                for j in range(len(df.index)):
+                    for k in range(len(df.columns)):
+                        for time in times:
+                            text = ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                              ha="center", va="top", color="black")
+
+    # Plotting for multiple indices 
+    else:
+        fig, ax = plt.subplots(ncols=len(indices))
+
+        # The extra args are there because the default leaves a massive gap
+        # between the title and subplot titles, no amount of changing tight_layout
+        # and subplots_adjust helped with the issue - this is a known mpl issue
+        fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
+                     va='top', size=22)
+
+        # Iterate through the values for plotting, create each plot on a separate ax,
+        # add the colourbar to each ax
+        for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+            ax[i].set_title('Slab index {}'.format(index))
+            ax[i].set_yticks(list(range(len(df.index))))
+            ax[i].set_yticklabels(df.columns)
+            ax[i].set_ylabel('Slab thickness')
+            ax[i].set_xticks(list(range(len(df.columns))))
+            ax[i].set_xticklabels(df.columns)
+            ax[i].set_xlabel('Vacuum thickness')
+            im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+            divider = make_axes_locatable(ax[i])
+            cax = divider.append_axes("right", size="5%", pad=0.2)
+            cbar = plt.colorbar(im, cax=cax)
+            ax[i].invert_yaxis()
+        fig.tight_layout()
+
+        # Add the surface energy value labels to the plot
+        for df in dfs:
+            for j in range(len(df.index)):
+                for k in range(len(df.columns)):
+                    for i, val in enumerate(vals):
+                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                          va="bottom", color="black")
+
+        # Add the time taken labels to the plot
+        if time_taken:
+            for df in dfs:
+                for j in range(len(df.index)):
+                    for k in range(len(df.columns)):
+                        for i, time in enumerate(times):
+                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                              ha="center", va="top", color="black")
 
 
     plt.savefig('{}_surface_energy'.format(''.join(map(str, hkl))),
@@ -218,49 +255,90 @@ def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         times.append(df3.to_numpy())
         dfs.append(df2)
 
-    # Plotting segment
-    fig, ax = plt.subplots(ncols=len(indices))
+    if len(indices) == 1:
+        fig, ax = plt.subplots(1,1)
+        fig.suptitle('{} surface energies'.format(hkl))
 
-    # The extra args are there because the default leaves a massive gap
-    # between the title and subplot titles, no amount of changing tight_layout
-    # and subplots_adjust helped with the issue
-    fig.suptitle('{} energies per atom'.format(hkl), y=0.73, ha='center',
-                 va='top', size=22)
+        # Iterate through the values for plotting, create each plot on a separate ax,
+        # add the colourbar to each ax
+        for index, val, time, df in zip(indices, vals, times, dfs):
+            ax.set_title('Slab index {}'.format(index))
+            ax.set_yticks(list(range(len(df.index))))
+            ax.set_yticklabels(df.columns)
+            ax.set_ylabel('Slab thickness')
+            ax.set_xticks(list(range(len(df.columns))))
+            ax.set_xticklabels(df.columns)
+            ax.set_xlabel('Vacuum thickness')
+            im = ax.imshow(val, cmap='Wistia', interpolation='mitchell')
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.2)
+            cbar = plt.colorbar(im, cax=cax)
+            ax.invert_yaxis()
 
-    # Iterate through the values for plotting, create each plot on a separate ax,
-    # add the colourbar to each ax
-    for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-        ax[i].set_title('Slab index {}'.format(index))
-        ax[i].set_yticks(list(range(len(df.index))))
-        ax[i].set_yticklabels(df.columns)
-        ax[i].set_ylabel('Slab thickness')
-        ax[i].set_xticks(list(range(len(df.columns))))
-        ax[i].set_xticklabels(df.columns)
-        ax[i].set_xlabel('Vacuum thickness')
-        im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
-        divider = make_axes_locatable(ax[i])
-        cax = divider.append_axes("right", size="5%", pad=0.2)
-        cbar = plt.colorbar(im, cax=cax)
-        ax[i].invert_yaxis()
-    fig.tight_layout()
-
-    # Add the surface energy value labels to the plot, the for loop have to be
-    # in this order becuase it breaks the text if i and val are in the first loop
-    for df in dfs:
-        for j in range(len(df.index)):
-            for k in range(len(df.columns)):
-                for i, val in enumerate(vals):
-                    text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
-                                      va="bottom", color="black")
-
-    # Add the time taken labels to the plot, same loop comment as above
-    if time_taken is not False:
+        # Add the surface energy value labels to the plot, the for loop have to
+        # be in this order becuase it breaks the text if i and val are in the
+        # first loop, also j and k can't be zipped
         for df in dfs:
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
-                    for i, time in enumerate(times):
-                        text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                          ha="center", va="top", color="black")
+                    for i, val in enumerate(vals):
+                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                          va="bottom", color="black")
+
+        # Add the time taken labels to the plot, same loop comment as above
+        if time_taken:
+            for df in dfs:
+                for j in range(len(df.index)):
+                    for k in range(len(df.columns)):
+                        for i, time in enumerate(times):
+                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                              ha="center", va="top", color="black")
+
+    # Plotting for multiple indices
+    else:
+        fig, ax = plt.subplots(ncols=len(indices))
+
+        # The extra args are there because the default leaves a massive gap
+        # between the title and subplot titles, no amount of changing tight_layout
+        # and subplots_adjust helped with the issue
+        fig.suptitle('{} energies per atom'.format(hkl), y=0.73, ha='center',
+                     va='top', size=22)
+
+        # Iterate through the values for plotting, create each plot on a separate ax,
+        # add the colourbar to each ax
+        for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+            ax[i].set_title('Slab index {}'.format(index))
+            ax[i].set_yticks(list(range(len(df.index))))
+            ax[i].set_yticklabels(df.columns)
+            ax[i].set_ylabel('Slab thickness')
+            ax[i].set_xticks(list(range(len(df.columns))))
+            ax[i].set_xticklabels(df.columns)
+            ax[i].set_xlabel('Vacuum thickness')
+            im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+            divider = make_axes_locatable(ax[i])
+            cax = divider.append_axes("right", size="5%", pad=0.2)
+            cbar = plt.colorbar(im, cax=cax)
+            ax[i].invert_yaxis()
+        fig.tight_layout()
+
+        # Add the surface energy value labels to the plot, the for loop have to
+        # be in this order becuase it breaks the text if i and val are in the
+        # first loop, also j and k can't be zipped
+        for df in dfs:
+            for j in range(len(df.index)):
+                for k in range(len(df.columns)):
+                    for i, val in enumerate(vals):
+                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                                          va="bottom", color="black")
+
+        # Add the time taken labels to the plot, same loop comment as above
+        if time_taken:
+            for df in dfs:
+                for j in range(len(df.index)):
+                    for k in range(len(df.columns)):
+                        for i, time in enumerate(times):
+                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                                              ha="center", va="top", color="black")
 
 
     plt.savefig('{}_energy_per_atom'.format(''.join(map(str, hkl))),
