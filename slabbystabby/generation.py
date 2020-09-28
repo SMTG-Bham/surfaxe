@@ -40,9 +40,9 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
     """
     Generates all unique slabs for a specified Miller index with minimum slab
     and vacuum thicknesses. Note that using this method of slab generation will
-    result in different slab index numbers as in the `get_all_unique_slabs` -
-    the slabs identified are the same, the index varies based on the position in
-    the list of generated slabs
+    result in different slab index numbers as in the `get_all_slabs` - the slabs
+    identified are the same, the index varies based on the position in the list
+    of generated slabs
 
     Args:
         structure (str): filename of structure file in any format supported by
@@ -55,8 +55,9 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
         of the folders; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
         warning; default=500.
-        ox_states (dict): dictionary of oxidation states, e.g. {“Li”:1, “Fe”:2,
-        “P”:5, “O”:-2}. Defaults to adding oxidation states by guess.
+        ox_states (list or dict): add oxidation states either by sites
+        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+        default=None which adds oxidation states by guess
         lll_reduce (bool): whether or not the slabs will be orthogonalized;
         default=True.
         center_slab (bool): position of the slab in the unit cell, if True the
@@ -78,10 +79,16 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
-    if ox_states is not None:
+    bulk_name = struc.formula.replace(" ", "")
+
+    # Adds oxidation states by guess by default or if the provided oxidation states are
+    # antyhing but a list or a dict; max_sites speeds up the by_guess method
+    if type(ox_states) is dict:
         struc.add_oxidation_state_by_element(ox_states)
+    elif type(ox_states) is list:
+        struc.add_oxidation_state_by_site(ox_states)
     else:
-        struc.add_oxidation_state_by_guess()
+        struc.add_oxidation_state_by_guess(max_sites=-1)
 
     # Iterate through vacuums and thicknessses to get all zero dipole symmetric
     # slabs
@@ -160,18 +167,19 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
 
     # Makes POSCAR_hkl_slab_vac_index files in the root folder
     else:
+        os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
+        exist_ok=True)
         for slab in unique_slabs_list_of_dicts:
             slab['slab'].to(fmt='poscar',
-            filename=r'POSCAR_{}_{}_{}_{}.vasp'.format(slab['hkl'],
+            filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
 
 
-def get_all_unique_slabs(structure, max_index, thicknesses, vacuums,
-                         make_fols=False, make_input_files=False, max_size=500,
-                         ox_states=None, lll_reduce=True, center_slab=True,
-                         config_dict=PBEsol_slab_config, potcar_functional='PBE',
-                         update_incar=None, update_potcar=None,
-                         update_kpoints=None, **kwargs):
+def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
+                  make_input_files=False, max_size=500, ox_states=None,
+                  lll_reduce=True, center_slab=True, config_dict=PBEsol_slab_config,
+                  potcar_functional='PBE', update_incar=None, update_potcar=None,
+                  update_kpoints=None, **kwargs):
     """
     Generates all unique slabs with specified maximum Miller index, minimum slab
     and vacuum thicknesses. It includes all combinations for multiple zero
@@ -190,8 +198,9 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums,
         of the folders; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
         warning; default=500.
-        ox_states (dict): dictionary of oxidation states, e.g. {“Li”:1, “Fe”:2,
-        “P”:5, “O”:-2}. Defaults to adding oxidation states by guess.
+        ox_states (list or dict): add oxidation states either by sites
+        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+        default=None which adds oxidation states by guess
         lll_reduce (bool): whether or not the slabs will be orthogonalized;
         default=True.
         center_slab (bool): position of the slab in the unit cell, if True the
@@ -215,10 +224,16 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums,
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
-    if ox_states is not None:
+    bulk_name = struc.formula.replace(" ", "")
+
+    # Adds oxidation states by guess by default or if the provided oxidation states are
+    # antyhing but a list or a dict; max_sites speeds up the by_guess method
+    if type(ox_states) is dict:
         struc.add_oxidation_state_by_element(ox_states)
+    elif type(ox_states) is list:
+        struc.add_oxidation_state_by_site(ox_states)
     else:
-        struc.add_oxidation_state_by_guess()
+        struc.add_oxidation_state_by_guess(max_sites=-1)
 
     # Iterate through vacuums and thicknessses to get all zero dipole symmetric
     # slabs
@@ -298,7 +313,9 @@ def get_all_unique_slabs(structure, max_index, thicknesses, vacuums,
 
     # Omits folders, makes POSCAR_hkl_slab_vac_index files in the root folder
     else:
+        os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
+        exist_ok=True)
         for slab in unique_list_of_dicts:
             slab['slab'].to(fmt='poscar',
-            filename='POSCAR_{}_{}_{}_{}.vasp'.format(slab['hkl'],
+            filename='{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))

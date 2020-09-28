@@ -13,8 +13,7 @@ warnings.filterwarnings('once')
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-mpl.rcParams['figure.figsize'] = (7.0,6.0)
-mpl.rcParams.update({'font.size': 18})
+mpl.rcParams.update({'font.size': 14})
 
 
 def slab_from_file(structure, hkl):
@@ -94,7 +93,7 @@ def parse_fols(hkl, bulk_per_atom):
     df = pd.DataFrame(d)
     df.to_csv('{}_data.csv'.format(hkl_sorted), index=False)
 
-def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
+def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the surface energy
     for all possible terminations
@@ -103,6 +102,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
         hkl (tuple): Miller index
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
+        cmap (str): Matplotlib colourmap; defaut='Wistia'
         fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300
 
@@ -134,6 +134,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
     # Plotting has to be separated into plotting for one and more than one
     # indices mpl won't let you index axes if there's only one set
     if len(indices) == 1:
+        mpl.rcParams['figure.figsize'] = (6.0,6.0)
         fig, ax = plt.subplots(1,1)
         fig.suptitle('{} surface energies'.format(hkl))
         for (index, val, time, df) in zip(indices, vals, times, dfs):
@@ -145,7 +146,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
             ax.set_xlabel('Vacuum thickness')
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.2)
-            im = ax.imshow(val, cmap='Wistia', interpolation='mitchell')
+            im = ax.imshow(val, cmap=cmap, interpolation='mitchell')
             fig.colorbar(im, cax=cax, orientation='vertical')
             ax.invert_yaxis()
 
@@ -170,6 +171,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
 
     # Plotting for multiple indices
     else:
+        mpl.rcParams['figure.figsize'] = (10.0,10.0)
         fig, ax = plt.subplots(ncols=len(indices))
 
         # The extra args are there because the default leaves a massive gap
@@ -188,7 +190,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
             ax[i].set_xlabel('Vacuum thickness')
-            im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+            im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
             cbar = plt.colorbar(im, cax=cax)
@@ -217,7 +219,7 @@ def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
     dpi=dpi, bbox_inches='tight')
 
 
-def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
+def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the energy per atom
     for all possible terminations
@@ -226,6 +228,7 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
         hkl (tuple): Miller index
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
+        cmap (str): Matplotlib colourmap used; defaut='Wistia'
         fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300
 
@@ -246,7 +249,7 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
     for group in df.groupby('slab_index'):
         df2 = group[1].pivot(index='slab_thickness',
                              columns='vac_thickness',
-                             values='energy_per_atom')
+                             values='slab_per_atom')
         df3 = group[1].pivot(index='slab_thickness',
                              columns='vac_thickness',
                              values='time_taken')
@@ -256,20 +259,20 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
         dfs.append(df2)
 
     if len(indices) == 1:
+        mpl.rcParams['figure.figsize'] = (6.0,6.0)
         fig, ax = plt.subplots(1,1)
-        fig.suptitle('{} surface energies'.format(hkl))
+        fig.suptitle('{} energies per atom'.format(hkl))
 
         # Iterate through the values for plotting, create each plot on a separate ax,
         # add the colourbar to each ax
         for index, val, time, df in zip(indices, vals, times, dfs):
-            ax.set_title('Slab index {}'.format(index))
             ax.set_yticks(list(range(len(df.index))))
             ax.set_yticklabels(df.columns)
             ax.set_ylabel('Slab thickness')
             ax.set_xticks(list(range(len(df.columns))))
             ax.set_xticklabels(df.columns)
             ax.set_xlabel('Vacuum thickness')
-            im = ax.imshow(val, cmap='Wistia', interpolation='mitchell')
+            im = ax.imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.2)
             cbar = plt.colorbar(im, cax=cax)
@@ -281,8 +284,8 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
         for df in dfs:
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
-                    for i, val in enumerate(vals):
-                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                    for val in vals:
+                        text = ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
                                           va="bottom", color="black")
 
         # Add the time taken labels to the plot, same loop comment as above
@@ -290,12 +293,13 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
             for df in dfs:
                 for j in range(len(df.index)):
                     for k in range(len(df.columns)):
-                        for i, time in enumerate(times):
-                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                        for time in times:
+                            text = ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
     # Plotting for multiple indices
     else:
+        mpl.rcParams['figure.figsize'] = (10.0,10.0)
         fig, ax = plt.subplots(ncols=len(indices))
 
         # The extra args are there because the default leaves a massive gap
@@ -314,7 +318,7 @@ def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
             ax[i].set_xlabel('Vacuum thickness')
-            im = ax[i].imshow(val, cmap='Wistia', interpolation='mitchell')
+            im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
             cbar = plt.colorbar(im, cax=cax)
