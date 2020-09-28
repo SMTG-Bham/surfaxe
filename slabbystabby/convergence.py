@@ -94,7 +94,7 @@ def parse_fols(hkl, bulk_per_atom):
     df = pd.DataFrame(d)
     df.to_csv('{}_data.csv'.format(hkl_sorted), index=False)
 
-def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
+def plot_surfen(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the surface energy
     for all possible terminations
@@ -103,7 +103,7 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         hkl (tuple): Miller index
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
-        format (str): format for the output file
+        fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300
 
     Returns:
@@ -168,7 +168,7 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
                             text = ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
-    # Plotting for multiple indices 
+    # Plotting for multiple indices
     else:
         fig, ax = plt.subplots(ncols=len(indices))
 
@@ -213,11 +213,11 @@ def plot_surfen(hkl, time_taken=True, format='png', dpi=300, **kwargs):
                                               ha="center", va="top", color="black")
 
 
-    plt.savefig('{}_surface_energy'.format(''.join(map(str, hkl))),
-    format=format, dpi=dpi, bbox_inches='tight')
+    plt.savefig('{}_surface_energy.{}'.format(''.join(map(str, hkl)), fmt),
+    dpi=dpi, bbox_inches='tight')
 
 
-def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
+def plot_enatom(hkl, time_taken=True, fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the energy per atom
     for all possible terminations
@@ -226,7 +226,7 @@ def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
         hkl (tuple): Miller index
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
-        format (str): format for the output file
+        fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300
 
     Returns:
@@ -341,5 +341,5 @@ def plot_enatom(hkl, time_taken=True, format='png', dpi=300, **kwargs):
                                               ha="center", va="top", color="black")
 
 
-    plt.savefig('{}_energy_per_atom'.format(''.join(map(str, hkl))),
-    format=format, dpi=dpi, bbox_inches='tight')
+    plt.savefig('{}_energy_per_atom.{}'.format(''.join(map(str, hkl)),fmt),
+    dpi=dpi, bbox_inches='tight')
