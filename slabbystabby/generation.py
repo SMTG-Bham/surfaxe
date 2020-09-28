@@ -5,6 +5,12 @@ from pymatgen.io.vasp.sets import DictSet
 import warnings
 import os
 
+# Monkeypatching straight from Stackoverflow
+def custom_formatwarning(message, category, filename, lineno, line=''):
+    # Ignore everything except the message
+    return 'UserWarning: ' + str(message) + '\n'
+
+
 PBEsol_slab_config = {
   'INCAR': {'ALGO': 'Normal', 'ADDGRID': False, 'LASPH': True, 'EDIFFG': -0.01,
             'EDIFF': 1e-06, 'ENCUT': 500, 'ISIF': 2, 'ISMEAR': 0, 'GGA': 'PS',
@@ -131,13 +137,15 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
 
     # Warnings for large and repeated slabs
     if repeat:
-        warnings.warn('Not all combinations of hkl or slab/vac thicknesses'
+        warnings.formatwarning = custom_formatwarning
+        warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
         'were generated because of repeat structures. '
         'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
     if large:
+        warnings.formatwarning = custom_formatwarning
         warnings.warn('Some generated slabs exceed the max size specified.'
-        'Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+        ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Makes folders hkl/slab_vac_index
     if make_fols is True:
@@ -280,14 +288,16 @@ def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
                                                slab['s_index']))
 
     # Warnings for large and repeated slabs
-    if repeat:
-        print('Warning: not all combinations of hkl or slab/vac thickness '
-              'were generated because of repeat structures.')
-        print('The repeat slabs are: ' + ', '.join(map(str, repeat)))
+        if repeat:
+            warnings.formatwarning = custom_formatwarning
+            warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
+            'were generated because of repeat structures. '
+            'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
-    if large:
-        print('Warning: some generated slabs exceed the max size specified')
-        print('Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+        if large:
+            warnings.formatwarning = custom_formatwarning
+            warnings.warn('Some generated slabs exceed the max size specified.'
+            ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Makes folders hkl/slab_vac_index
     if make_fols is True:
