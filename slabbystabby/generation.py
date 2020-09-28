@@ -2,6 +2,7 @@
 from pymatgen.core.surface import SlabGenerator, generate_all_slabs
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import DictSet
+import warnings
 import os
 
 PBEsol_slab_config = {
@@ -130,13 +131,13 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
 
     # Warnings for large and repeated slabs
     if repeat:
-        print('Warning: not all combinations of hkl or slab/vac thickness '
-              'were generated because of repeat structures.')
-        print('The repeat slabs are: ' + ', '.join(map(str, repeat)))
+        warnings.warn('Not all combinations of hkl or slab/vac thicknesses'
+        'were generated because of repeat structures. '
+        'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
     if large:
-        print('warning: some generated slabs exceed the max size specified')
-        print('slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+        warnings.warn('Some generated slabs exceed the max size specified.'
+        'Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Makes folders hkl/slab_vac_index
     if make_fols is True:
