@@ -8,21 +8,21 @@ The main features include:
   * All unique zero-dipole symmetric terminations of slabs are cleaved from a bulk structure.
   * Slabs can be sorted into separate labelled folders, optionally with or all the required VASP input files to run each calculation.
 
-2. **Raw data parsing:** Extracting data from convergence tests. 
+2. **Raw data parsing:** Extracting data from convergence tests.
   * Parsing the convergence testing folders created using the slab generation scripts.
   * Plotting scripts visualising convergence (with respect to slab and vacuum thickness).
 
 3. **Analysis:** Various scripts for surface and bulk calculations.
-  * Electrostatic potential tool, based on Keith Butler's [Macrodensity](https://github.com/WMD-group/MacroDensity) code, for the calculation of absolute electron energies (ionisation potential, electron affinity). 
+  * Electrostatic potential tool, based on Keith Butler's [MacroDensity](https://github.com/WMD-group/MacroDensity) code, for the calculation of absolute electron energies (ionisation potential, electron affinity).
   * Nearest neighbours and bond analysis scripts.
 
-Surfaxe primarily supports VASP, however we would like to add support for other solid-state codes in the future. 
+Surfaxe primarily supports VASP, however we would like to add support for other solid-state codes in the future.
 
 Development notes
 -----------------
 
 ### Bugs, features and questions
-Please use the Issue Tracker to report bugs or request features in the first instance. 
+Please use the Issue Tracker to report bugs or request features in the first instance.
 
 ### Code contributions
 Contributions to interface with this package are most welcome. Please use the ["Fork and Pull"](https://guides.github.com/activities/forking/) workflow to make contributions and stick as closely as possible to the following:
@@ -58,7 +58,7 @@ Analysis:
 ## Installation
 Surfaxe is a Python 3 package and requires pymatgen and other standard scientific python packages.
 
-Recommended istallation is to git clone and install with `pip`:
+Recommended installation is to git clone and install with `pip`:
 
 ```sh
 git clone https://github.com/brlec/slabby-stabby.git

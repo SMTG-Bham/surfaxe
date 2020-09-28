@@ -114,7 +114,7 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
                                         's_index': i,
                                         'slab': slab})
 
-    # iterate though provisional slabs to extract the unique slabs
+    # Iterate though provisional slabs to extract the unique slabs
     unique_list = []
     unique_list_of_dicts = []
     repeat = []
@@ -124,13 +124,13 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
         if slab['slab'] not in unique_list:
             unique_list.append(slab['slab'])
             unique_list_of_dicts.append(slab)
-            #for large slab size warning
+            # For large slab size warning
             atoms = len(slab['slab'].atomic_numbers)
             if atoms > max_size:
                 large.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
                              slab['vac_t'], slab['s_index']))
 
-        # for repeat slabs warning
+        # For repeat slabs warning
         else:
             repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
                           slab['vac_t'], slab['s_index']))
@@ -149,10 +149,9 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
 
     # Makes folders hkl/slab_vac_index
     if make_fols is True:
-        os.mkdir(os.path.join(os.getcwd(),slab['hkl']))
         for slab in unique_list_of_dicts:
-            os.mkdir(r'{}/{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
-                                           slab['vac_t'], slab['s_index']))
+            os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
+            slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
 
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
