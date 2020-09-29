@@ -129,7 +129,7 @@ def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
     if return_df is True:
         return df
 
-def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', **kwargs):
+def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', dpi=300, **kwargs):
     """
     Plots the bond distance with respect to fractional coordinate graph from the
     csv file generated with `bond_analysis`
@@ -137,6 +137,7 @@ def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', **kwargs):
     Args:
         atoms (list of tuples) in the same order as in bond_analysis
         plt_fname (str): filename of the plot
+        dpi (int): dots per inch; default=300
 
     Returns:
         Plot
@@ -158,11 +159,11 @@ def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', **kwargs):
         axs[i].legend(['{}-{} bond'.format(atom1, atom2)])
         i+=1
     plt.xlabel("Fractional coordinates")
-    plt.savefig(plt_fname)
+    plt.savefig(plt_fname, dpi=dpi)
 
 def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
                             make_csv=True, csv_fname='potential.csv',
-                            plt_fname='potential.png', **kwargs):
+                            plt_fname='potential.png', dpi=300, **kwargs):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified direction
 
@@ -176,6 +177,7 @@ def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
         csv_fname (str): filename of the csv file, default='potential.csv'
         plt_fname (str): filename of the plot of potentials, controls the format,
         default='potential.png'
+        dpi (int): dots per inch; default=300
 
     Returns:
         csv file and plot of planar and macroscopic potential
@@ -217,8 +219,8 @@ def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
     ax.plot(planar, label='planar')
     ax.plot(macroscopic, label='macroscopic')
     ax.legend()
-    plt.ylabel('potential / eV')
-    plt.savefig(plt_fname)
+    plt.ylabel('Potential / eV')
+    plt.savefig(plt_fname, dpi=dpi)
 
 
 def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),

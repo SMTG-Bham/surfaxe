@@ -136,7 +136,8 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
     if len(indices) == 1:
         mpl.rcParams['figure.figsize'] = (6.0,6.0)
         fig, ax = plt.subplots(1,1)
-        fig.suptitle('{} surface energies'.format(hkl))
+        ax.set_title('{} surface energies'.format(hkl))
+
         for (index, val, time, df) in zip(indices, vals, times, dfs):
             ax.set_yticks(list(range(len(df.index))))
             ax.set_yticklabels(df.columns)
@@ -261,7 +262,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
     if len(indices) == 1:
         mpl.rcParams['figure.figsize'] = (6.0,6.0)
         fig, ax = plt.subplots(1,1)
-        fig.suptitle('{} energies per atom'.format(hkl))
+        ax.set_title('{} energies per atom'.format(hkl))
 
         # Iterate through the values for plotting, create each plot on a separate ax,
         # add the colourbar to each ax
