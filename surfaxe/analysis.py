@@ -297,7 +297,7 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
         elif type(ox_states) is list:
             end_struc.add_oxidation_state_by_site(ox_states)
         else:
-            end_struc.add_oxidation_state_by_guess
+            end_struc.add_oxidation_state_by_guess(max_sites=-1)
 
         # Get the bonded end structure
         bonded_end = nn_method.get_bonded_structure(end_struc)

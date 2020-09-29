@@ -15,7 +15,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     setup(
-      name='slabbystabby',
+      name='surfaxe',
       version='0.1',
       description='Dealing with slabs for first principles calculations of surfaces',
       long_description=open(os.path.join(module_dir, 'README.md')).read(),
@@ -24,7 +24,7 @@ if __name__ == "__main__":
       author='Katarina Brlec',
       author_email='katarina.brlec.15@ucl.ac.uk',
       license='MIT',
-      packages=['slabbystabby'],
+      packages=['surfaxe'],
       zip_safe=False,
       install_requires=['scipy', 'numpy', 'spglib', 'pymatgen','pandas'],
       classifiers=[
