@@ -34,7 +34,7 @@ is also helpful, including a good model for docstrings.
 
 
 ## Usage
-Slabaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `- h` option is available in the command line interface for each of the scripts.
+Surfaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `- h` option is available in the command line interface for each of the scripts.
 
 The Tutorial page contains a detailed guide to using each command.
 
@@ -77,7 +77,7 @@ Tests are incoming...
 Surfaxe is free to use under the [sort licence out, probably MIT]. Please cite [add link] if you use it in your research.
 
 ## Detailed requirements
-Slabaxe is compatible with python 3.something+ and requires the following packages:
+Surfaxe is compatible with python 3.something+ and requires the following packages:
 
 * Pymatgen
 * Pandas
