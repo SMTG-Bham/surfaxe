@@ -177,7 +177,7 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
     else:
         os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
         exist_ok=True)
-        for slab in unique_slabs_list_of_dicts:
+        for slab in unique_list_of_dicts:
             slab['slab'].to(fmt='poscar',
             filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
