@@ -1,7 +1,10 @@
+# Pymatgen
 from pymatgen.core.surface import Slab
 from pymatgen import Structure, Specie, Element
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.io.vasp.outputs import Vasprun
+
+# Misc
 import os
 import math
 import numpy as np
@@ -9,7 +12,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('once')
 
-## Matplotlib
+# Matplotlib
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -37,7 +40,7 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl, bulk_per_atom):
+def parse_fols(hkl, bulk_per_atom, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
@@ -52,27 +55,26 @@ def parse_fols(hkl, bulk_per_atom):
         hkl_data.csv
     """
 
-    d = []
+    df_list = []
     hkl_sorted = ''.join(map(str, hkl))
 
-    for root, fols, files in os.walk('.'):
+    for root, fols in os.walk('.'):
         for fol in fols:
             if not any([fol=='setup', fol==root, fol=='.ipynb_checkpoints']):
                 path = os.path.join(root, fol)
-                psc = '{}/POSCAR'.format(path)
-                vsp = '{}/vasprun.xml'.format(path)
+                vsp_path = '{}/vasprun.xml'.format(path)
 
                 # instantiate structure, slab and vasprun objects
-                structure = Structure.from_file(psc)
-                vasprun = Vasprun(vsp)
-                slab = slab_from_file(psc, hkl)
+                vsp = Vasprun(vsp_path, **kwargs)
+                slab = slab_from_file(vsp_path, hkl)
+                vsp_dict = vsp.as_dict()
 
                 # extract the data
                 area = slab.surface_area
-                atoms = len(structure.atomic_numbers)
-                slab_energy = vasprun.final_energy
+                atoms = vsp_dict['nsites']
+                slab_energy = vsp.final_energy
                 energy_per_atom = slab_energy / atoms
-                surf_energy = (slab_energy - bulk_per_atom * atoms)/(2 * area) * 16.02
+                surface_energy = (slab_energy - bulk_per_atom * atoms)/(2 * area) * 16.02
 
                 # name of fol has to be ./slabthickness_vacthickness_index
                 slab_vac_index = fol.split('_')
@@ -82,15 +84,15 @@ def parse_fols(hkl, bulk_per_atom):
                     lines = list(otc)
                     line = lines[-8].split(':')
 
-                d.append({'slab_thickness': slab_vac_index[0],
+                df_list.append({'slab_thickness': slab_vac_index[0],
                           'vac_thickness': slab_vac_index[1],
                           'slab_index': slab_vac_index[2],
-                          'surface_energy': surf_energy,
+                          'surface_energy': surface_energy,
                           'slab_toten': slab_energy,
                           'slab_per_atom': energy_per_atom,
                           'time_taken': line[1].strip()})
 
-    df = pd.DataFrame(d)
+    df = pd.DataFrame(df_list)
     df.to_csv('{}_data.csv'.format(hkl_sorted), index=False)
 
 def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
@@ -140,7 +142,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
 
         for (index, val, time, df) in zip(indices, vals, times, dfs):
             ax.set_yticks(list(range(len(df.index))))
-            ax.set_yticklabels(df.columns)
+            ax.set_yticklabels(df.index)
             ax.set_ylabel('Slab thickness')
             ax.set_xticks(list(range(len(df.columns))))
             ax.set_xticklabels(df.columns)
@@ -158,7 +160,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
                     for val in vals:
-                        text = ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
+                        ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
                                           va="bottom", color="black")
 
         # Add the time taken labels to the plot
@@ -167,7 +169,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
                 for j in range(len(df.index)):
                     for k in range(len(df.columns)):
                         for time in times:
-                            text = ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                            ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
     # Plotting for multiple indices
@@ -181,12 +183,12 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
         fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
                      va='top', size=22)
 
-        # Iterate through the values for plotting, create each plot on a separate ax,
-        # add the colourbar to each ax
+        # Iterate through the values for plotting, create each plot on a separate 
+        # ax, add the colourbar to each ax
         for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
             ax[i].set_title('Slab index {}'.format(index))
             ax[i].set_yticks(list(range(len(df.index))))
-            ax[i].set_yticklabels(df.columns)
+            ax[i].set_yticklabels(df.index)
             ax[i].set_ylabel('Slab thickness')
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
@@ -194,7 +196,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
-            cbar = plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax)
             ax[i].invert_yaxis()
         fig.tight_layout()
 
@@ -203,7 +205,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
                     for i, val in enumerate(vals):
-                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                        ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
                                           va="bottom", color="black")
 
         # Add the time taken labels to the plot
@@ -212,12 +214,12 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
                 for j in range(len(df.index)):
                     for k in range(len(df.columns)):
                         for i, time in enumerate(times):
-                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                            ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
 
     plt.savefig('{}_surface_energy.{}'.format(''.join(map(str, hkl)), fmt),
-    dpi=dpi, bbox_inches='tight')
+    dpi=dpi, bbox_inches='tight', **kwargs)
 
 
 def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
@@ -268,7 +270,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
         # add the colourbar to each ax
         for index, val, time, df in zip(indices, vals, times, dfs):
             ax.set_yticks(list(range(len(df.index))))
-            ax.set_yticklabels(df.columns)
+            ax.set_yticklabels(df.index)
             ax.set_ylabel('Slab thickness')
             ax.set_xticks(list(range(len(df.columns))))
             ax.set_xticklabels(df.columns)
@@ -276,7 +278,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             im = ax.imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.2)
-            cbar = plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax)
             ax.invert_yaxis()
 
         # Add the surface energy value labels to the plot, the for loop have to
@@ -286,7 +288,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
                     for val in vals:
-                        text = ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
+                        ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
                                           va="bottom", color="black")
 
         # Add the time taken labels to the plot, same loop comment as above
@@ -295,7 +297,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
                 for j in range(len(df.index)):
                     for k in range(len(df.columns)):
                         for time in times:
-                            text = ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                            ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
     # Plotting for multiple indices
@@ -314,7 +316,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
         for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
             ax[i].set_title('Slab index {}'.format(index))
             ax[i].set_yticks(list(range(len(df.index))))
-            ax[i].set_yticklabels(df.columns)
+            ax[i].set_yticklabels(df.index)
             ax[i].set_ylabel('Slab thickness')
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
@@ -322,7 +324,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
-            cbar = plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax)
             ax[i].invert_yaxis()
         fig.tight_layout()
 
@@ -333,7 +335,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             for j in range(len(df.index)):
                 for k in range(len(df.columns)):
                     for i, val in enumerate(vals):
-                        text = ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
+                        ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
                                           va="bottom", color="black")
 
         # Add the time taken labels to the plot, same loop comment as above
@@ -342,9 +344,9 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
                 for j in range(len(df.index)):
                     for k in range(len(df.columns)):
                         for i, time in enumerate(times):
-                            text = ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
+                            ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
 
     plt.savefig('{}_energy_per_atom.{}'.format(''.join(map(str, hkl)),fmt),
-    dpi=dpi, bbox_inches='tight')
+    dpi=dpi, bbox_inches='tight', **kwargs)

@@ -1,4 +1,4 @@
-
+# Pymatgen
 from pymatgen import Structure, Element, Specie
 from pymatgen.core.structure import SiteCollection
 from pymatgen.core.lattice import Lattice
@@ -6,6 +6,8 @@ from pymatgen.analysis.local_env import BrunnerNN_real, BrunnerNN_reciprocal,\
 BrunnerNN_relative, CovalentBondNN, Critic2NN, CrystalNN, CutOffDictNN, EconNN,\
 JmolNN, MinimumDistanceNN, MinimumOKeeffeNN, MinimumVIRENN, NearNeighbors, VoronoiNN
 from pymatgen.io.vasp.outputs import Locpot, VolumetricData
+
+# Misc 
 import os
 import math
 import numpy as np
@@ -13,7 +15,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('once')
 
-## Matplotlib
+# Matplotlib
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -98,8 +100,9 @@ def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
 
     struc = Structure.from_file(structure)
 
-    # Adds oxidation states by guess by default or if the provided oxidation states are
-    # antyhing but a list or a dict; max_sites speeds up the by_guess method
+    # Adds oxidation states by guess by default or if the provided oxidation 
+    # states are antyhing but a list or a dict; max_sites speeds up the 
+    # by_guess method
     if type(ox_states) is dict:
         struc.add_oxidation_state_by_element(ox_states)
     elif type(ox_states) is list:
@@ -126,7 +129,7 @@ def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
     df = pd.DataFrame(bonds_info)
     df.to_csv('bond_analysis_data.csv', index=False)
 
-    if return_df is True:
+    if return_df:
         return df
 
 def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', dpi=300, **kwargs):
@@ -209,22 +212,22 @@ def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
     macroscopic.reset_index(drop=True,inplace=True)
 
     # Make csv
-    if make_csv is True:
+    if make_csv:
         data = pd.DataFrame(data=planar, columns=['planar'])
         data['macroscopic'] = macroscopic
         data.to_csv(csv_fname, header = True, index = False)
 
     # Plot both planar and macroscopic, save figure
-    fig,ax = plt.subplots()
+    fig, ax = plt.subplots()
     ax.plot(planar, label='planar')
     ax.plot(macroscopic, label='macroscopic')
     ax.legend()
     plt.ylabel('Potential / eV')
-    plt.savefig(plt_fname, dpi=dpi)
+    plt.savefig(plt_fname, dpi=dpi, **kwargs)
 
 
 def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
-              return_df=False, txt_fname='nn_data.txt'):
+              return_df=False, txt_fname='nn_data.txt', **kwargs):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure.
@@ -270,7 +273,7 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
     bonded_start = nn_method.get_bonded_structure(structure=start_struc)
 
     # Nearest neighbours for just one structure
-    if end is None:
+    if not end:
         nn_list = []
         for n, site in enumerate(start_struc):
             cn_start = bonded_start.get_coordination_of_site(n)
@@ -283,7 +286,7 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
         df = pd.DataFrame(nn_list)
         df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
 
-        if return_df is True:
+        if return_df:
             return df
 
     # Nearest neighbour for two compared structures of the same system
@@ -321,7 +324,7 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
         df = pd.DataFrame(nn_list)
         df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
 
-        if return_df is True:
+        if return_df:
             return df
 
 
@@ -362,14 +365,14 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
 
-    # Adds oxidation states if dict of elements or list of sites are provided,
-    # otherwise none are added
+    # Adds oxidation states by guess by default or if the provided oxidation
+    # states are antyhing but a list or a dict
     if type(ox_states) is dict:
         start_struc.add_oxidation_state_by_element(ox_states)
     elif type(ox_states) is list:
         start_struc.add_oxidation_state_by_site(ox_states)
     else:
-        pass
+        start_struc.add_oxidation_state_by_guess(max_sites=-1)
 
     # Instantiate the nearest neighbour algorithm
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
@@ -378,7 +381,7 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
     bonded_start = codnn.get_bonded_structure(start_struc)
 
     # Nearest neighbours for just one structure
-    if end is None:
+    if not end:
         nn_list = []
         for n, site in enumerate(start_struc):
             cn_start = bonded_start.get_coordination_of_site(n)
@@ -391,21 +394,21 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
         df = pd.DataFrame(nn_list)
         df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
 
-        if return_df is True:
+        if return_df:
             return df
 
     #nearest neighbour for two compared structures
     else:
         end_struc = Structure.from_file(end)
 
-        # Adds oxidation states if dict of elements or list of sites are provided,
-        # otherwise none are added
+        # Adds oxidation states by guess by default or if the provided oxidation
+        # states are antyhing but a list or a dict
         if type(ox_states) is dict:
             end_struc.add_oxidation_state_by_element(ox_states)
         elif type(ox_states) is list:
             end_struc.add_oxidation_state_by_site(ox_states)
         else:
-            pass
+            end_struc.add_oxidation_state_by_guess(max_sites=-1)
 
         # Get the bonded end structure
         bonded_end = codnn.get_bonded_structure(end_struc)
@@ -429,7 +432,7 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
         df = pd.DataFrame(nn_list)
         df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
 
-        if return_df is True:
+        if return_df:
             return df
 
 def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
