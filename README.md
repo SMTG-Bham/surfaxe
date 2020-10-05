@@ -10,7 +10,7 @@ The main features include:
 
 2. **Raw data parsing:** Extracting data from convergence tests.
   * Parsing the convergence testing folders created using the slab generation scripts.
-  * Plotting scripts visualising convergence (with respect to slab and vacuum thickness).
+  * Plotting scripts visualising convergence (with respect to slab and vacuum thickness). 
 
 3. **Analysis:** Various scripts for surface and bulk calculations.
   * Electrostatic potential tool, based on Keith Butler's [MacroDensity](https://github.com/WMD-group/MacroDensity) code, for the calculation of absolute electron energies (ionisation potential, electron affinity).
@@ -36,9 +36,12 @@ is also helpful, including a good model for docstrings.
 ## Usage
 Surfaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `- h` option is available in the command line interface for each of the scripts.
 
-The Tutorial page contains a detailed guide to using each command.
+The `examples` folder contains the jupyter notebooks with detailed explanations 
+of functionality of all aspects of the package. 
 
-Currently the provisional scripts are separated into three stages; creation, convergence and analysis.
+Currently the provisional scripts are separated into three stages; creation, convergence and analysis. The command line interface has not been implemented 
+yet but will be in the near future. 
+
 Creation:
 * `surfaxe-getall`: For generating all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified.
 * `surfaxe-getone`: For generating all unique symmetric zero-dipole surface slabs for one specified Miller index.
