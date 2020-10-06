@@ -40,7 +40,7 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl, bulk_per_atom, **kwargs):
+def parse_fols(hkl=None, bulk_per_atom=None, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
@@ -54,13 +54,17 @@ def parse_fols(hkl, bulk_per_atom, **kwargs):
     Returns:
         hkl_data.csv
     """
+     # Check all neccessary input parameters are present 
+    if not any ([hkl, bulk_per_atom]): 
+        raise ValueError('One or more of the required arguments (bulk_per_atom, '
+                         'hkl) were not supplied.')
 
     df_list = []
     hkl_sorted = ''.join(map(str, hkl))
 
     for root, fols in os.walk('.'):
         for fol in fols:
-            if not any([fol=='setup', fol==root, fol=='.ipynb_checkpoints']):
+            if not any([fol==root, fol=='.ipynb_checkpoints']):
                 path = os.path.join(root, fol)
                 vsp_path = '{}/vasprun.xml'.format(path)
 
@@ -95,7 +99,7 @@ def parse_fols(hkl, bulk_per_atom, **kwargs):
     df = pd.DataFrame(df_list)
     df.to_csv('{}_data.csv'.format(hkl_sorted), index=False)
 
-def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_surfen(hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the surface energy
     for all possible terminations
@@ -111,13 +115,14 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
     Returns:
         hkl_surface_energy.png
     """
+    # Check all neccessary input parameters are present 
+    if not hkl: 
+        raise ValueError('The required argument hkl was not supplied')
+
     hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
-    indices = []
-    vals = []
-    times = []
-    dfs = []
+    indices, vals, times, dfs = ([] for i in range(4))
 
     # Group the values by termination slab index, create df for time and
     # energy values. Converts the energy and time values to np arrays for plotting
@@ -149,7 +154,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             ax.set_xlabel('Vacuum thickness')
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.2)
-            im = ax.imshow(val, cmap=cmap, interpolation='mitchell')
+            im = ax.imshow(val, cmap=cmap)
             fig.colorbar(im, cax=cax, orientation='vertical')
             ax.invert_yaxis()
 
@@ -193,7 +198,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
             ax[i].set_xlabel('Vacuum thickness')
-            im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
+            im = ax[i].imshow(val, cmap=cmap)
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
             plt.colorbar(im, cax=cax)
@@ -222,7 +227,7 @@ def plot_surfen(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
     dpi=dpi, bbox_inches='tight', **kwargs)
 
 
-def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_enatom(hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
     Reads from the csv file created by `parse_fols` to plot the energy per atom
     for all possible terminations
@@ -238,14 +243,14 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
     Returns:
         hkl_energy_per_atom.png
     """
+    # Check all neccessary input parameters are present 
+    if not hkl: 
+        raise ValueError('The required argument hkl was not supplied') 
 
     hkl_sorted = ''.join(map(str, hkl))
     df = pd.read_csv('{}_data.csv'.format(hkl_sorted))
 
-    indices = []
-    vals = []
-    times = []
-    dfs = []
+    indices, vals, times, dfs = ([] for i in range(4))
 
     # Group the values by termination slab index, create df for time and
     # energy values. Converts the energy and time values to np arrays for plotting
@@ -275,7 +280,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             ax.set_xticks(list(range(len(df.columns))))
             ax.set_xticklabels(df.columns)
             ax.set_xlabel('Vacuum thickness')
-            im = ax.imshow(val, cmap=cmap, interpolation='mitchell')
+            im = ax.imshow(val, cmap=cmap)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.2)
             plt.colorbar(im, cax=cax)
@@ -321,7 +326,7 @@ def plot_enatom(hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwarg
             ax[i].set_xticks(list(range(len(df.columns))))
             ax[i].set_xticklabels(df.columns)
             ax[i].set_xlabel('Vacuum thickness')
-            im = ax[i].imshow(val, cmap=cmap, interpolation='mitchell')
+            im = ax[i].imshow(val, cmap=cmap)
             divider = make_axes_locatable(ax[i])
             cax = divider.append_axes("right", size="5%", pad=0.2)
             plt.colorbar(im, cax=cax)

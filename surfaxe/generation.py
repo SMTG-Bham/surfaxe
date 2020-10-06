@@ -38,12 +38,12 @@ PBEsol_slab_config = {
              'W': 'W', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn',
              'Zr': 'Zr_sv'}}
 
-def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
-                      make_input_files=False, max_size=500, lll_reduce=True,
-                      center_slab=True, ox_states=None, is_symmetric=True,
-                      config_dict=PBEsol_slab_config, potcar_functional='PBE',
-                      update_incar=None, update_kpoints=None,
-                      update_potcar=None, **kwargs):
+def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
+                      make_fols=False, make_input_files=False, max_size=500, 
+                      lll_reduce=True, center_slab=True, ox_states=None, 
+                      is_symmetric=True, config_dict=PBEsol_slab_config, 
+                      potcar_functional='PBE', update_incar=None, 
+                      update_kpoints=None, update_potcar=None, **kwargs):
     """
     Generates all unique slabs for a specified Miller index with minimum slab
     and vacuum thicknesses. Note that using this method of slab generation will
@@ -53,10 +53,12 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
 
     Args:
         structure (str): filename of structure file in any format supported by
-        pymatgen.
-        hkl (tuple): Miller index
-        thicknesses (list): minimum size of the slab in angstroms.
-        vacuums (list): minimum size of the vacuum in angstroms.
+        pymatgen. Default=none, is a required arg.
+        hkl (tuple): Miller index; default=None, is a required arg.
+        thicknesses (list): minimum size of the slab in angstroms; default=None, 
+        is a required arg. 
+        vacuums (list): minimum size of the vacuum in angstroms; default=None, 
+        is a required arg.
         make_fols (bool): makes folders containing POSCARs; default=False
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each
         of the folders; default=False.
@@ -86,20 +88,16 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
         POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with
         POSCARs or hkl/slab_vac_index with all VASP input files
     """
+    # Check all neccessary input parameters are present 
+    if not any ([structure, hkl, thicknesses, vacuums]): 
+        raise ValueError('One or more of the required arguments (structure, '
+                         'hkl, thicknesses, vacuums) were not supplied.')
+    
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
-
-    # Adds oxidation states by guess by default or if the provided oxidation 
-    # states are antyhing but a list or a dict; max_sites speeds up the 
-    # by_guess method
-    if type(ox_states) is dict:
-        struc.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        struc.add_oxidation_state_by_site(ox_states)
-    else:
-        struc.add_oxidation_state_by_guess(max_sites=-1)
+    struc = oxidation_states(struc, ox_states=ox_states)
 
     # Iterate through vacuums and thicknessses 
     provisional = []
@@ -129,10 +127,7 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
                                             'slab': slab})
                   
     # Iterate though provisional slabs to extract the unique slabs
-    unique_list = []
-    unique_list_of_dicts = []
-    repeat = []
-    large = []
+    unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
 
     for slab in provisional:
         if slab['slab'] not in unique_list:
@@ -198,9 +193,10 @@ def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False,
             slab['slab_t'], slab['vac_t'], slab['s_index']))
 
 
-def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
-                  make_input_files=False, max_size=500, ox_states=None, 
-                  is_symmetric=True, lll_reduce=True, center_slab=True, 
+def get_all_slabs(structure=None, max_index=None, thicknesses=None, 
+                  vacuums=None, make_fols=False, make_input_files=False, 
+                  max_size=500, ox_states=None, is_symmetric=True, 
+                  lll_reduce=True, center_slab=True, 
                   config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                   update_incar=None, update_potcar=None, update_kpoints=None, 
                   **kwargs):
@@ -249,21 +245,16 @@ def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
         POSCARs or hkl/slab_vac_index with all input files
 
     """
+    # Check all neccessary input parameters are present 
+    if not any ([structure, max_index, thicknesses, vacuums]): 
+        raise ValueError('One or more of the required arguments (structure, '
+                         'max_index, thicknesses, vacuums) were not supplied.')
+    
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
-
-    # Adds oxidation states by guess by default or if the provided oxidation 
-    # states are antyhing but a list or a dict; max_sites speeds up the 
-    # by_guess method
-    if type(ox_states) is dict:
-        struc.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        struc.add_oxidation_state_by_site(ox_states)
-    else:
-        struc.add_oxidation_state_by_guess(max_sites=-1)
-
+    struc = oxidation_states(struc, ox_states=ox_states)
    
     # Iterate through vacuums and thicknessses
     provisional = []
@@ -295,10 +286,7 @@ def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
                                             'slab': slab})
 
     # Iterate though provisional slabs to extract the unique slabs
-    unique_list = []
-    unique_list_of_dicts = []
-    repeat = []
-    large = []
+    unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
 
     for slab in provisional:
         if slab['slab'] not in unique_list:
@@ -340,7 +328,7 @@ def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
 
             # Makes all VASP input files (KPOINTS, POTCAR, INCAR) based on the
             # config dictionary
-            if make_input_files is True:
+            if make_input_files:
                 vis = DictSet(structure=slab['slab'],
                               config_dict=config_dict,
                               potcar_functional=potcar_functional,
@@ -364,3 +352,22 @@ def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False,
             slab['slab'].to(fmt='poscar',
             filename='{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
+
+def oxidation_states(structure, ox_states=None):
+    ''' 
+    Args: 
+        structure: pymatgen structure object
+        ox_states (list or dict): add oxidation states either by sites
+        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+        default=None which adds oxidation states by guess
+    Returns: 
+        structure decorated with oxidation states 
+    ''' 
+    if type(ox_states) is dict:
+        structure.add_oxidation_state_by_element(ox_states)
+    elif type(ox_states) is list:
+        structure.add_oxidation_state_by_site(ox_states)
+    else:
+        structure.add_oxidation_state_by_guess(max_sites=-1)
+
+    return structure

@@ -22,6 +22,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (10.0,8.0)
 mpl.rcParams.update({'font.size': 14})
 
+# surfaxe
+from surfaxe.generation import oxidation_states
 
 def cart_displacements(start, end, elements, max_disp=0.1,
                        csv_fname='cart_displacements.txt'):
@@ -77,11 +79,12 @@ def cart_displacements(start, end, elements, max_disp=0.1,
     df = pd.DataFrame(disp_list)
     df.to_csv(csv_fname, header=True, index=False, sep='\t', mode='w')
 
-def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
-                  return_df=False, **kwargs):
+def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(), 
+                  ox_states=None, return_df=False, **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
-    nearest neighbour method on the bulk structure before using it on slabs.
+    nearest neighbour method on the bulk structure before using it on slabs. The 
+    required arguments are structure and atoms. 
 
     Args:
         structure (str): filename of structure, takes all pymatgen-supported formats.
@@ -97,18 +100,12 @@ def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
     Returns:
         csv file
     """
-
+    # Check all neccessary input parameters are present 
+    if not any ([structure, atoms]): 
+        raise ValueError('One or more of the required arguments (structure, '
+                         'atoms) were not supplied.')
     struc = Structure.from_file(structure)
-
-    # Adds oxidation states by guess by default or if the provided oxidation 
-    # states are antyhing but a list or a dict; max_sites speeds up the 
-    # by_guess method
-    if type(ox_states) is dict:
-        struc.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        struc.add_oxidation_state_by_site(ox_states)
-    else:
-        struc.add_oxidation_state_by_guess(max_sites=-1)
+    struc = oxidation_states(structure=struc, ox_states=ox_states)
 
     # Iterates through the structure, looking for pairs of bonded atoms. If the
     # sites match, the bond distance is calculated and passed to a dataframe
@@ -132,10 +129,10 @@ def bond_analysis(structure, atoms, nn_method=CrystalNN(), ox_states=None,
     if return_df:
         return df
 
-def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', dpi=300, **kwargs):
+def plot_bond_analysis(atoms=None, plt_fname='bond_analysis.png', dpi=300, **kwargs):
     """
     Plots the bond distance with respect to fractional coordinate graph from the
-    csv file generated with `bond_analysis`
+    csv file generated with `bond_analysis`. The required argument is `atoms`. 
 
     Args:
         atoms (list of tuples) in the same order as in bond_analysis
@@ -145,6 +142,10 @@ def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', dpi=300, **kwargs):
     Returns:
         Plot
     """
+    # Check all neccessary input parameters are present 
+    if not atoms: 
+        raise ValueError('The required argument atoms was not supplied.')
+
     # Read in csv, define colour wheel
     df = pd.read_csv('bond_analysis_data.csv')
     colors = plt.rcParams["axes.prop_cycle"]()
@@ -164,11 +165,12 @@ def plot_bond_analysis(atoms, plt_fname='bond_analysis.png', dpi=300, **kwargs):
     plt.xlabel("Fractional coordinates")
     plt.savefig(plt_fname, dpi=dpi)
 
-def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
+def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
                             make_csv=True, csv_fname='potential.csv',
                             plt_fname='potential.png', dpi=300, **kwargs):
     """
-    Reads LOCPOT to get the planar and macroscopic potential in specified direction
+    Reads LOCPOT to get the planar and macroscopic potential in specified 
+    direction. The required argument is `lattice_vector`. 
 
     Args:
         lattice_vector (float): the periodicity of the slab
@@ -185,6 +187,10 @@ def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
     Returns:
         csv file and plot of planar and macroscopic potential
     """
+    # Check all neccessary input parameters are present 
+    if not lattice_vector: 
+        raise ValueError('The required argument lattice_vector was not supplied.')
+
     # Read potential and structure data
     lpt = Locpot.from_file(filename)
     struc = Structure.from_file(filename)
@@ -226,11 +232,14 @@ def electrostatic_potential(lattice_vector, filename='./LOCPOT', axis=2,
     plt.savefig(plt_fname, dpi=dpi, **kwargs)
 
 
-def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
-              return_df=False, txt_fname='nn_data.txt', **kwargs):
+def simple_nn(start=None, elements=None, end=None, ox_states=None, 
+              nn_method=CrystalNN(), return_df=False, 
+              txt_fname='nn_data.txt', **kwargs):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
-    make sure the nn_method works with the bulk structure.
+    make sure the nn_method works with the bulk structure. The required arguments
+    are `start` and `elements`. 
+    
     Args:
         start (str): filename of structure, takes all pymatgen-supported formats.
         elements (list): the elements in the structure, order does not matter.
@@ -247,6 +256,10 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
     Returns
         txt file with atoms and the number of nearest neighbours
     """
+    # Check all neccessary input parameters are present 
+    if not any([start, elements]): 
+        raise ValueError('One or more of the required arguments (start, elements)' 
+                         ' were not supplied.')
 
     # Instantiate start structure object
     start_struc = Structure.from_file(start)
@@ -259,15 +272,9 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
         site_labels.append((symbol,el_dict[symbol]))
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
-
-    # Adds oxidation states by guess by default or if the oxidation states are
-    # antyhing but a list or a dict; max_sites speeds up the by guess method
-    if type(ox_states) is dict:
-        start_struc.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        start_struc.add_oxidation_state_by_site(ox_states)
-    else:
-        start_struc.add_oxidation_state_by_guess(max_sites=-1)
+    
+    # Add oxidation states 
+    start_struc = oxidation_states(start_struc, **kwargs)
 
     # Get bonded start structure
     bonded_start = nn_method.get_bonded_structure(structure=start_struc)
@@ -292,15 +299,7 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
     # Nearest neighbour for two compared structures of the same system
     else:
         end_struc = Structure.from_file(end)
-
-        # Adds oxidation states by guess by default or if the provided oxidation
-        # states are antyhing but a list or a dict
-        if type(ox_states) is dict:
-            end_struc.add_oxidation_state_by_element(ox_states)
-        elif type(ox_states) is list:
-            end_struc.add_oxidation_state_by_site(ox_states)
-        else:
-            end_struc.add_oxidation_state_by_guess(max_sites=-1)
+        end_struc = oxidation_states(end_struc, **kwargs)
 
         # Get the bonded end structure
         bonded_end = nn_method.get_bonded_structure(end_struc)
@@ -328,12 +327,14 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
             return df
 
 
-def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
+def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, ox_states=None,
                txt_fname='nn_data.txt', return_df=False):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
-    before applying to surface slabs.
+    before applying to surface slabs. The required args are `start`, `elements`
+    and `cut_off_dict`. 
+
     Args:
         start (str): filename of structure to analyse
         elements (list): the elements in the structure, order does not matter
@@ -352,6 +353,10 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
     Returns
         txt file with atoms and the number of nearest neighbours
     """
+    # Check all neccessary input parameters are present 
+    if not any([start, elements, cut_off_dict]): 
+        raise ValueError('One or more of the required arguments (start, elements,' 
+                         ' cut_off_dict) were not supplied.')
 
      # Instantiate start structure object
     start_struc = Structure.from_file(start)
@@ -365,14 +370,8 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
 
-    # Adds oxidation states by guess by default or if the provided oxidation
-    # states are antyhing but a list or a dict
-    if type(ox_states) is dict:
-        start_struc.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        start_struc.add_oxidation_state_by_site(ox_states)
-    else:
-        start_struc.add_oxidation_state_by_guess(max_sites=-1)
+    # Add oxidation states 
+    start_struc = oxidation_states(start_struc, ox_states=ox_states)
 
     # Instantiate the nearest neighbour algorithm
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
@@ -400,15 +399,7 @@ def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None,
     #nearest neighbour for two compared structures
     else:
         end_struc = Structure.from_file(end)
-
-        # Adds oxidation states by guess by default or if the provided oxidation
-        # states are antyhing but a list or a dict
-        if type(ox_states) is dict:
-            end_struc.add_oxidation_state_by_element(ox_states)
-        elif type(ox_states) is list:
-            end_struc.add_oxidation_state_by_site(ox_states)
-        else:
-            end_struc.add_oxidation_state_by_guess(max_sites=-1)
+        end_struc = oxidation_states(end_struc, ox_states=ox_states)
 
         # Get the bonded end structure
         bonded_end = codnn.get_bonded_structure(end_struc)
@@ -441,7 +432,7 @@ def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     between the maximum and minimum Cartesian coordinates of the slab.
     Allows slab thickness comparison between the bulk-like and relaxed or
     reconstructed surface slab. Accounts for non-centered slabs and movement of
-    atoms to the other side of the slab
+    atoms to the other side of the slab. The required arg is start. 
 
     Args:
         start (str): intial structure filename
@@ -456,6 +447,9 @@ def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     Returns
         prints slab thickness to terminal
     """
+    if not start: 
+        raise ValueError('The required argument (start) was not supplied')
+    
     start_struc = Structure.from_file(start)
     start_struc = start_struc.cart_coords
 
