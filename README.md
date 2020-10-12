@@ -21,8 +21,13 @@ Surfaxe primarily supports VASP, however we would like to add support for other 
 Development notes
 -----------------
 
+### TODO 
+* implement CLI
+* tests
+* docs
+
 ### Bugs, features and questions
-Please use the Issue Tracker to report bugs or request features in the first instance.
+Please use the Issue Tracker to report bugs or request features in the first instance. 
 
 ### Code contributions
 Contributions to interface with this package are most welcome. Please use the ["Fork and Pull"](https://guides.github.com/activities/forking/) workflow to make contributions and stick as closely as possible to the following:

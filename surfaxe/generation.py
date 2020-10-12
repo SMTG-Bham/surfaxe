@@ -42,8 +42,9 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
                       is_symmetric=True, config_dict=PBEsol_slab_config, 
-                      potcar_functional='PBE', update_incar=None, 
-                      update_kpoints=None, update_potcar=None, **kwargs):
+                      potcar_functional='PBE', user_incar_settings=None, 
+                      user_kpoints_settings=None, user_potcar_settings=None, 
+                      **kwargs):
     """
     Generates all unique slabs for a specified Miller index with minimum slab
     and vacuum thicknesses. Note that using this method of slab generation will
@@ -59,7 +60,9 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         is a required arg. 
         vacuums (list): minimum size of the vacuum in angstroms; default=None, 
         is a required arg.
-        make_fols (bool): makes folders containing POSCARs; default=False
+        make_fols (bool): makes folders for each termination and slab/vacuum 
+        thickness combinations containing POSCARs. If false puts the indexed
+        POSCARS in a folder named after bulk formula; default=False 
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each
         of the folders; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
@@ -78,15 +81,16 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         input files; default=PBEsol_slab_config
         potcar_functional (str): the functional used for POTCAR generation;
         default='PBE'
-        update_incar (dict): overrides default INCAR settings; default=None
-        update_kpoints (dict or kpoints object): overrides default kpoints
+        user_incar_settings (dict): overrides default INCAR settings; 
+        default=None
+        user_kpoints_settings (dict or kpoints object): overrides default kpoints
         settings, if supplied as dict should be as {'reciprocal_density': 100};
         default=None
-        update_potcar (dict): overrides default POTCAR settings; default=None
+        user_potcar_settings (dict): overrides default POTCAR settings; 
+        default=None
 
     Returns:
-        POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with
-        POSCARs or hkl/slab_vac_index with all VASP input files
+        list of dicts of all unique slabs 
     """
     # Check all neccessary input parameters are present 
     if not any ([structure, hkl, thicknesses, vacuums]): 
@@ -96,7 +100,6 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
-    bulk_name = struc.formula.replace(" ", "")
     struc = oxidation_states(struc, ox_states=ox_states)
 
     # Iterate through vacuums and thicknessses 
@@ -156,50 +159,15 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
-    # Makes folders hkl/slab_vac_index, if only make_input_files is true the 
-    # folders will also be made automatically. 
-    if make_fols or make_input_files:
-        for slab in unique_list_of_dicts:
-            os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
-
-            # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
-            # dictionary
-            if make_input_files:
-                vis = DictSet(structure=slab['slab'],
-                              config_dict=config_dict,
-                              potcar_functional=potcar_functional,
-                              user_incar_settings=update_incar,
-                              user_potcar_settings=update_potcar,
-                              user_kpoints_settings=update_kpoints, **kwargs)
-                vis.write_input(r'{}/{}_{}_{}'.format(slab['hkl'],
-                                                      slab['slab_t'],
-                                                      slab['vac_t'],
-                                                      slab['s_index']))
-
-            # Just makes the folders with POSCARs
-            else:
-                slab['slab'].to(fmt='poscar',
-                filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],
-                slab['slab_t'], slab['vac_t'], slab['s_index']))
-
-    # Makes POSCAR_hkl_slab_vac_index files in the bulk_name folder
-    else:
-        os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
-        exist_ok=True)
-        for slab in unique_list_of_dicts:
-            slab['slab'].to(fmt='poscar',
-            filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index']))
-
+    return unique_list_of_dicts
 
 def get_all_slabs(structure=None, max_index=None, thicknesses=None, 
                   vacuums=None, make_fols=False, make_input_files=False, 
                   max_size=500, ox_states=None, is_symmetric=True, 
                   lll_reduce=True, center_slab=True, 
                   config_dict=PBEsol_slab_config, potcar_functional='PBE', 
-                  update_incar=None, update_potcar=None, update_kpoints=None, 
-                  **kwargs):
+                  user_incar_settings=None, user_potcar_settings=None, 
+                  user_kpoint_settings=None, **kwargs):
     """
     Generates all unique slabs with specified maximum Miller index, minimum slab
     and vacuum thicknesses. It includes all combinations for multiple zero
@@ -213,7 +181,9 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         max_index (int): maximum Miller index to be considered
         thicknesses (list): minimum size of the slab in angstroms.
         vacuums (list): minimum size of the vacuum in angstroms.
-        make_fols (bool): makes folders containing POSCARs; default=False
+        make_fols (bool): makes folders for each termination and slab/vacuum 
+        thickness combinations containing POSCARs. If false puts the indexed
+        POSCARS in a folder named after bulk formula; default=False 
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each
         of the folders; if True but make_fols is False it will make the folders 
         regardless; default=False.
@@ -234,15 +204,16 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         input files; default=PBEsol_slab_config
         potcar_functional (str): The functional used for POTCAR generation;
         default='PBE'
-        update_incar (dict): overrides default INCAR settings; default=None
-        update_kpoints (dict or kpoints object): overrides default kpoints
+        user_incar_settings (dict): overrides default INCAR settings; 
+        default=None
+        user_kpoint_settings (dict or kpoints object): overrides default kpoints
         settings, if supplied as dict should be as {'reciprocal_density': 100};
         default=None
-        update_potcar (dict): overrides default POTCAR settings; default=None
+        user_potcar_settings (dict): overrides default POTCAR settings; 
+        default=None
 
     Returns:
-        POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with
-        POSCARs or hkl/slab_vac_index with all input files
+        a list of dicts of unique slabs 
 
     """
     # Check all neccessary input parameters are present 
@@ -253,7 +224,6 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
     struc = Structure.from_file(structure)
-    bulk_name = struc.formula.replace(" ", "")
     struc = oxidation_states(struc, ox_states=ox_states)
    
     # Iterate through vacuums and thicknessses
@@ -269,7 +239,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             for i, slab in enumerate(all_slabs):
                 # Get all the zero-dipole slabs with inversion symmetry
                 if is_symmetric: 
-                    if (slab.is_polar() == False) and (slab.is_symmetric() == True):
+                    if slab.is_symmetric() and not slab.is_polar():
                         provisional.append({'hkl': ''.join(map(str, slab.miller_index)),
                                         'slab_t': thickness,
                                         'vac_t': vacuum,
@@ -319,39 +289,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             warnings.warn('Some generated slabs exceed the max size specified.'
             ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
-    # Makes folders hkl/slab_vac_index, if only make_input_files is true the 
-    # folders will also be made automatically.
-    if make_fols or make_input_files:
-        for slab in unique_list_of_dicts:
-            os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
-
-            # Makes all VASP input files (KPOINTS, POTCAR, INCAR) based on the
-            # config dictionary
-            if make_input_files:
-                vis = DictSet(structure=slab['slab'],
-                              config_dict=config_dict,
-                              potcar_functional=potcar_functional,
-                              user_incar_settings=update_incar,
-                              user_potcar_settings=update_potcar,
-                              user_kpoints_settings=update_kpoints, **kwargs)
-                vis.write_input(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
-                slab['slab_t'], slab['vac_t'], slab['s_index'])))
-            
-            # Makes the folders with POSCARs
-            else:
-                slab['slab'].to(fmt='poscar',
-                filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],slab['slab_t'],
-                slab['vac_t'], slab['s_index']))
-
-    # Omits folders, makes POSCAR_hkl_slab_vac_index files in folder bulk_name
-    else:
-        os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
-        exist_ok=True)
-        for slab in unique_list_of_dicts:
-            slab['slab'].to(fmt='poscar',
-            filename='{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index']))
+    return unique_list_of_dicts 
 
 def oxidation_states(structure, ox_states=None):
     ''' 

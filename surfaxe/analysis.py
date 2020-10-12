@@ -77,10 +77,12 @@ def cart_displacements(start, end, elements, max_disp=0.1,
                              'displacement': f"{d: .3f}"})
     # Save as txt file
     df = pd.DataFrame(disp_list)
-    df.to_csv(csv_fname, header=True, index=False, sep='\t', mode='w')
+    
+    return df
 
 def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(), 
-                  ox_states=None, return_df=False, **kwargs):
+                  ox_states=None, csv_fname='bond_analysis.csv', 
+                  **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
     nearest neighbour method on the bulk structure before using it on slabs. The 
@@ -95,15 +97,16 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
         default=None which adds oxidation states by guess
-        return_df (bool): returns the DataFrame; default=False
+        csv_name (str): filename of the csv file,
 
     Returns:
-        csv file
+        DataFrame
     """
     # Check all neccessary input parameters are present 
     if not any ([structure, atoms]): 
         raise ValueError('One or more of the required arguments (structure, '
                          'atoms) were not supplied.')
+
     struc = Structure.from_file(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
@@ -124,50 +127,12 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
                                    '{}-{}_bond_distance'.format(atom1,atom2): np.mean(bond_distances)})
 
     df = pd.DataFrame(bonds_info)
-    df.to_csv('bond_analysis_data.csv', index=False)
+    
+    return df
 
-    if return_df:
-        return df
-
-def plot_bond_analysis(atoms=None, plt_fname='bond_analysis.png', dpi=300, **kwargs):
-    """
-    Plots the bond distance with respect to fractional coordinate graph from the
-    csv file generated with `bond_analysis`. The required argument is `atoms`. 
-
-    Args:
-        atoms (list of tuples) in the same order as in bond_analysis
-        plt_fname (str): filename of the plot
-        dpi (int): dots per inch; default=300
-
-    Returns:
-        Plot
-    """
-    # Check all neccessary input parameters are present 
-    if not atoms: 
-        raise ValueError('The required argument atoms was not supplied.')
-
-    # Read in csv, define colour wheel
-    df = pd.read_csv('bond_analysis_data.csv')
-    colors = plt.rcParams["axes.prop_cycle"]()
-
-    fig, axs = plt.subplots(nrows=len(atoms))
-
-    # Iterate though the atom combinations, plot the graphs
-    i=0
-    for atom1, atom2 in atoms:
-        c = next(colors)["color"]
-        x = df['{}_c_coord'.format(atom1)]
-        y = df['{}-{}_bond_distance'.format(atom1,atom2)]
-        axs[i].scatter(x, y, marker='x', color=c)
-        axs[i].set_ylabel("Bond distance / Å ")
-        axs[i].legend(['{}-{} bond'.format(atom1, atom2)])
-        i+=1
-    plt.xlabel("Fractional coordinates")
-    plt.savefig(plt_fname, dpi=dpi)
 
 def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
-                            make_csv=True, csv_fname='potential.csv',
-                            plt_fname='potential.png', dpi=300, **kwargs):
+                            make_csv=False, csv_fname='potential.csv', **kwargs):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
     direction. The required argument is `lattice_vector`. 
@@ -178,14 +143,11 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
         axis (int): direction in which the potential is investigated; a=0, b=1,
         c=2; default=2
         make_csv (bool): makes a csv file with planar and macroscopic potential,
-        default=True
+        default=False
         csv_fname (str): filename of the csv file, default='potential.csv'
-        plt_fname (str): filename of the plot of potentials, controls the format,
-        default='potential.png'
-        dpi (int): dots per inch; default=300
 
     Returns:
-        csv file and plot of planar and macroscopic potential
+        DataFrame
     """
     # Check all neccessary input parameters are present 
     if not lattice_vector: 
@@ -217,24 +179,16 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
     macroscopic = m_data.iloc[points:(len(planar)+points)]
     macroscopic.reset_index(drop=True,inplace=True)
 
-    # Make csv
-    if make_csv:
-        data = pd.DataFrame(data=planar, columns=['planar'])
-        data['macroscopic'] = macroscopic
-        data.to_csv(csv_fname, header = True, index = False)
+    df = pd.DataFrame(data=planar, columns=['planar'])
+    df['macroscopic'] = macroscopic
 
-    # Plot both planar and macroscopic, save figure
-    fig, ax = plt.subplots()
-    ax.plot(planar, label='planar')
-    ax.plot(macroscopic, label='macroscopic')
-    ax.legend()
-    plt.ylabel('Potential / eV')
-    plt.savefig(plt_fname, dpi=dpi, **kwargs)
+    if make_csv: 
+        df.to_csv(csv_fname, header=True, index=False)
 
+    return df
 
 def simple_nn(start=None, elements=None, end=None, ox_states=None, 
-              nn_method=CrystalNN(), return_df=False, 
-              txt_fname='nn_data.txt', **kwargs):
+              nn_method=CrystalNN(), txt_fname='nn_data.txt', **kwargs):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure. The required arguments
@@ -251,10 +205,9 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
         default=None which adds oxidation states by guess
         nn_method (class): the pymatgen.analysis.local_env nearest neighbour
         method; default=CrystalNN()
-        return_df (bool): returns the DataFrame; default=False
         txt_fname (str): filename of csv file, default='nn_data.txt'
     Returns
-        txt file with atoms and the number of nearest neighbours
+        DataFrame
     """
     # Check all neccessary input parameters are present 
     if not any([start, elements]): 
@@ -289,12 +242,8 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
                            'atom': label,
                            'cn start': cn_start})
 
-        # Make a dataframe from nn_list and return if needed
+        # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
-
-        if return_df:
-            return df
 
     # Nearest neighbour for two compared structures of the same system
     else:
@@ -319,16 +268,14 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
                            'cn_end': cn_end,
                            'diff': cn_diff})
 
-        # Make a dataframe from nn_list and return if needed
+        # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
-
-        if return_df:
-            return df
+        
+    return df
 
 
-def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, ox_states=None,
-               txt_fname='nn_data.txt', return_df=False):
+def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, 
+                ox_states=None, txt_fname='nn_data.txt'):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
@@ -349,9 +296,8 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, ox_states
         If the structure is decorated with oxidation states, the bond distances
         need to have oxidation states specified. Default=None (no oxidation states)
         txt_fname (str): filename of csv file, default='nn_data.txt'
-        return_df (bool): returns the DataFrame; default=False
     Returns
-        txt file with atoms and the number of nearest neighbours
+        DataFrame
     """
     # Check all neccessary input parameters are present 
     if not any([start, elements, cut_off_dict]): 
@@ -389,13 +335,9 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, ox_states
                            'atom': label,
                            'cn start': cn_start})
 
-        # Make a dataframe from nn_list and return if needed
+        # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
-
-        if return_df:
-            return df
-
+            
     #nearest neighbour for two compared structures
     else:
         end_struc = Structure.from_file(end)
@@ -419,12 +361,10 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, ox_states
                            'cn_end': cn_end,
                            'diff': cn_diff})
 
-        # Make a dataframe from nn_list and return if needed
+        # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
-
-        if return_df:
-            return df
+    
+    return df
 
 def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     """
