@@ -18,6 +18,8 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams.update({'font.size': 14})
 
+# surfaxe
+from surfaxe.plotting import save_csv, plot_enatom, plot_surfen
 
 def slab_from_file(structure, hkl):
     """
@@ -40,16 +42,22 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl=None, bulk_per_atom=None, **kwargs):
+def parse_fols(hkl=None, bulk_per_atom=None, plot_enatom=True, plot_surfen=True, 
+               save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
     combination
 
     Args:
-        hkl (tuple): Miller index of the slab
+        hkl (tuple): Miller index of the slab.
         bulk_per_atom (float): bulk energy per atom from a converged bulk
-        calculation
+        calculation.
+        plot_enatom (bool): whether or not to plot the energy per atom; 
+        default=True.
+        plot_surfen (bool): whether or not to plot the surface energy; 
+        default=True.
+        save_csv (bool): whether or not to save the csv; default=True.
 
     Returns:
         hkl_data.csv
@@ -97,6 +105,17 @@ def parse_fols(hkl=None, bulk_per_atom=None, **kwargs):
         (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
         ) 
 
-    return df
-    # df.to_csv('{}_data.csv'.format(hkl_string), index=False)
+    if plot_enatom: 
+        plot_enatom(df, **kwargs)
+    
+    if plot_surfen: 
+        plot_surfen(df, **kwargs)
+
+    # Save the csv or return the dataframe
+    if save_csv: 
+        save_csv(df, csv_fname='{}_data.csv'.format(hkl_string), **kwargs)
+    
+    else: 
+        return df
+
 

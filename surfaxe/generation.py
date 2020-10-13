@@ -5,6 +5,9 @@ from pymatgen.io.vasp.sets import DictSet
 import warnings
 import os
 
+# surfaxe
+from surfaxe.plotting import save_slabs
+
 # Monkeypatching straight from Stackoverflow
 def custom_formatwarning(message, category, filename, lineno, line=''):
     # Ignore everything except the message
@@ -41,16 +44,20 @@ PBEsol_slab_config = {
 def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
-                      is_symmetric=True, config_dict=PBEsol_slab_config, 
-                      potcar_functional='PBE', user_incar_settings=None, 
-                      user_kpoints_settings=None, user_potcar_settings=None, 
-                      **kwargs):
+                      save_slabs=True, is_symmetric=True, 
+                      config_dict=PBEsol_slab_config, potcar_functional='PBE', 
+                      user_incar_settings=None, user_kpoints_settings=None, 
+                      user_potcar_settings=None, **kwargs):
     """
     Generates all unique slabs for a specified Miller index with minimum slab
-    and vacuum thicknesses. Note that using this method of slab generation will
-    result in different slab index numbers as in the `get_all_slabs` - the slabs
-    identified are the same, the index varies based on the position in the list
-    of generated slabs
+    and vacuum thicknesses. 
+    
+    Note that using this method of slab generation will result in different slab 
+    index numbers as in the `get_all_slabs` - the slabs identified are the same, 
+    the index varies based on the position in the list of generated slabs. 
+    The function returns a list of dicts of all unique slabs or 
+    POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with POSCARs 
+    or hkl/slab_vac_index with all VASP input files. 
 
     Args:
         structure (str): filename of structure file in any format supported by
@@ -67,16 +74,17 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         of the folders; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
         warning; default=500.
-        ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
-        is_symmetric (bool): whether or not the slabs cleaved should have 
-        inversion symmetry. Needs to be False for slabs cleaved from a
-        non-centrosymmetric bulk; default=True
         lll_reduce (bool): whether or not the slabs will be orthogonalized;
         default=True.
         center_slab (bool): position of the slab in the unit cell, if True the
         slab is centered with equal amounts of vacuum above and below; default=True
+        ox_states (list or dict): add oxidation states either by sites
+        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+        default=None which adds oxidation states by guess
+        save_slabs (bool): whether or not to save the slabs to file; default=True
+        is_symmetric (bool): whether or not the slabs cleaved should have 
+        inversion symmetry. Needs to be False for slabs cleaved from a
+        non-centrosymmetric bulk; default=True
         config_dict (dict): specifies the dictionary used for generation of
         input files; default=PBEsol_slab_config
         potcar_functional (str): the functional used for POTCAR generation;
@@ -90,8 +98,9 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         default=None
 
     Returns:
-        list of dicts of all unique slabs 
+        Surface slabs
     """
+
     # Check all neccessary input parameters are present 
     if not any ([structure, hkl, thicknesses, vacuums]): 
         raise ValueError('One or more of the required arguments (structure, '
@@ -159,26 +168,37 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
-    return unique_list_of_dicts
+    # Save the slabs to file or return the list of dicts 
+    if save_slabs: 
+        save_slabs(unique_list_of_dicts, **kwargs)
+    
+    else: 
+        return unique_list_of_dicts
 
 def get_all_slabs(structure=None, max_index=None, thicknesses=None, 
                   vacuums=None, make_fols=False, make_input_files=False, 
                   max_size=500, ox_states=None, is_symmetric=True, 
-                  lll_reduce=True, center_slab=True, 
+                  lll_reduce=True, center_slab=True, save_slabs=True,
                   config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                   user_incar_settings=None, user_potcar_settings=None, 
                   user_kpoint_settings=None, **kwargs):
     """
     Generates all unique slabs with specified maximum Miller index, minimum slab
     and vacuum thicknesses. It includes all combinations for multiple zero
-    dipole symmetric terminations for the same Miller index. Note that using
-    this method of slab generation will results in different slab index numbers
-    as in the `get_one_hkl_slabs` - the slabs identified are the same, the index
-    varies based on the position in the list of generated slabs.
+    dipole symmetric terminations for the same Miller index. 
+    
+    Note that using this method of slab generation will results in different 
+    slab index values as in the `get_one_hkl_slabs` - the slabs identified are 
+    the same, the index varies based on the position in the list of generated 
+    slabs.
+    The function returns a list of dicts of all unique slabs or 
+    POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with POSCARs 
+    or hkl/slab_vac_index with all VASP input files.
 
     Args:
-        structure: filename of structure file, takes all pymatgen-supported formats.
-        max_index (int): maximum Miller index to be considered
+        structure: filename of structure file, takes all pymatgen-supported 
+        formats.
+        max_index (int): maximum Miller index to be considered.
         thicknesses (list): minimum size of the slab in angstroms.
         vacuums (list): minimum size of the vacuum in angstroms.
         make_fols (bool): makes folders for each termination and slab/vacuum 
@@ -191,7 +211,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         warning; default=500.
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+        default=None which adds oxidation states by guess.
         is_symmetric (bool): whether or not the slabs cleaved should have 
         inversion symmetry. Needs to be False for slabs cleaved from a
         non-centrosymmetric bulk; default=True
@@ -200,6 +220,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         center_slab (bool): position of the slab in the unit cell, if True the
         slab is centered with equal amounts of vacuum above and below;
         default=True
+        save_slabs (bool): whether or not to save the slabs to file; default=True
         config_dict (dict): specifies the dictionary used for generation of
         input files; default=PBEsol_slab_config
         potcar_functional (str): The functional used for POTCAR generation;
@@ -213,7 +234,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         default=None
 
     Returns:
-        a list of dicts of unique slabs 
+        Surface slabs 
 
     """
     # Check all neccessary input parameters are present 
@@ -289,17 +310,23 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             warnings.warn('Some generated slabs exceed the max size specified.'
             ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
-    return unique_list_of_dicts 
+    # Save the slabs to file or return the list of dicts 
+    if save_slabs: 
+        save_slabs(unique_list_of_dicts, **kwargs)
+    
+    else: 
+        return unique_list_of_dicts 
 
 def oxidation_states(structure, ox_states=None):
     ''' 
+    Adds oxidation states to the structure object 
     Args: 
-        structure: pymatgen structure object
+        structure: pymatgen structure object.
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+        default=None which adds oxidation states by guess.
     Returns: 
-        structure decorated with oxidation states 
+        Structure decorated with oxidation states 
     ''' 
     if type(ox_states) is dict:
         structure.add_oxidation_state_by_element(ox_states)

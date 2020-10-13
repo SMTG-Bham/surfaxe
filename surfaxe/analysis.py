@@ -24,9 +24,11 @@ mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
 from surfaxe.generation import oxidation_states
+from surfaxe.plotting import save_csv, save_txt, plot_bond_analysis,\
+plot_electrostatic_potential
 
-def cart_displacements(start, end, elements, max_disp=0.1,
-                       csv_fname='cart_displacements.txt'):
+def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
+                       txt_fname='cart_displacements.txt', **kwargs):
     """
     Produces a text file with all the magnitude of displacements of atoms
     in Cartesian space
@@ -39,10 +41,12 @@ def cart_displacements(start, end, elements, max_disp=0.1,
         elements (list): list of elements in the structure
         e.g. ['Y', 'Ti', 'O', 'S'] in any order
         max_disp (float): maximum displacement shown; default 0.1 Å
-        csv_fname (str): filename of the file produced
+        save_txt (bool): save the displacements to file; default=True.
+        txt_fname (str): filename of the file produced; 
+        default='cart_displacement.txt'
 
     Returns:
-        Text file with displacements
+        Displacements of atoms in Cartesian space 
 
     """
     # Instantiate the structures from files
@@ -77,11 +81,15 @@ def cart_displacements(start, end, elements, max_disp=0.1,
                              'displacement': f"{d: .3f}"})
     # Save as txt file
     df = pd.DataFrame(disp_list)
-    
-    return df
+
+    if save_txt: 
+        save_txt(df, **kwargs)
+    else: 
+        return df
 
 def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(), 
-                  ox_states=None, csv_fname='bond_analysis.csv', 
+                  ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
+                  save_plt=True, plt_fname='bond_analysis.png', dpi=300,
                   **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
@@ -97,7 +105,12 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
         default=None which adds oxidation states by guess
-        csv_name (str): filename of the csv file,
+        save_csv (bool): makes a csv file with planar and macroscopic potential,
+        default=True.
+        csv_name (str): filename of the csv file; default='bond_analysis.csv'. 
+        save_plt (bool): whether to make and save the plot or not; default=True.
+        plt_fname (str): filename of the plot file; default='bond_analysis.png'.
+        dpi (int): dots per inch; default=300
 
     Returns:
         DataFrame
@@ -128,11 +141,19 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
 
     df = pd.DataFrame(bonds_info)
     
-    return df
+    # Save plot and csv, or return the DataFrame 
+    if save_plt: 
+        plot_bond_analysis(df, **kwargs)
+    if save_csv: 
+        save_csv(df, **kwargs)
+    else: 
+        return df
 
 
 def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
-                            make_csv=False, csv_fname='potential.csv', **kwargs):
+                            save_csv=True, csv_fname='potential.csv', 
+                            save_plt=True, plt_fname='potential.png', dpi=300,
+                            **kwargs):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
     direction. The required argument is `lattice_vector`. 
@@ -142,9 +163,12 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
         filename (str): path to your locpot file, default='./LOCPOT'
         axis (int): direction in which the potential is investigated; a=0, b=1,
         c=2; default=2
-        make_csv (bool): makes a csv file with planar and macroscopic potential,
-        default=False
-        csv_fname (str): filename of the csv file, default='potential.csv'
+        save_csv (bool): makes a csv file with planar and macroscopic potential,
+        default=True.
+        csv_fname (str): filename of the csv file, default='potential.csv'.
+        save_plt (bool): whether to make and save the plot or not; default=True.
+        plt_fname (str): filename of the plot file; default='potential.png'.
+        dpi (int): dots per inch; default=300.
 
     Returns:
         DataFrame
@@ -182,13 +206,17 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
     df = pd.DataFrame(data=planar, columns=['planar'])
     df['macroscopic'] = macroscopic
 
-    if make_csv: 
-        df.to_csv(csv_fname, header=True, index=False)
-
-    return df
+    # Plot and save the graph, save the csv or return the dataframe
+    if save_plt: 
+        plot_electrostatic_potential(df=df, **kwargs)
+    if save_csv: 
+        save_csv(df, **kwargs)
+    else: 
+        return df
 
 def simple_nn(start=None, elements=None, end=None, ox_states=None, 
-              nn_method=CrystalNN(), txt_fname='nn_data.txt', **kwargs):
+              nn_method=CrystalNN(), save_txt=True, txt_fname='nn_data.txt', 
+              **kwargs):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure. The required arguments
@@ -205,7 +233,8 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
         default=None which adds oxidation states by guess
         nn_method (class): the pymatgen.analysis.local_env nearest neighbour
         method; default=CrystalNN()
-        txt_fname (str): filename of csv file, default='nn_data.txt'
+        save_txt (bool): whether to save to txt or not; default=True
+        txt_fname (str): filename of the text file, default='nn_data.txt'
     Returns
         DataFrame
     """
@@ -270,12 +299,16 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
 
         # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
-        
-    return df
+
+    # Save the txt file or return as dataframe 
+    if save_txt: 
+        save_txt(df, **kwargs)
+    else:    
+        return df
 
 
 def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, 
-                ox_states=None, txt_fname='nn_data.txt'):
+                ox_states=None, save_txt=True, txt_fname='nn_data.txt', **kwargs):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
@@ -295,6 +328,7 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2}.
         If the structure is decorated with oxidation states, the bond distances
         need to have oxidation states specified. Default=None (no oxidation states)
+        save_txt (bool): whether or not to save the txt file; default=True.
         txt_fname (str): filename of csv file, default='nn_data.txt'
     Returns
         DataFrame
@@ -364,7 +398,11 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
         # Make a dataframe from nn_list 
         df = pd.DataFrame(nn_list)
     
-    return df
+    # Save the txt file or return as dataframe 
+    if save_txt: 
+        save_txt(df, **kwargs)
+    else:    
+        return df
 
 def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     """

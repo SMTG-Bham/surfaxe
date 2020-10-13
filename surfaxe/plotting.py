@@ -8,6 +8,11 @@ import numpy as np
 import os
 import warnings 
 
+# Monkeypatching straight from Stackoverflow
+def custom_formatwarning(message, category, filename, lineno, line=''):
+    # Ignore everything except the message
+    return 'UserWarning: ' + str(message) + '\n'
+
 # Matplotlib
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -15,38 +20,26 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (10.0,8.0)
 mpl.rcParams.update({'font.size': 14})
 
-# surfaxe 
-from surfaxe.generation import get_all_slabs, get_one_hkl_slabs
-from surfaxe.analysis import electrostatic_potential, bond_analysis, simple_nn,\
-     complex_nn, cart_displacements
-from surfaxe.convergence import parse_fols
-
-# in theory should make this easier to use with python?
-# in practice who knows 
-
-def save_csv(func, *args, **kwargs): 
-    df = func(*args, **kwargs)
+def save_csv(df, **kwargs): 
     if 'csv_fname' in kwargs: 
         csv_fname = kwargs.get('csv_fname')
     else: 
         csv_fname = 'data.csv'
     df.to_csv(csv_fname, header=True, index=False, **kwargs)
 
-def save_txt(func, *args, **kwargs): 
-    df = func(*args, **kwargs)
+def save_txt(df, **kwargs): 
     if 'txt_fname' in kwargs: 
         txt_fname = kwargs.get('txt_fname')
     else: 
         txt_fname = 'data.txt'
-    df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
+    df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
 
-def save_slabs(func, *args, **kwargs): 
-    big_list = func(*args, **kwargs)
+def save_slabs(list_of_slabs, **kwargs): 
     struc = Structure.from_file(filename=kwargs.get('structure'))
     bulk_name = struc.formula.replace(" ", "")
 
     if kwargs.get('make_fols') or kwargs.get('make_input_files'): 
-        for slab in big_list:
+        for slab in list_of_slabs:
             os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
 
@@ -69,31 +62,22 @@ def save_slabs(func, *args, **kwargs):
     else:
         os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
         exist_ok=True)
-        for slab in func(*args, **kwargs):
+        for slab in list_of_slabs:
             slab['slab'].to(fmt='poscar',
             filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
 
-def plot_bond_analysis(bond_analysis, plt_fname='bond_analysis.png', dpi=300, **kwargs): 
+def plot_bond_analysis(df, **kwargs): 
     """
-    Plots the bond distance with respect to fractional coordinate graph from the
-    csv file generated with `bond_analysis`. The required argument is `atoms`. 
+    Plots the bond distance with respect to fractional coordinate. Used in 
+    conjunction with surfaxe.analysis.bond_analysis.   
 
     Args:
-        atoms (list of tuples) in the same order as in bond_analysis
-        plt_fname (str): filename of the plot
-        dpi (int): dots per inch; default=300
+        df (pandas DataFrame): DataFrame from surfaxe.analysis.bond_analysis
 
     Returns:
         Plot
     """ 
-    # Check if a bond_analysis file exists, otherwise get the dataframe directly
-    # from the function.
-    if os.path.isfile('./bond_analysis.csv'): 
-        df = pd.read_csv('./bond_analysis.csv')
-
-    else: 
-        df = bond_analysis(**kwargs)
 
     colors = plt.rcParams["axes.prop_cycle"]()
     fig, axs = plt.subplots(nrows=len(kwargs.get('atoms')))
@@ -110,32 +94,41 @@ def plot_bond_analysis(bond_analysis, plt_fname='bond_analysis.png', dpi=300, **
         i+=1
     
     plt.xlabel("Fractional coordinates")
-    plt.savefig(plt_fname, dpi=dpi, **kwargs)
+    plt.savefig(kwargs.get('plt_fname'), dpi=kwargs.get('dpi'), **kwargs)
     
 
-def plot_electrostatic_potential(*args, plt_fname='potential.png', dpi=300, 
-**kwargs): 
-    if os.path.isfile('./potential.csv'): 
-        df = pd.read_csv('./potential.csv')
+def plot_electrostatic_potential(df=None, filename=None, **kwargs): 
+    """
+    Plots the electrostatic potential along one direction. 
 
+    Args: 
+        df: pandas DataFrame from surfaxe.analysis.electrostatic_potential 
+        filename (str): the filename of csv with potential
+
+    """
+    if filename: 
+        df = pd.read_csv(filename)
+    elif df: 
+        df = df
     else: 
-        df = electrostatic_potential(**kwargs)
-    
+        warnings.formatwarning = custom_formatwarning
+        warnings.warn('Data not supplied')
+
     # Plot both planar and macroscopic, save figure
     fig, ax = plt.subplots()
     ax.plot(df['planar'], label='planar')
     ax.plot(df['macroscopic'], label='macroscopic')
     ax.legend()
     plt.ylabel('Potential / eV')
-    plt.savefig(plt_fname, dpi=dpi, **kwargs)
+    plt.savefig(kwargs.get('plt_fname'), dpi=kwargs.get('dpi'), **kwargs)
 
-def plot_surfen(parse_fols, hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
-    Reads from the csv file created by `parse_fols` to plot the surface energy
-    for all possible terminations
+    Plots the surface energy for all terminations. Based on surfaxe.convergence 
+    parse_fols. 
 
     Args:
-        hkl (tuple): Miller index
+        df (pandas DataFrame): DataFrame from `parse_fols`
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
         cmap (str): Matplotlib colourmap; defaut='Wistia'
@@ -145,17 +138,8 @@ def plot_surfen(parse_fols, hkl=None, time_taken=True, cmap='Wistia', fmt='png',
     Returns:
         hkl_surface_energy.png
     """
-    # Check all neccessary input parameters are present 
-    if not hkl: 
-        raise ValueError('The required argument hkl was not supplied')
-
+    hkl = kwargs.get('hkl')
     hkl_string = ''.join(map(str, hkl))
-
-    if os.path.isfile('./{}_data.csv'.format(hkl_string)): 
-        df = pd.read_csv('./{}_data.csv'.format(hkl_string))
-
-    else: 
-        df = parse_fols(**kwargs)
 
     indices, vals, times, dfs = ([] for i in range(4))
 
@@ -258,17 +242,17 @@ def plot_surfen(parse_fols, hkl=None, time_taken=True, cmap='Wistia', fmt='png',
                                               ha="center", va="top", color="black")
 
 
-    plt.savefig('{}_surface_energy.{}'.format(''.join(map(str, hkl)), fmt),
+    plt.savefig('{}_surface_energy.{}'.format(hkl_string, fmt),
     dpi=dpi, bbox_inches='tight', **kwargs)
 
 
-def plot_enatom(hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_enatom(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
-    Reads from the csv file created by `parse_fols` to plot the energy per atom
-    for all possible terminations
+    Plots the energy per atom for all terminations. Based on surfaxe.convergence 
+    parse_fols.
 
     Args:
-        hkl (tuple): Miller index
+        df (pandas DataFrame): DataFrame from `parse_fols` 
         time_taken (bool): whether it shows the time taken for calculation to
         finish on the graph; default=True
         cmap (str): Matplotlib colourmap used; defaut='Wistia'
@@ -278,14 +262,8 @@ def plot_enatom(hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **
     Returns:
         hkl_energy_per_atom.png
     """
-    # Check all neccessary input parameters are present 
-    if not hkl: 
-        raise ValueError('The required argument hkl was not supplied') 
-
+    hkl = kwargs.get('hkl')
     hkl_string = ''.join(map(str, hkl))
-
-
-    df = pd.read_csv('{}_data.csv'.format(hkl_string))
 
     indices, vals, times, dfs = ([] for i in range(4))
 
