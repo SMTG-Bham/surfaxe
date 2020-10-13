@@ -17,26 +17,30 @@ from surfaxe.generation import custom_formatwarning
 # surfaxe 
 from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
+from surfaxe.plotting import save_csv
 
 def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None, 
-                    parse_folders=True, 
-                    return_df=False, parse_core_energy=True, 
-                    parse_electrostatic=True, **kwargs): 
+                    parse_folders=True, parse_core_energy=False, 
+                    parse_electrostatic=True, save_csv=True, 
+                    csv_fname='data.csv',
+                    **kwargs): 
     """
     
     Args:
-    bulk_per_atom (float): bulk energy per atom from a converged bulk calculation
-    folders (list): list of folders where the calculations are ? 
-    hkl_dict (dict): dictionary of tuples of Miller indices and the folders the 
-    calculations relating to them are in, e.g. {(1,-1,2): '1-12'}; default=None
-    parse (bool): if true the script parses the hkl root folders; default=True
-    return_df (bool): if true will return the dataframe, default=False
-    parse_core_energy (bool): if True will attempt to parse core energies from a
-    supplied OUTCAR 
-    parse_electrostatic (bool): if True will attempt to parse LOCPOT using 
-    analysis.electrostatic_potential() 
+        bulk_per_atom (float): bulk energy per atom from a converged bulk calculation
+        folders (list): list of folders where the calculations are ? 
+        hkl_dict (dict): dictionary of tuples of Miller indices and the folders the 
+        calculations relating to them are in, e.g. {(1,-1,2): '1-12'}; default=None
+        parse_fols (bool): if true the script parses the root folders to get the 
+        Miller indices; default=True.
+        parse_core_energy (bool): if True will attempt to parse core energies 
+        from a supplied OUTCAR for core level energies; default=False.
+        parse_electrostatic (bool): if True will attempt to parse LOCPOT using 
+        analysis.electrostatic_potential() for vacuum potential; default=True. 
+        save_csv (bool): whether or not to save to csv; default=True.
+        csv_fname (str): filename of the csv; default='data.csv' 
     Returns: 
-
+        DataFrame
     """
     # Check if hkl_dict is correctly set up 
     if hkl_dict: 
@@ -109,7 +113,11 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
     if core_energy_list: 
         df['core_energy'] = core_energy_list
 
-    return df
+    # Save to csv or return DataFrame
+    if save_csv: 
+        save_csv(df, **kwargs)
+    else:
+        return df
 
 def parse_electrostatic(path): 
     '''
@@ -141,6 +149,7 @@ nn_method=CrystalNN()):
     struc = oxidation_states(struc)
 
        
+    # figure out how to get through the bonding enviornment 
     # need outcar read_core_state_eigen() -> output is dict
     # with [index of atom, zero indexed][str of orbital][ionic run - default=-1 
     # as last run] 

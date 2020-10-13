@@ -24,7 +24,7 @@ mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
 from surfaxe.generation import oxidation_states
-from surfaxe.plotting import save_csv, save_txt, plot_bond_analysis,\
+from surfaxe.plotting import to_csv, to_txt, plot_bond_analysis,\
 plot_electrostatic_potential
 
 def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
@@ -83,7 +83,7 @@ def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
     df = pd.DataFrame(disp_list)
 
     if save_txt: 
-        save_txt(df, **kwargs)
+        to_txt(df, **kwargs)
     else: 
         return df
 
@@ -143,9 +143,9 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
     
     # Save plot and csv, or return the DataFrame 
     if save_plt: 
-        plot_bond_analysis(df, **kwargs)
+        plot_bond_analysis(df, fname=plt_fname, atoms=atoms, **kwargs)
     if save_csv: 
-        save_csv(df, **kwargs)
+        df.to_csv(csv_fname, header=True, index=False, **kwargs)
     else: 
         return df
 
@@ -210,7 +210,7 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
     if save_plt: 
         plot_electrostatic_potential(df=df, **kwargs)
     if save_csv: 
-        save_csv(df, **kwargs)
+        to_csv(df, **kwargs)
     else: 
         return df
 
@@ -302,7 +302,7 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
 
     # Save the txt file or return as dataframe 
     if save_txt: 
-        save_txt(df, **kwargs)
+        to_txt(df, **kwargs)
     else:    
         return df
 
@@ -400,7 +400,7 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     
     # Save the txt file or return as dataframe 
     if save_txt: 
-        save_txt(df, **kwargs)
+        to_txt(df, **kwargs)
     else:    
         return df
 

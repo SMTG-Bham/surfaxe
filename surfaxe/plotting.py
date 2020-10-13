@@ -20,14 +20,14 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (10.0,8.0)
 mpl.rcParams.update({'font.size': 14})
 
-def save_csv(df, **kwargs): 
-    if 'csv_fname' in kwargs: 
-        csv_fname = kwargs.get('csv_fname')
+def to_csv(df, **kwargs): 
+    if 'fname' in kwargs: 
+        csv_fname = kwargs.get('fname')
     else: 
         csv_fname = 'data.csv'
-    df.to_csv(csv_fname, header=True, index=False, **kwargs)
+    df.to_csv(fname=csv_fname, header=True, index=False, **kwargs)
 
-def save_txt(df, **kwargs): 
+def to_txt(df, **kwargs): 
     if 'txt_fname' in kwargs: 
         txt_fname = kwargs.get('txt_fname')
     else: 
@@ -94,7 +94,7 @@ def plot_bond_analysis(df, **kwargs):
         i+=1
     
     plt.xlabel("Fractional coordinates")
-    plt.savefig(kwargs.get('plt_fname'), dpi=kwargs.get('dpi'), **kwargs)
+    plt.savefig(**kwargs)
     
 
 def plot_electrostatic_potential(df=None, filename=None, **kwargs): 

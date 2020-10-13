@@ -44,7 +44,7 @@ PBEsol_slab_config = {
 def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
-                      save_slabs=True, is_symmetric=True, 
+                      saveslabs=True, is_symmetric=True, 
                       config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                       user_incar_settings=None, user_kpoints_settings=None, 
                       user_potcar_settings=None, **kwargs):
@@ -81,7 +81,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
         default=None which adds oxidation states by guess
-        save_slabs (bool): whether or not to save the slabs to file; default=True
+        saveslabs (bool): whether or not to save the slabs to file; default=True
         is_symmetric (bool): whether or not the slabs cleaved should have 
         inversion symmetry. Needs to be False for slabs cleaved from a
         non-centrosymmetric bulk; default=True
@@ -169,7 +169,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Save the slabs to file or return the list of dicts 
-    if save_slabs: 
+    if saveslabs: 
         save_slabs(unique_list_of_dicts, **kwargs)
     
     else: 
@@ -178,7 +178,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
 def get_all_slabs(structure=None, max_index=None, thicknesses=None, 
                   vacuums=None, make_fols=False, make_input_files=False, 
                   max_size=500, ox_states=None, is_symmetric=True, 
-                  lll_reduce=True, center_slab=True, save_slabs=True,
+                  lll_reduce=True, center_slab=True, saveslabs=True,
                   config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                   user_incar_settings=None, user_potcar_settings=None, 
                   user_kpoint_settings=None, **kwargs):
@@ -220,7 +220,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         center_slab (bool): position of the slab in the unit cell, if True the
         slab is centered with equal amounts of vacuum above and below;
         default=True
-        save_slabs (bool): whether or not to save the slabs to file; default=True
+        saveslabs (bool): whether or not to save the slabs to file; default=True
         config_dict (dict): specifies the dictionary used for generation of
         input files; default=PBEsol_slab_config
         potcar_functional (str): The functional used for POTCAR generation;
@@ -311,7 +311,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Save the slabs to file or return the list of dicts 
-    if save_slabs: 
+    if saveslabs: 
         save_slabs(unique_list_of_dicts, **kwargs)
     
     else: 
@@ -321,10 +321,10 @@ def oxidation_states(structure, ox_states=None):
     ''' 
     Adds oxidation states to the structure object 
     Args: 
-        structure: pymatgen structure object.
+        structure: pymatgen structure object
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess.
+        default=None which adds oxidation states by guess
     Returns: 
         Structure decorated with oxidation states 
     ''' 
