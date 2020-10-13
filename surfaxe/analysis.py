@@ -24,8 +24,7 @@ mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
 from surfaxe.generation import oxidation_states
-from surfaxe.plotting import to_csv, to_txt, plot_bond_analysis,\
-plot_electrostatic_potential
+from surfaxe.plotting import plot_bond_analysis, plot_electrostatic_potential
 
 def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
                        txt_fname='cart_displacements.txt', **kwargs):
@@ -83,7 +82,7 @@ def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
     df = pd.DataFrame(disp_list)
 
     if save_txt: 
-        to_txt(df, **kwargs)
+        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
     else: 
         return df
 
@@ -150,7 +149,7 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
         return df
 
 
-def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
+def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
                             save_csv=True, csv_fname='potential.csv', 
                             save_plt=True, plt_fname='potential.png', dpi=300,
                             **kwargs):
@@ -160,7 +159,7 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
 
     Args:
         lattice_vector (float): the periodicity of the slab
-        filename (str): path to your locpot file, default='./LOCPOT'
+        locpot (str): path to your locpot file, default='./LOCPOT'
         axis (int): direction in which the potential is investigated; a=0, b=1,
         c=2; default=2
         save_csv (bool): makes a csv file with planar and macroscopic potential,
@@ -178,8 +177,8 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
         raise ValueError('The required argument lattice_vector was not supplied.')
 
     # Read potential and structure data
-    lpt = Locpot.from_file(filename)
-    struc = Structure.from_file(filename)
+    lpt = Locpot.from_file(locpot)
+    struc = Structure.from_file(locpot)
 
     # Planar potential
     planar = lpt.get_average_along_axis(axis)
@@ -208,9 +207,9 @@ def electrostatic_potential(lattice_vector=None, filename='./LOCPOT', axis=2,
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
-        plot_electrostatic_potential(df=df, **kwargs)
+        plot_electrostatic_potential(df=df, fname=plt_fname, **kwargs)
     if save_csv: 
-        to_csv(df, **kwargs)
+        df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
 
@@ -302,7 +301,7 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
 
     # Save the txt file or return as dataframe 
     if save_txt: 
-        to_txt(df, **kwargs)
+        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
     else:    
         return df
 
@@ -400,7 +399,7 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     
     # Save the txt file or return as dataframe 
     if save_txt: 
-        to_txt(df, **kwargs)
+        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
     else:    
         return df
 

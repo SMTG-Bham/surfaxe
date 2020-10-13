@@ -20,20 +20,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (10.0,8.0)
 mpl.rcParams.update({'font.size': 14})
 
-def to_csv(df, **kwargs): 
-    if 'fname' in kwargs: 
-        csv_fname = kwargs.get('fname')
-    else: 
-        csv_fname = 'data.csv'
-    df.to_csv(fname=csv_fname, header=True, index=False, **kwargs)
-
-def to_txt(df, **kwargs): 
-    if 'txt_fname' in kwargs: 
-        txt_fname = kwargs.get('txt_fname')
-    else: 
-        txt_fname = 'data.txt'
-    df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
-
 def save_slabs(list_of_slabs, **kwargs): 
     struc = Structure.from_file(filename=kwargs.get('structure'))
     bulk_name = struc.formula.replace(" ", "")
@@ -67,17 +53,26 @@ def save_slabs(list_of_slabs, **kwargs):
             filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
 
-def plot_bond_analysis(df, **kwargs): 
+def plot_bond_analysis(df=None, filename=None, **kwargs): 
     """
     Plots the bond distance with respect to fractional coordinate. Used in 
     conjunction with surfaxe.analysis.bond_analysis.   
 
     Args:
         df (pandas DataFrame): DataFrame from surfaxe.analysis.bond_analysis
+        filename (str): path to csv file with data from bond_analysis
 
     Returns:
         Plot
     """ 
+    
+    if filename: 
+        df = pd.read_csv(filename)
+    elif df: 
+        df = df
+    else: 
+        warnings.formatwarning = custom_formatwarning
+        warnings.warn('Data not supplied')
 
     colors = plt.rcParams["axes.prop_cycle"]()
     fig, axs = plt.subplots(nrows=len(kwargs.get('atoms')))
@@ -106,10 +101,10 @@ def plot_electrostatic_potential(df=None, filename=None, **kwargs):
         filename (str): the filename of csv with potential
 
     """
-    if filename: 
-        df = pd.read_csv(filename)
-    elif df: 
+    if df is not None: 
         df = df
+    elif filename is not None: 
+        df = pd.read_csv(filename)
     else: 
         warnings.formatwarning = custom_formatwarning
         warnings.warn('Data not supplied')
@@ -120,7 +115,7 @@ def plot_electrostatic_potential(df=None, filename=None, **kwargs):
     ax.plot(df['macroscopic'], label='macroscopic')
     ax.legend()
     plt.ylabel('Potential / eV')
-    plt.savefig(kwargs.get('plt_fname'), dpi=kwargs.get('dpi'), **kwargs)
+    plt.savefig(**kwargs)
 
 def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
     """
