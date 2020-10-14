@@ -6,7 +6,7 @@ import warnings
 import os
 
 # surfaxe
-from surfaxe.plotting import save_slabs
+from surfaxe.io import slabs_to_file, PBEsol_slab_config
 
 # Monkeypatching straight from Stackoverflow
 def custom_formatwarning(message, category, filename, lineno, line=''):
@@ -14,37 +14,12 @@ def custom_formatwarning(message, category, filename, lineno, line=''):
     return 'UserWarning: ' + str(message) + '\n'
 
 
-PBEsol_slab_config = {
-  'INCAR': {'ALGO': 'Normal', 'ADDGRID': False, 'LASPH': True, 'EDIFFG': -0.01,
-            'EDIFF': 1e-06, 'ENCUT': 500, 'ISIF': 2, 'ISMEAR': 0, 'GGA': 'PS',
-            'LREAL': 'auto', 'LORBIT': 11, 'LCHARG': False, 'LWAVE': False, 
-            'NELM': 150, 'NSW': 0, 'PREC': 'Accurate', 'SIGMA': 0.01, 'ISYM': 2, 
-            'IWAVPR': 1},
-  'KPOINTS': {'reciprocal_density': 90},
-  'POTCAR': {'Ac': 'Ac', 'Ag': 'Ag', 'Al': 'Al', 'Ar': 'Ar', 'As': 'As',
-             'Au':  'Au', 'B': 'B', 'Ba': 'Ba_sv', 'Be': 'Be_sv', 'Bi': 'Bi',
-             'Br': 'Br', 'C': 'C', 'Ca': 'Ca_sv', 'Cd': 'Cd', 'Ce': 'Ce',
-             'Cl': 'Cl', 'Co': 'Co', 'Cr': 'Cr_pv', 'Cs': 'Cs_sv', 'Cu': 'Cu',
-             'Dy': 'Dy_3', 'Er': 'Er_3', 'Eu': 'Eu', 'F': 'F', 'Fe': 'Fe_pv',
-             'Ga': 'Ga_d', 'Gd': 'Gd', 'Ge': 'Ge_d', 'H': 'H', 'He': 'He',
-             'Hf': 'Hf_pv', 'Hg': 'Hg', 'Ho': 'Ho_3', 'I': 'I', 'In': 'In_d',
-             'Ir': 'Ir', 'K': 'K_sv', 'Kr': 'Kr', 'La': 'La', 'Li': 'Li_sv',
-             'Lu': 'Lu_3', 'Mg': 'Mg_pv', 'Mn': 'Mn_pv', 'Mo': 'Mo_pv',
-             'N': 'N', 'Na': 'Na_pv', 'Nb': 'Nb_pv', 'Nd': 'Nd_3', 'Ne': 'Ne',
-             'Ni': 'Ni_pv', 'Np': 'Np', 'O': 'O', 'Os': 'Os_pv', 'P': 'P',
-             'Pa': 'Pa', 'Pb': 'Pb_d', 'Pd': 'Pd', 'Pm': 'Pm_3', 'Pr': 'Pr_3',
-             'Pt': 'Pt', 'Pu': 'Pu', 'Rb': 'Rb_sv', 'Re': 'Re_pv',
-             'Rh': 'Rh_pv', 'Ru': 'Ru_pv', 'S': 'S', 'Sb': 'Sb', 'Sc': 'Sc_sv',
-             'Se': 'Se', 'Si': 'Si', 'Sm': 'Sm_3', 'Sn': 'Sn_d', 'Sr': 'Sr_sv',
-             'Ta': 'Ta_pv', 'Tb': 'Tb_3', 'Tc': 'Tc_pv', 'Te': 'Te', 'Th': 'Th',
-             'Ti': 'Ti_sv', 'Tl': 'Tl_d', 'Tm': 'Tm_3', 'U': 'U', 'V': 'V_pv',
-             'W': 'W', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn',
-             'Zr': 'Zr_sv'}}
+
 
 def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
-                      saveslabs=True, is_symmetric=True, 
+                      save_slabs=True, is_symmetric=True, 
                       config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                       user_incar_settings=None, user_kpoints_settings=None, 
                       user_potcar_settings=None, **kwargs):
@@ -81,7 +56,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
         default=None which adds oxidation states by guess
-        saveslabs (bool): whether or not to save the slabs to file; default=True
+        save_slabs (bool): whether or not to save the slabs to file; default=True
         is_symmetric (bool): whether or not the slabs cleaved should have 
         inversion symmetry. Needs to be False for slabs cleaved from a
         non-centrosymmetric bulk; default=True
@@ -169,8 +144,8 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Save the slabs to file or return the list of dicts 
-    if saveslabs: 
-        save_slabs(unique_list_of_dicts, **kwargs)
+    if save_slabs: 
+        slabs_to_file(unique_list_of_dicts, **kwargs)
     
     else: 
         return unique_list_of_dicts
@@ -178,7 +153,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
 def get_all_slabs(structure=None, max_index=None, thicknesses=None, 
                   vacuums=None, make_fols=False, make_input_files=False, 
                   max_size=500, ox_states=None, is_symmetric=True, 
-                  lll_reduce=True, center_slab=True, saveslabs=True,
+                  lll_reduce=True, center_slab=True, save_slabs=True,
                   config_dict=PBEsol_slab_config, potcar_functional='PBE', 
                   user_incar_settings=None, user_potcar_settings=None, 
                   user_kpoint_settings=None, **kwargs):
@@ -220,7 +195,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
         center_slab (bool): position of the slab in the unit cell, if True the
         slab is centered with equal amounts of vacuum above and below;
         default=True
-        saveslabs (bool): whether or not to save the slabs to file; default=True
+        save_slabs (bool): whether or not to save the slabs to file; default=True
         config_dict (dict): specifies the dictionary used for generation of
         input files; default=PBEsol_slab_config
         potcar_functional (str): The functional used for POTCAR generation;
@@ -311,8 +286,8 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Save the slabs to file or return the list of dicts 
-    if saveslabs: 
-        save_slabs(unique_list_of_dicts, **kwargs)
+    if save_slabs: 
+        slabs_to_file(unique_list_of_dicts, **kwargs)
     
     else: 
         return unique_list_of_dicts 
@@ -320,11 +295,13 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
 def oxidation_states(structure, ox_states=None):
     ''' 
     Adds oxidation states to the structure object 
+    
     Args: 
         structure: pymatgen structure object
         ox_states (list or dict): add oxidation states either by sites
         i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
         default=None which adds oxidation states by guess
+    
     Returns: 
         Structure decorated with oxidation states 
     ''' 

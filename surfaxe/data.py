@@ -17,7 +17,6 @@ from surfaxe.generation import custom_formatwarning
 # surfaxe 
 from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
-from surfaxe.plotting import save_csv
 
 def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None, 
                     parse_folders=True, parse_core_energy=False, 

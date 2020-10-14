@@ -24,7 +24,7 @@ mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
 from surfaxe.generation import oxidation_states
-from surfaxe.plotting import plot_bond_analysis, plot_electrostatic_potential
+from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
 
 def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
                        txt_fname='cart_displacements.txt', **kwargs):

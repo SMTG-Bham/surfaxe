@@ -19,7 +19,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
-from surfaxe.plotting import save_csv, plot_enatom, plot_surfen
+from surfaxe.io import plot_enatom, plot_surfen
 
 def slab_from_file(structure, hkl):
     """
