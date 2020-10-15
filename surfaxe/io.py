@@ -48,6 +48,16 @@ PBEsol_slab_config = {
              'Zr': 'Zr_sv'}}
 
 def slabs_to_file(list_of_slabs, **kwargs): 
+    """
+    Saves the slabs to file 
+
+    Args: 
+        list_of_slabs (list): a list of slab dictionaries made with either of
+        surfaxe.generation get_slab functions 
+
+    Returns: 
+        POSCARs in folders 
+    """
     struc = Structure.from_file(filename=kwargs.get('structure'))
     bulk_name = struc.formula.replace(" ", "")
 
@@ -126,7 +136,9 @@ def plot_electrostatic_potential(df=None, filename=None, **kwargs):
     Args: 
         df: pandas DataFrame from surfaxe.analysis.electrostatic_potential 
         filename (str): the filename of csv with potential
-
+    
+    Returns: 
+        potential.png
     """
     if df is not None: 
         df = df
@@ -152,7 +164,7 @@ def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs
     Args:
         df (pandas DataFrame): DataFrame from `parse_fols`
         time_taken (bool): whether it shows the time taken for calculation to
-        finish on the graph; default=True
+            finish on the graph; default=True
         cmap (str): Matplotlib colourmap; defaut='Wistia'
         fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300
@@ -276,7 +288,7 @@ def plot_enatom(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs
     Args:
         df (pandas DataFrame): DataFrame from `parse_fols` 
         time_taken (bool): whether it shows the time taken for calculation to
-        finish on the graph; default=True
+            finish on the graph; default=True
         cmap (str): Matplotlib colourmap used; defaut='Wistia'
         fmt (str): format for the output file; default='png'
         dpi (int): dots per inch; default=300

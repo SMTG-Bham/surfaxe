@@ -13,9 +13,6 @@ def custom_formatwarning(message, category, filename, lineno, line=''):
     # Ignore everything except the message
     return 'UserWarning: ' + str(message) + '\n'
 
-
-
-
 def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
@@ -36,41 +33,42 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
 
     Args:
         structure (str): filename of structure file in any format supported by
-        pymatgen. Default=none, is a required arg.
+            pymatgen. Default=none, is a required arg.
         hkl (tuple): Miller index; default=None, is a required arg.
-        thicknesses (list): minimum size of the slab in angstroms; default=None, 
-        is a required arg. 
+        thicknesses (list): minimum size of the slab in angstroms; 
+            default=None, is a required arg. 
         vacuums (list): minimum size of the vacuum in angstroms; default=None, 
-        is a required arg.
+            is a required arg.
         make_fols (bool): makes folders for each termination and slab/vacuum 
-        thickness combinations containing POSCARs. If false puts the indexed
-        POSCARS in a folder named after bulk formula; default=False 
+            thickness combinations containing POSCARs. If false puts the indexed
+            POSCARS in a folder named after bulk formula; default=False 
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each
-        of the folders; default=False.
+            of the folders; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
-        warning; default=500.
+            warning; default=500.
         lll_reduce (bool): whether or not the slabs will be orthogonalized;
-        default=True.
+            default=True.
         center_slab (bool): position of the slab in the unit cell, if True the
-        slab is centered with equal amounts of vacuum above and below; default=True
+            slab is centered with equal amounts of vacuum above and below; 
+            default=True
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+            default=None which adds oxidation states by guess
         save_slabs (bool): whether or not to save the slabs to file; default=True
         is_symmetric (bool): whether or not the slabs cleaved should have 
-        inversion symmetry. Needs to be False for slabs cleaved from a
-        non-centrosymmetric bulk; default=True
+            inversion symmetry. Needs to be False for slabs cleaved from a
+            non-centrosymmetric bulk; default=True
         config_dict (dict): specifies the dictionary used for generation of
-        input files; default=PBEsol_slab_config
+            input files; default=PBEsol_slab_config
         potcar_functional (str): the functional used for POTCAR generation;
-        default='PBE'
+            default='PBE'
         user_incar_settings (dict): overrides default INCAR settings; 
-        default=None
-        user_kpoints_settings (dict or kpoints object): overrides default kpoints
-        settings, if supplied as dict should be as {'reciprocal_density': 100};
-        default=None
+            default=None
+        user_kpoints_settings (dict or kpoints object): overrides default 
+            kpoints settings, if supplied as dict should be as 
+            {'reciprocal_density': 100}; default=None
         user_potcar_settings (dict): overrides default POTCAR settings; 
-        default=None
+            default=None
 
     Returns:
         Surface slabs
@@ -172,41 +170,41 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
 
     Args:
         structure: filename of structure file, takes all pymatgen-supported 
-        formats.
+            formats.
         max_index (int): maximum Miller index to be considered.
         thicknesses (list): minimum size of the slab in angstroms.
         vacuums (list): minimum size of the vacuum in angstroms.
         make_fols (bool): makes folders for each termination and slab/vacuum 
-        thickness combinations containing POSCARs. If false puts the indexed
-        POSCARS in a folder named after bulk formula; default=False 
+            thickness combinations containing POSCARs. If false puts the indexed
+            POSCARS in a folder named after bulk formula; default=False 
         make_input_files (bool): makes INCAR, POTCAR and KPOINTS files in each
-        of the folders; if True but make_fols is False it will make the folders 
-        regardless; default=False.
+            of the folders; if True but make_fols is False it will make the 
+            folders regardless; default=False.
         max_size (int): the maximum number of atoms in the slab for the size
-        warning; default=500.
+            warning; default=500.
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess.
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+            default=None which adds oxidation states by guess.
         is_symmetric (bool): whether or not the slabs cleaved should have 
-        inversion symmetry. Needs to be False for slabs cleaved from a
-        non-centrosymmetric bulk; default=True
+            inversion symmetry. Needs to be False for slabs cleaved from a
+            non-centrosymmetric bulk; default=True
         lll_reduce (bool): whether or not the slabs will be orthogonalized;
-        default=True.
+            default=True.
         center_slab (bool): position of the slab in the unit cell, if True the
-        slab is centered with equal amounts of vacuum above and below;
-        default=True
+            slab is centered with equal amounts of vacuum above and below;
+            default=True
         save_slabs (bool): whether or not to save the slabs to file; default=True
         config_dict (dict): specifies the dictionary used for generation of
-        input files; default=PBEsol_slab_config
+            input files; default=PBEsol_slab_config
         potcar_functional (str): The functional used for POTCAR generation;
-        default='PBE'
+            default='PBE'
         user_incar_settings (dict): overrides default INCAR settings; 
-        default=None
+            default=None
         user_kpoint_settings (dict or kpoints object): overrides default kpoints
-        settings, if supplied as dict should be as {'reciprocal_density': 100};
-        default=None
+            settings, if supplied as dict should be as {'reciprocal_density': 100};
+            default=None
         user_potcar_settings (dict): overrides default POTCAR settings; 
-        default=None
+            default=None
 
     Returns:
         Surface slabs 
@@ -299,8 +297,8 @@ def oxidation_states(structure, ox_states=None):
     Args: 
         structure: pymatgen structure object
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+            default=None which adds oxidation states by guess
     
     Returns: 
         Structure decorated with oxidation states 

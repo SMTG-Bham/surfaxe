@@ -34,15 +34,15 @@ def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
 
     Args:
         start (str): filename of initial structure file in any format supported
-        by pymatgen.
+            by pymatgen.
         end (str): filename of final structure file in any format supported
-        by pymatgen.
+            by pymatgen.
         elements (list): list of elements in the structure
-        e.g. ['Y', 'Ti', 'O', 'S'] in any order
+            e.g. ['Y', 'Ti', 'O', 'S'] in any order
         max_disp (float): maximum displacement shown; default 0.1 Å
         save_txt (bool): save the displacements to file; default=True.
         txt_fname (str): filename of the file produced; 
-        default='cart_displacement.txt'
+            default='cart_displacement.txt'
 
     Returns:
         Displacements of atoms in Cartesian space 
@@ -98,14 +98,14 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
     Args:
         structure (str): filename of structure, takes all pymatgen-supported formats.
         atoms (list of tuples): list of bonds to compare
-        e.g. [('Y', 'O'), ('Ti', 'S')]; order does not matter
+            e.g. [('Y', 'O'), ('Ti', 'S')]; order does not matter
         nn_method (class): pymatgen.analysis.local_env nearest neighbour method;
-        default=CrystalNN()
+            default=CrystalNN()
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+            default=None which adds oxidation states by guess
         save_csv (bool): makes a csv file with planar and macroscopic potential,
-        default=True.
+            default=True.
         csv_name (str): filename of the csv file; default='bond_analysis.csv'. 
         save_plt (bool): whether to make and save the plot or not; default=True.
         plt_fname (str): filename of the plot file; default='bond_analysis.png'.
@@ -160,10 +160,10 @@ def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
     Args:
         lattice_vector (float): the periodicity of the slab
         locpot (str): path to your locpot file, default='./LOCPOT'
-        axis (int): direction in which the potential is investigated; a=0, b=1,
-        c=2; default=2
+            axis (int): direction in which the potential is investigated; a=0, 
+            b=1, c=2; default=2
         save_csv (bool): makes a csv file with planar and macroscopic potential,
-        default=True.
+            default=True.
         csv_fname (str): filename of the csv file, default='potential.csv'.
         save_plt (bool): whether to make and save the plot or not; default=True.
         plt_fname (str): filename of the plot file; default='potential.png'.
@@ -225,15 +225,16 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
         start (str): filename of structure, takes all pymatgen-supported formats.
         elements (list): the elements in the structure, order does not matter.
         end (str): filename of structure to analyse, use if comparing initial
-        and final structures. The structures must have same constituent atoms
-        and number of sites; default=None
+            and final structures. The structures must have same constituent 
+            atoms and number of sites; default=None
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-        default=None which adds oxidation states by guess
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
+            default=None which adds oxidation states by guess
         nn_method (class): the pymatgen.analysis.local_env nearest neighbour
-        method; default=CrystalNN()
+            method; default=CrystalNN()
         save_txt (bool): whether to save to txt or not; default=True
         txt_fname (str): filename of the text file, default='nn_data.txt'
+    
     Returns
         DataFrame
     """
@@ -318,17 +319,19 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
         start (str): filename of structure to analyse
         elements (list): the elements in the structure, order does not matter
         cut_off_dict (dict): dictionary of bond lengths
-        i.e. {('Ag','S'): 3.09, ('La','O'): 2.91, ('La','S'): 3.36,
-              ('Ti','O'): 2.35, ('Ti','S'): 2.75, ('Cu','S'): 2.76}
+            i.e. {('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,
+            ('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}
         end (str): filename of structure to analyse, use if comparing initial
-        and final structures, the compared structures must have same constituent
-        atoms and number of sites; default=None
+            and final structures, the compared structures must have same 
+            constituent atoms and number of sites; default=None
         ox_states (list or dict): add oxidation states either by sites
-        i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2}.
-        If the structure is decorated with oxidation states, the bond distances
-        need to have oxidation states specified. Default=None (no oxidation states)
+            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2}.
+            If the structure is decorated with oxidation states, the bond 
+            distances need to have oxidation states specified. 
+            Default=None (no oxidation states)
         save_txt (bool): whether or not to save the txt file; default=True.
         txt_fname (str): filename of csv file, default='nn_data.txt'
+    
     Returns
         DataFrame
     """
@@ -350,7 +353,8 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     start_struc.add_site_property('', site_labels)
 
     # Add oxidation states 
-    start_struc = oxidation_states(start_struc, ox_states=ox_states)
+    if ox_states is not None:
+        start_struc = oxidation_states(start_struc, ox_states=ox_states)
 
     # Instantiate the nearest neighbour algorithm
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
@@ -374,7 +378,9 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     #nearest neighbour for two compared structures
     else:
         end_struc = Structure.from_file(end)
-        end_struc = oxidation_states(end_struc, ox_states=ox_states)
+        
+        if ox_states is not None:
+            end_struc = oxidation_states(end_struc, ox_states=ox_states)
 
         # Get the bonded end structure
         bonded_end = codnn.get_bonded_structure(end_struc)
@@ -414,15 +420,15 @@ def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     Args:
         start (str): intial structure filename
         start_zmax (float): the Cartesian coordinate of the maximum coordinate
-        in c-direction, used if the slab was not centred and some atoms
-        moved to the other side of the unit cell; default=None
+            in c-direction, used if the slab was not centred and some atoms
+            moved to the other side of the unit cell; default=None
         end (str): end structure filename, default=None
         end_zmax (float): the cartesian coordinate of the maximum coordinate in
-        c-direction, used if the slab was not centred and some atoms moved to
-        the other side of the unit cell; default=None
+            c-direction, used if the slab was not centred and some atoms moved 
+            to the other side of the unit cell; default=None
 
     Returns
-        prints slab thickness to terminal
+        slab thickness to terminal
     """
     if not start: 
         raise ValueError('The required argument (start) was not supplied')

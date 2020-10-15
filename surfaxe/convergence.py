@@ -42,7 +42,7 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl=None, bulk_per_atom=None, plot_enatom=True, plot_surfen=True, 
+def parse_fols(hkl=None, bulk_per_atom=None, path_to_fols=None, plt_enatom=True, plt_surfen=True, 
                save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
@@ -52,11 +52,11 @@ def parse_fols(hkl=None, bulk_per_atom=None, plot_enatom=True, plot_surfen=True,
     Args:
         hkl (tuple): Miller index of the slab.
         bulk_per_atom (float): bulk energy per atom from a converged bulk
-        calculation.
-        plot_enatom (bool): whether or not to plot the energy per atom; 
-        default=True.
-        plot_surfen (bool): whether or not to plot the surface energy; 
-        default=True.
+            calculation.
+        plt_enatom (bool): whether or not to plot the energy per atom; 
+            default=True.
+        plt_surfen (bool): whether or not to plot the surface energy; 
+            default=True.
         save_csv (bool): whether or not to save the csv; default=True.
 
     Returns:
@@ -70,7 +70,12 @@ def parse_fols(hkl=None, bulk_per_atom=None, plot_enatom=True, plot_surfen=True,
     df_list = []
     hkl_string = ''.join(map(str, hkl))
 
-    for root, fols, files in os.walk(os.getcwd()):
+    if path_to_fols is not None:
+        cwd = path_to_fols
+    else: 
+        cwd = os.getcwd()
+
+    for root, fols, files in os.walk(cwd):
         for fol in fols:
             if not any([fol==root, fol=='.ipynb_checkpoints']):
                 path = os.path.join(root, fol)
@@ -105,15 +110,16 @@ def parse_fols(hkl=None, bulk_per_atom=None, plot_enatom=True, plot_surfen=True,
         (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
         ) 
 
-    if plot_enatom: 
-        plot_enatom(df, **kwargs)
+    # Plot energy per atom and surface energy
+    if plt_enatom: 
+        plot_enatom(df, hkl=hkl, **kwargs)
     
-    if plot_surfen: 
-        plot_surfen(df, **kwargs)
+    if plt_surfen: 
+        plot_surfen(df, hkl=hkl, **kwargs)
 
     # Save the csv or return the dataframe
     if save_csv: 
-        save_csv(df, csv_fname='{}_data.csv'.format(hkl_string), **kwargs)
+        df.to_csv('{}_data.csv'.format(hkl_string), header=True, index=False)
     
     else: 
         return df
