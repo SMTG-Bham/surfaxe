@@ -26,7 +26,7 @@ def slab_from_file(structure, hkl):
     Reads in structure from the file and returns slab object.
 
     Args:
-         structure (str): structure file in any format supported by pymatgen
+         structure (str): Structure file in any format supported by pymatgen.
          hkl (tuple): Miller index of the slab in the input file.
 
     Returns:
@@ -42,25 +42,25 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl=None, bulk_per_atom=None, path_to_fols=None, plt_enatom=True, plt_surfen=True, 
-               save_csv=True, **kwargs):
+def parse_fols(hkl=None, bulk_per_atom=None, path_to_fols=None, plt_enatom=True, 
+plt_surfen=True, save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
-    combination
+    combination.
 
     Args:
-        hkl (tuple): Miller index of the slab.
-        bulk_per_atom (float): bulk energy per atom from a converged bulk
-            calculation.
-        plt_enatom (bool): whether or not to plot the energy per atom; 
-            default=True.
-        plt_surfen (bool): whether or not to plot the surface energy; 
-            default=True.
-        save_csv (bool): whether or not to save the csv; default=True.
+        hkl (`tuple`, required): Miller index of the slab.
+        bulk_per_atom (`float`, required): bulk energy per atom from a converged 
+            bulk calculation.
+        plt_enatom (`bool`, optional): Whether to plot the energy per atom.
+            Default is ``True``.
+        plt_surfen (`bool`, optional): Whether to plot the surface energy. 
+            Default is ``True``.
+        save_csv (`bool`, optional): Whether to save the csv. Default is ``True``.
 
     Returns:
-        hkl_data.csv
+        DataFrame 
     """
      # Check all neccessary input parameters are present 
     if not any ([hkl, bulk_per_atom]): 

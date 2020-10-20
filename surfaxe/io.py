@@ -47,7 +47,9 @@ PBEsol_slab_config = {
              'W': 'W', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn',
              'Zr': 'Zr_sv'}}
 
-def slabs_to_file(list_of_slabs, **kwargs): 
+def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files, 
+config_dict, potcar_functional, user_incar_settings, user_kpoints_settings, 
+user_potcar_settings): 
     """
     Saves the slabs to file 
 
@@ -58,18 +60,24 @@ def slabs_to_file(list_of_slabs, **kwargs):
     Returns: 
         POSCARs in folders 
     """
-    struc = Structure.from_file(filename=kwargs.get('structure'))
+    struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
 
-    if kwargs.get('make_fols') or kwargs.get('make_input_files'): 
+    if force_gamma is None: 
+        force_gamma = False
+
+    if make_fols or make_input_files: 
         for slab in list_of_slabs:
             os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
 
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
-            if kwargs.get('make_input_files'):
-                vis = DictSet(structure=slab['slab'], **kwargs)
+            if make_input_files:
+                vis = DictSet(slab['slab'], config_dict, 
+                user_incar_settings=user_incar_settings, 
+                user_kpoints_settings=user_kpoints_settings, 
+                user_potcar_settings=user_potcar_settings)
                 vis.write_input(r'{}/{}_{}_{}'.format(slab['hkl'],
                                                       slab['slab_t'],
                                                       slab['vac_t'],
