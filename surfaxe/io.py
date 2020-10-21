@@ -63,9 +63,6 @@ user_potcar_settings):
     struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
 
-    if force_gamma is None: 
-        force_gamma = False
-
     if make_fols or make_input_files: 
         for slab in list_of_slabs:
             os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
