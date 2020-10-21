@@ -43,7 +43,7 @@ def slab_from_file(structure, hkl):
                 site_properties=slab_input.site_properties)
 
 def parse_fols(hkl=None, bulk_per_atom=None, path_to_fols=None, plt_enatom=True, 
-plt_surfen=True, save_csv=True, **kwargs):
+plt_surfen=True, save_csv=True):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
@@ -54,10 +54,11 @@ plt_surfen=True, save_csv=True, **kwargs):
         bulk_per_atom (`float`, required): bulk energy per atom from a converged 
             bulk calculation.
         plt_enatom (`bool`, optional): Whether to plot the energy per atom.
-            Default is ``True``.
+            Defaults to ``True``.
         plt_surfen (`bool`, optional): Whether to plot the surface energy. 
-            Default is ``True``.
-        save_csv (`bool`, optional): Whether to save the csv. Default is ``True``.
+            Defaults to ``True``.
+        save_csv (`bool`, optional): Whether to save the csv. Defaults to
+         ``True``.
 
     Returns:
         DataFrame 
@@ -83,8 +84,8 @@ plt_surfen=True, save_csv=True, **kwargs):
                 otc_path = '{}/OUTCAR'.format(path)
 
                 # instantiate structure, slab, vasprun and outcar objects
-                vsp = Vasprun(vsp_path, **kwargs)
-                otc = Outcar(otc_path, **kwargs)
+                vsp = Vasprun(vsp_path)
+                otc = Outcar(otc_path)
                 slab = slab_from_file(vsp_path, hkl)
                 vsp_dict = vsp.as_dict()
 
@@ -112,10 +113,10 @@ plt_surfen=True, save_csv=True, **kwargs):
 
     # Plot energy per atom and surface energy
     if plt_enatom: 
-        plot_enatom(df, hkl=hkl, **kwargs)
+        plot_enatom(df, hkl=hkl)
     
     if plt_surfen: 
-        plot_surfen(df, hkl=hkl, **kwargs)
+        plot_surfen(df, hkl=hkl)
 
     # Save the csv or return the dataframe
     if save_csv: 

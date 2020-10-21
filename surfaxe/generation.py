@@ -6,7 +6,8 @@ import warnings
 import os
 
 # surfaxe
-from surfaxe.io import slabs_to_file, PBEsol_slab_config
+from surfaxe.io import slabs_to_file 
+
 
 # Monkeypatching straight from Stackoverflow
 def custom_formatwarning(message, category, filename, lineno, line=''):
@@ -17,7 +18,7 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
                       make_fols=False, make_input_files=False, max_size=500, 
                       lll_reduce=True, center_slab=True, ox_states=None, 
                       save_slabs=True, is_symmetric=True, 
-                      config_dict=PBEsol_slab_config, potcar_functional='PBE', 
+                      config_dict=None, potcar_functional='PBE', 
                       user_incar_settings=None, user_kpoints_settings=None, 
                       user_potcar_settings=None, **kwargs):
     """
@@ -103,8 +104,9 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
-        config_dict (`dict`, optional): Specifies the dictionary used for the 
-            generation of the input files. Defaults to ``PBEsol_config``. 
+        config_dict (`dict` or `str`, optional): Specifies the dictionary used 
+            for the generation of the input files. Defaults to ``None`` which 
+            loads the ``PBEsol_config.json` file. 
         potcar_functional (`str`): the functional used for POTCAR generation;
             Defaults to 'PBE'.
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
@@ -200,7 +202,7 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
                   vacuums=None, make_fols=False, make_input_files=False, 
                   max_size=500, ox_states=None, is_symmetric=True, 
                   lll_reduce=True, center_slab=True, save_slabs=True,
-                  config_dict=PBEsol_slab_config, potcar_functional='PBE', 
+                  config_dict=None, potcar_functional='PBE', 
                   user_incar_settings=None, user_potcar_settings=None, 
                   user_kpoints_settings=None, **kwargs):
     """
@@ -288,15 +290,16 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
-        config_dict (`dict`, optional): Specifies the dictionary used for the 
-            generation of the input files. Defaults to ``None``. 
+        config_dict (`dict` or `str`, optional): Specifies the dictionary used 
+            for the generation of the input files. Defaults to ``None`` which 
+            loads the ``PBEsol_config.json` file. 
         potcar_functional (`str`): the functional used for POTCAR generation;
             Defaults to 'PBE'.
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
             parameter settings. Defaults to ``PBEsol_config``.
-        user_kpoints_settings (`dict` or :obj:`~pymatgen.io.vasp.inputs.Kpoints`, optional): 
+        user_kpoints_settings (`dict` or Kpoints object, optional): 
             Overrides the default kpoints settings. If it is supplied  
-            as `dict`, it should be as `{'reciprocal_density': 100}`. Defaults 
+            as `dict`, it should be as ``{'reciprocal_density': 100}``. Defaults 
             to ``None``.
         user_potcar_settings (`dict`, optional): Overrides the default POTCAR 
             settings. Defaults to ``None``.

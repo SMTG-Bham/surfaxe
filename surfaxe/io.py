@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np 
 import os
 import warnings 
+import json
 
 # Monkeypatching straight from Stackoverflow
 def custom_formatwarning(message, category, filename, lineno, line=''):
@@ -20,32 +21,47 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rcParams['figure.figsize'] = (10.0,8.0)
 mpl.rcParams.update({'font.size': 14})
 
-PBEsol_slab_config = {
-  'INCAR': {'ALGO': 'Normal', 'ADDGRID': False, 'LASPH': True, 'EDIFFG': -0.01,
-            'EDIFF': 1e-06, 'ENCUT': 500, 'ISIF': 2, 'ISMEAR': 0, 'GGA': 'PS',
-            'LREAL': 'auto', 'LORBIT': 11, 'LCHARG': False, 'LWAVE': False, 
-            'NELM': 150, 'NSW': 0, 'PREC': 'Accurate', 'SIGMA': 0.01, 'ISYM': 2, 
-            'IWAVPR': 1},
-  'KPOINTS': {'reciprocal_density': 90},
-  'POTCAR': {'Ac': 'Ac', 'Ag': 'Ag', 'Al': 'Al', 'Ar': 'Ar', 'As': 'As',
-             'Au':  'Au', 'B': 'B', 'Ba': 'Ba_sv', 'Be': 'Be_sv', 'Bi': 'Bi',
-             'Br': 'Br', 'C': 'C', 'Ca': 'Ca_sv', 'Cd': 'Cd', 'Ce': 'Ce',
-             'Cl': 'Cl', 'Co': 'Co', 'Cr': 'Cr_pv', 'Cs': 'Cs_sv', 'Cu': 'Cu',
-             'Dy': 'Dy_3', 'Er': 'Er_3', 'Eu': 'Eu', 'F': 'F', 'Fe': 'Fe_pv',
-             'Ga': 'Ga_d', 'Gd': 'Gd', 'Ge': 'Ge_d', 'H': 'H', 'He': 'He',
-             'Hf': 'Hf_pv', 'Hg': 'Hg', 'Ho': 'Ho_3', 'I': 'I', 'In': 'In_d',
-             'Ir': 'Ir', 'K': 'K_sv', 'Kr': 'Kr', 'La': 'La', 'Li': 'Li_sv',
-             'Lu': 'Lu_3', 'Mg': 'Mg_pv', 'Mn': 'Mn_pv', 'Mo': 'Mo_pv',
-             'N': 'N', 'Na': 'Na_pv', 'Nb': 'Nb_pv', 'Nd': 'Nd_3', 'Ne': 'Ne',
-             'Ni': 'Ni_pv', 'Np': 'Np', 'O': 'O', 'Os': 'Os_pv', 'P': 'P',
-             'Pa': 'Pa', 'Pb': 'Pb_d', 'Pd': 'Pd', 'Pm': 'Pm_3', 'Pr': 'Pr_3',
-             'Pt': 'Pt', 'Pu': 'Pu', 'Rb': 'Rb_sv', 'Re': 'Re_pv',
-             'Rh': 'Rh_pv', 'Ru': 'Ru_pv', 'S': 'S', 'Sb': 'Sb', 'Sc': 'Sc_sv',
-             'Se': 'Se', 'Si': 'Si', 'Sm': 'Sm_3', 'Sn': 'Sn_d', 'Sr': 'Sr_sv',
-             'Ta': 'Ta_pv', 'Tb': 'Tb_3', 'Tc': 'Tc_pv', 'Te': 'Te', 'Th': 'Th',
-             'Ti': 'Ti_sv', 'Tl': 'Tl_d', 'Tm': 'Tm_3', 'U': 'U', 'V': 'V_pv',
-             'W': 'W', 'Xe': 'Xe', 'Y': 'Y_sv', 'Yb': 'Yb_2', 'Zn': 'Zn',
-             'Zr': 'Zr_sv'}}
+from surfaxe import _config_directory
+
+def load_config_dict(config_dict): 
+    """
+    Loads the config dictionary for writing VASP input files. 
+
+    Args: 
+        config_dict(``None``, `dict` or `str`): The config dict containing info  
+            on INCAR, POTCAR and KPOINTS settings. Can be supplied as: 
+
+            * ``dict``: All settings for the calculations provided as a 
+              dictionary of dictionaries 
+
+                    e.g. ``{'INCAR': {'ENCUT': 500, 'ISYM': 2, 'GGA': 'PE'}, 
+                    'KPOINTS': {'reciprocal_density': 20}, 
+                    'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}``
+
+            * ``str``: Filename of the config dictionary in the 
+              ``_config_dictionaries`` folder. If the filename does not exist,  
+              the function defaults to the ``PBEsol_config.json`` file.            
+
+            * ``None``: The default option, makes a PBEsol config dictionary for
+              a single shot calculation from the ``PBEsol_config.json`` file.  
+    Returns: 
+        Dictionary
+    
+    """
+    if type(config_dict) is dict: 
+        cd = config_dict 
+    elif type(config_dict) is str: 
+        if os.path.isfile(os.path.join(_config_directory, config_dict)): 
+            with open(os.path.join(_config_directory, config_dict), 'r') as f:
+                cd = json.load(f)
+        else: 
+            with open(os.path.join(_config_directory, 'PBEsol_config.json'), 'r') as f:
+                cd = json.load(f)
+    else: 
+        with open(os.path.join(_config_directory, 'PBEsol_config.json'), 'r') as f:
+            cd = json.load(f)
+
+    return cd 
 
 def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files, 
 config_dict, potcar_functional, user_incar_settings, user_kpoints_settings, 
@@ -71,7 +87,8 @@ user_potcar_settings):
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
             if make_input_files:
-                vis = DictSet(slab['slab'], config_dict, 
+                cd = load_config_dict(config_dict)
+                vis = DictSet(slab['slab'], cd,  
                 user_incar_settings=user_incar_settings, 
                 user_kpoints_settings=user_kpoints_settings, 
                 user_potcar_settings=user_potcar_settings)
