@@ -51,14 +51,13 @@ plt_surfen=True, save_csv=True):
 
     Args:
         hkl (`tuple`, required): Miller index of the slab.
-        bulk_per_atom (`float`, required): bulk energy per atom from a converged 
+        bulk_per_atom (`float`, required): Bulk energy per atom from a converged 
             bulk calculation.
-        plt_enatom (`bool`, optional): Whether to plot the energy per atom.
-            Defaults to ``True``.
-        plt_surfen (`bool`, optional): Whether to plot the surface energy. 
-            Defaults to ``True``.
-        save_csv (`bool`, optional): Whether to save the csv. Defaults to
-         ``True``.
+        plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
+            ``True``.
+        plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 
+            ``True``.
+        save_csv (`bool`, optional): Saves the csv. Defaults to ``True``.
 
     Returns:
         DataFrame 
@@ -95,16 +94,17 @@ plt_surfen=True, save_csv=True):
                 # name of fol has to be ./slabthickness_vacthickness_index
                 slab_vac_index = fol.split('_')
 
-                df_list.append({'hkl': hkl_string, 
-                          'hkl_tuple': hkl, 
-                          'slab_thickness': slab_vac_index[0],
-                          'vac_thickness': slab_vac_index[1],
-                          'slab_index': slab_vac_index[2],
-                          'atoms': vsp_dict['nsites'], 
-                          'area': slab.surface_area, 
-                          'slab_energy': vsp_dict['output']['final_energy'],
-                          'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
-                          'time_taken': otc_times['Elapsed time (sec)']})
+                df_list.append(
+                    {'hkl_string': hkl_string, 
+                    'hkl_tuple': hkl, 
+                    'slab_thickness': slab_vac_index[0],
+                    'vac_thickness': slab_vac_index[1],
+                    'slab_index': slab_vac_index[2],
+                    'atoms': vsp_dict['nsites'], 
+                    'area': slab.surface_area, 
+                    'slab_energy': vsp_dict['output']['final_energy'],
+                    'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
+                    'time_taken': otc_times['Elapsed time (sec)']})
 
     df = pd.DataFrame(df_list)
     df['surface_energy'] = (

@@ -6,13 +6,7 @@ import warnings
 import os
 
 # surfaxe
-from surfaxe.io import slabs_to_file 
-
-
-# Monkeypatching straight from Stackoverflow
-def custom_formatwarning(message, category, filename, lineno, line=''):
-    # Ignore everything except the message
-    return 'UserWarning: ' + str(message) + '\n'
+from surfaxe.io import slabs_to_file, _custom_formatwarning
 
 def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None, 
                       make_fols=False, make_input_files=False, max_size=500, 
@@ -106,14 +100,14 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
             ``True``. 
         config_dict (`dict` or `str`, optional): Specifies the dictionary used 
             for the generation of the input files. Defaults to ``None`` which 
-            loads the ``PBEsol_config.json` file. 
+            loads the ``PBEsol_config.json`` file. 
         potcar_functional (`str`): the functional used for POTCAR generation;
-            Defaults to 'PBE'.
+            Defaults to ``'PBE'``.
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
             parameter settings. Defaults to ``None``.
-        user_kpoints_settings (`dict` or :obj:`~pymatgen.io.vasp.inputs.Kpoints`, optional): 
+        user_kpoints_settings (`dict` or Kpoints object, optional): 
             Overrides the default kpoints settings. If it is supplied  
-            as `dict`, it should be as `{'reciprocal_density': 100}`. Defaults 
+            as `dict`, it should be as ``{'reciprocal_density': 100}``. Defaults 
             to ``None``.
         user_potcar_settings (`dict`, optional): Overrides the default POTCAR 
             settings. Defaults to ``None``.
@@ -179,13 +173,13 @@ def get_one_hkl_slabs(structure=None, hkl=None, thicknesses=None, vacuums=None,
 
     # Warnings for large and repeated slabs
     if repeat:
-        warnings.formatwarning = custom_formatwarning
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
         'were generated because of repeat structures. '
         'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
     if large:
-        warnings.formatwarning = custom_formatwarning
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
@@ -292,11 +286,11 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
             ``True``. 
         config_dict (`dict` or `str`, optional): Specifies the dictionary used 
             for the generation of the input files. Defaults to ``None`` which 
-            loads the ``PBEsol_config.json` file. 
+            loads the ``PBEsol_config.json`` file. 
         potcar_functional (`str`): the functional used for POTCAR generation;
-            Defaults to 'PBE'.
+            Defaults to ``'PBE'``.
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
-            parameter settings. Defaults to ``PBEsol_config``.
+            parameter settings. Defaults to ``None``.
         user_kpoints_settings (`dict` or Kpoints object, optional): 
             Overrides the default kpoints settings. If it is supplied  
             as `dict`, it should be as ``{'reciprocal_density': 100}``. Defaults 
@@ -371,13 +365,13 @@ def get_all_slabs(structure=None, max_index=None, thicknesses=None,
 
     # Warnings for large and repeated slabs
         if repeat:
-            warnings.formatwarning = custom_formatwarning
+            warnings.formatwarning = _custom_formatwarning
             warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
             'were generated because of repeat structures. '
             'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
         if large:
-            warnings.formatwarning = custom_formatwarning
+            warnings.formatwarning = _custom_formatwarning
             warnings.warn('Some generated slabs exceed the max size specified.'
             ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 

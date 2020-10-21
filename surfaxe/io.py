@@ -10,7 +10,7 @@ import warnings
 import json
 
 # Monkeypatching straight from Stackoverflow
-def custom_formatwarning(message, category, filename, lineno, line=''):
+def _custom_formatwarning(message, category, filename, lineno, line=''):
     # Ignore everything except the message
     return 'UserWarning: ' + str(message) + '\n'
 
@@ -112,14 +112,23 @@ user_potcar_settings):
             filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index']))
 
-def plot_bond_analysis(df=None, filename=None, **kwargs): 
+def plot_bond_analysis(bonds, df=None, filename=None, plt_fname='bond_analysis.png', 
+dpi=300): 
     """
     Plots the bond distance with respect to fractional coordinate. Used in 
     conjunction with surfaxe.analysis.bond_analysis.   
 
     Args:
-        df (pandas DataFrame): DataFrame from surfaxe.analysis.bond_analysis
-        filename (str): path to csv file with data from bond_analysis
+        bonds (`list` of `tuples): List of bonds to compare
+            e.g. [('Y', 'O'), ('Ti', 'S')]; order does not matter
+        df (`pandas DataFrame`, optional): DataFrame from 
+            surfaxe.analysis.bond_analysis. Defaults to ``None``.
+        filename (`str`, optional): Path to csv file with data from 
+            surfaxe.analysis.bond_analysis. Defaults to ``None``. 
+            Either df or filename need to be supplied.
+        plt_fname (`str`, optional): Filename of the plot. Defaults to 
+            ``'bond_analysis.png'``.
+        dpi (`int`, optional): Dots per inch. Defaults to ``300``.  
 
     Returns:
         Plot
@@ -130,15 +139,15 @@ def plot_bond_analysis(df=None, filename=None, **kwargs):
     elif df: 
         df = df
     else: 
-        warnings.formatwarning = custom_formatwarning
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn('Data not supplied')
 
     colors = plt.rcParams["axes.prop_cycle"]()
-    fig, axs = plt.subplots(nrows=len(kwargs.get('atoms')))
+    fig, axs = plt.subplots(nrows=len(bonds))
 
     # Iterate though the atom combinations, plot the graphs
     i=0
-    for atom1, atom2 in kwargs.get('atoms'):
+    for atom1, atom2 in bonds:
         c = next(colors)["color"]
         x = df['{}_c_coord'.format(atom1)]
         y = df['{}-{}_bond_distance'.format(atom1,atom2)]
@@ -148,10 +157,11 @@ def plot_bond_analysis(df=None, filename=None, **kwargs):
         i+=1
     
     plt.xlabel("Fractional coordinates")
-    plt.savefig(**kwargs)
+    plt.savefig(plt_fname, dpi)
     
 
-def plot_electrostatic_potential(df=None, filename=None, **kwargs): 
+def plot_electrostatic_potential(df=None, filename=None, dpi=300,
+    plt_fname='electrostatic_potential.png'): 
     """
     Plots the electrostatic potential along one direction. 
 
@@ -167,7 +177,7 @@ def plot_electrostatic_potential(df=None, filename=None, **kwargs):
     elif filename is not None: 
         df = pd.read_csv(filename)
     else: 
-        warnings.formatwarning = custom_formatwarning
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn('Data not supplied')
 
     # Plot both planar and macroscopic, save figure
@@ -176,9 +186,9 @@ def plot_electrostatic_potential(df=None, filename=None, **kwargs):
     ax.plot(df['macroscopic'], label='macroscopic')
     ax.legend()
     plt.ylabel('Potential / eV')
-    plt.savefig(**kwargs)
+    plt.savefig(plt_fname, dpi)
 
-def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_surfen(df, hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300):
     """
     Plots the surface energy for all terminations. Based on surfaxe.convergence 
     parse_fols. 
@@ -194,7 +204,6 @@ def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs
     Returns:
         hkl_surface_energy.png
     """
-    hkl = kwargs.get('hkl')
     hkl_string = ''.join(map(str, hkl))
 
     indices, vals, times, dfs = ([] for i in range(4))
@@ -299,27 +308,25 @@ def plot_surfen(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs
 
 
     plt.savefig('{}_surface_energy.{}'.format(hkl_string, fmt),
-    dpi=dpi, bbox_inches='tight', **kwargs)
+    dpi=dpi, bbox_inches='tight')
 
 
-def plot_enatom(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs):
+def plot_enatom(df, hkl=None, time_taken=True, cmap='Wistia', fmt='png', dpi=300):
     """
     Plots the energy per atom for all terminations. Based on surfaxe.convergence 
     parse_fols.
 
     Args:
         df (pandas DataFrame): DataFrame from `parse_fols` 
-        time_taken (bool): whether it shows the time taken for calculation to
+        time_taken (`bool`): whether it shows the time taken for calculation to
             finish on the graph; default=True
-        cmap (str): Matplotlib colourmap used; defaut='Wistia'
-        fmt (str): format for the output file; default='png'
-        dpi (int): dots per inch; default=300
+        cmap (`str`): Matplotlib colourmap used; defaut='Wistia'
+        fmt (`str`): format for the output file; default='png'
+        dpi (`int`): dots per inch; default=300
 
     Returns:
         hkl_energy_per_atom.png
     """
-    hkl = kwargs.get('hkl')
-    hkl_string = ''.join(map(str, hkl))
 
     indices, vals, times, dfs = ([] for i in range(4))
 
@@ -423,6 +430,6 @@ def plot_enatom(df, time_taken=True, cmap='Wistia', fmt='png', dpi=300, **kwargs
                             ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                               ha="center", va="top", color="black")
 
-
+    hkl_string = ''.join(map(str, hkl))
     plt.savefig('{}_energy_per_atom.{}'.format(hkl_string,fmt),
-    dpi=dpi, bbox_inches='tight', **kwargs)
+    dpi=dpi, bbox_inches='tight')

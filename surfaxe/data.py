@@ -12,11 +12,12 @@ import os
 import pandas as pd 
 import numpy as np 
 import warnings 
-from surfaxe.generation import custom_formatwarning
+
 
 # surfaxe 
 from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
+from surfaxe.io import _custom_formatwarning
 
 def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None, 
                     parse_folders=True, parse_core_energy=False, 
@@ -134,7 +135,7 @@ def parse_electrostatic(path):
 
     else: 
         max_potential = np.nan
-        warnings.formatwarning = custom_formatwarning
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn('Vacuum electrostatic potential was not parsed - '
         'no LOCPOT or potential.csv files were provided.')
 

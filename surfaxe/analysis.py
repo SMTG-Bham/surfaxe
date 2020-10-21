@@ -27,22 +27,24 @@ from surfaxe.generation import oxidation_states
 from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
 
 def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
-                       txt_fname='cart_displacements.txt', **kwargs):
+                       txt_fname='cart_displacements.txt'):
     """
     Produces a text file with all the magnitude of displacements of atoms
     in Cartesian space
 
     Args:
-        start (str): filename of initial structure file in any format supported
+        start (`str`): Filename of initial structure file in any format 
+            supported by pymatgen.
+        end (`str`): Filename of final structure file in any format supported
             by pymatgen.
-        end (str): filename of final structure file in any format supported
-            by pymatgen.
-        elements (list): list of elements in the structure
-            e.g. ['Y', 'Ti', 'O', 'S'] in any order
-        max_disp (float): maximum displacement shown; default 0.1 Å
-        save_txt (bool): save the displacements to file; default=True.
-        txt_fname (str): filename of the file produced; 
-            default='cart_displacement.txt'
+        elements (`list`): List of elements in the structure in any order 
+            e.g. ``['Y', 'Ti', 'O', 'S']`` 
+        max_disp (`float`, optional): The maximum displacement shown. Defaults 
+            to 0.1 Å.
+        save_txt (`bool`, optional): Save the displacements to file. Defaults to 
+            ``True``.
+        txt_fname (`str`, optional): Filename of the csv file. Defaults to 
+            ``'cart_displacement.txt'``.
 
     Returns:
         Displacements of atoms in Cartesian space 
@@ -82,42 +84,56 @@ def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
     df = pd.DataFrame(disp_list)
 
     if save_txt: 
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
+        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
     else: 
         return df
 
-def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(), 
+def bond_analysis(structure=None, bonds=None, nn_method=CrystalNN(), 
                   ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
-                  save_plt=True, plt_fname='bond_analysis.png', dpi=300,
-                  **kwargs):
+                  save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
-    nearest neighbour method on the bulk structure before using it on slabs. The 
-    required arguments are structure and atoms. 
+    nearest neighbour method on the bulk structure before using it on slabs.
 
     Args:
-        structure (str): filename of structure, takes all pymatgen-supported formats.
-        atoms (list of tuples): list of bonds to compare
-            e.g. [('Y', 'O'), ('Ti', 'S')]; order does not matter
-        nn_method (class): pymatgen.analysis.local_env nearest neighbour method;
-            default=CrystalNN()
-        ox_states (list or dict): add oxidation states either by sites
-            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-            default=None which adds oxidation states by guess
-        save_csv (bool): makes a csv file with planar and macroscopic potential,
-            default=True.
-        csv_name (str): filename of the csv file; default='bond_analysis.csv'. 
-        save_plt (bool): whether to make and save the plot or not; default=True.
-        plt_fname (str): filename of the plot file; default='bond_analysis.png'.
-        dpi (int): dots per inch; default=300
+        structure (`str`): filename of structure, takes all pymatgen-supported 
+            formats.
+        bonds (`list` of `tuples`): List of bonds to compare in any order
+            e.g. ``[('Y', 'O'), ('Ti', 'S')]``
+        nn_method (`class`, optional): pymatgen.analysis.local_env nearest 
+            neighbour method. Defaults to ``CrystalNN()``
+        ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
+            to the structure. Different types of oxidation states specified will 
+            result in different pymatgen functions used. The options are: 
+            
+            * if supplied as ``list``: The oxidation states are added by site 
+                    
+                    e.g. ``[3, 2, 2, 1, -2, -2, -2, -2]``
+            
+            * if supplied as ``dict``: The oxidation states are added by element
+                    
+                    e.g. ``{'Fe': 3, 'O':-2}``
+            
+            * if ``None``: The oxidation states are added by guess. 
+              
+            Defaults to ``None``. 
+        save_csv (`bool`, optional): Makes a csv file with the c coordinate of 
+            the first atom and bond length. Defaults to ``True``.
+        csv_fname (`str`, optional): Filename of the csv file. Defaults to 
+            ``'bond_analysis.csv'``.
+        save_plt (`bool`, optional): Make and save the bond analysis plot. 
+            Defaults to ``True``. 
+        plt_fname (`str`, optional): Filename of the plot. Defaults to 
+            ``'bond_analysis.png'``.
+        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
 
     Returns:
-        DataFrame
+        DataFrame with the c coordinate of the first atom and bond length
     """
     # Check all neccessary input parameters are present 
-    if not any ([structure, atoms]): 
+    if not any ([structure, bonds]): 
         raise ValueError('One or more of the required arguments (structure, '
-                         'atoms) were not supplied.')
+                         'bonds) were not supplied.')
 
     struc = Structure.from_file(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
@@ -126,7 +142,7 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
     # sites match, the bond distance is calculated and passed to a dataframe
     bonds_info = []
     for n, pos in enumerate(struc):
-        for atom1, atom2 in atoms:
+        for atom1, atom2 in bonds:
             if pos.specie.symbol is atom1:
                 nearest_neighbours = nn_method.get_nn_info(struc, n)
                 matched_sites = []
@@ -142,32 +158,35 @@ def bond_analysis(structure=None, atoms=None, nn_method=CrystalNN(),
     
     # Save plot and csv, or return the DataFrame 
     if save_plt: 
-        plot_bond_analysis(df, fname=plt_fname, atoms=atoms, **kwargs)
+        plot_bond_analysis(bonds, plt_fname=plt_fname, df=df)
     if save_csv: 
-        df.to_csv(csv_fname, header=True, index=False, **kwargs)
+        df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
 
 
 def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
                             save_csv=True, csv_fname='potential.csv', 
-                            save_plt=True, plt_fname='potential.png', dpi=300,
-                            **kwargs):
+                            save_plt=True, plt_fname='potential.png', dpi=300):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
-    direction. The required argument is `lattice_vector`. 
+    direction. 
 
     Args:
-        lattice_vector (float): the periodicity of the slab
-        locpot (str): path to your locpot file, default='./LOCPOT'
-            axis (int): direction in which the potential is investigated; a=0, 
-            b=1, c=2; default=2
-        save_csv (bool): makes a csv file with planar and macroscopic potential,
-            default=True.
-        csv_fname (str): filename of the csv file, default='potential.csv'.
-        save_plt (bool): whether to make and save the plot or not; default=True.
-        plt_fname (str): filename of the plot file; default='potential.png'.
-        dpi (int): dots per inch; default=300.
+        lattice_vector (`float`): The periodicity of the slab. 
+        locpot (`str`, optional): The path to the LOCPOT file. Defaults to 
+            ``'./LOCPOT'``
+        axis (`int`, optional): The direction in which the potential is 
+            investigated; a=0, b=1, c=2. Defaults to `2`. 
+        save_csv (`bool`, optional): Makes a csv file with planar and macroscopic 
+            potential. Defaults to ``True``.
+        csv_fname (`str`, optional): Filename of the csv file. Defaults 
+            to ``'potential.csv'``.
+        save_plt (`bool`, optional): Make and save the plot of electrostatic 
+            potential. Defaults to ``True``. 
+        plt_fname (`str`, optional): Filename of the plot. Defaults to 
+            ``'potential.png'``.
+        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
 
     Returns:
         DataFrame
@@ -207,33 +226,46 @@ def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
-        plot_electrostatic_potential(df=df, fname=plt_fname, **kwargs)
+        plot_electrostatic_potential(df=df, plt_fname=plt_fname, dpi=dpi)
     if save_csv: 
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
 
 def simple_nn(start=None, elements=None, end=None, ox_states=None, 
-              nn_method=CrystalNN(), save_txt=True, txt_fname='nn_data.txt', 
-              **kwargs):
+              nn_method=CrystalNN(), save_txt=True, txt_fname='nn_data.txt'):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure. The required arguments
     are `start` and `elements`. 
     
     Args:
-        start (str): filename of structure, takes all pymatgen-supported formats.
-        elements (list): the elements in the structure, order does not matter.
-        end (str): filename of structure to analyse, use if comparing initial
-            and final structures. The structures must have same constituent 
-            atoms and number of sites; default=None
-        ox_states (list or dict): add oxidation states either by sites
-            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2};
-            default=None which adds oxidation states by guess
-        nn_method (class): the pymatgen.analysis.local_env nearest neighbour
-            method; default=CrystalNN()
-        save_txt (bool): whether to save to txt or not; default=True
-        txt_fname (str): filename of the text file, default='nn_data.txt'
+        start (`str`): filename of structure, takes all pymatgen-supported formats.
+        elements (`list`): List of elements in the structure in any order 
+            e.g. ``['Y', 'Ti', 'O', 'S']`` 
+        end (`str`, optional): filename of structure to analyse, use if 
+            comparing initial and final structures. The structures must have 
+            same constituent atoms and number of sites. Defaults to ``None``. 
+        ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
+            to the structure. Different types of oxidation states specified will 
+            result in different pymatgen functions used. The options are: 
+            
+            * if supplied as ``list``: The oxidation states are added by site 
+                    
+                    e.g. ``[3, 2, 2, 1, -2, -2, -2, -2]``
+            
+            * if supplied as ``dict``: The oxidation states are added by element
+                    
+                    e.g. ``{'Fe': 3, 'O':-2}``
+            
+            * if ``None``: The oxidation states are added by guess. 
+              
+            Defaults to ``None``. 
+        nn_method (`class`, optional): The pymatgen.analysis.local_env nearest 
+            neighbour method. Defaults to ``CrystalNN()``.
+        save_txt (`bool`, optional): Save to a txt file. Defaults to ``True``.
+        txt_fname (`str`, optional): Filename of the txt file. Defaults to 
+            ``'nn_data.txt'``
     
     Returns
         DataFrame
@@ -256,7 +288,7 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
     start_struc.add_site_property('', site_labels)
     
     # Add oxidation states 
-    start_struc = oxidation_states(start_struc, **kwargs)
+    start_struc = oxidation_states(start_struc)
 
     # Get bonded start structure
     bonded_start = nn_method.get_bonded_structure(structure=start_struc)
@@ -277,7 +309,7 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
     # Nearest neighbour for two compared structures of the same system
     else:
         end_struc = Structure.from_file(end)
-        end_struc = oxidation_states(end_struc, **kwargs)
+        end_struc = oxidation_states(end_struc)
 
         # Get the bonded end structure
         bonded_end = nn_method.get_bonded_structure(end_struc)
@@ -308,7 +340,7 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
 
 
 def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, 
-                ox_states=None, save_txt=True, txt_fname='nn_data.txt', **kwargs):
+                ox_states=None, save_txt=True, txt_fname='nn_data.txt'):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
@@ -316,21 +348,34 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     and `cut_off_dict`. 
 
     Args:
-        start (str): filename of structure to analyse
-        elements (list): the elements in the structure, order does not matter
-        cut_off_dict (dict): dictionary of bond lengths
-            i.e. {('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,
-            ('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}
-        end (str): filename of structure to analyse, use if comparing initial
-            and final structures, the compared structures must have same 
-            constituent atoms and number of sites; default=None
-        ox_states (list or dict): add oxidation states either by sites
-            i.e. [3, 2, 2, 1, -2, -2, -2, -2] or by element i.e. {'Fe': 3, 'O':-2}.
-            If the structure is decorated with oxidation states, the bond 
-            distances need to have oxidation states specified. 
-            Default=None (no oxidation states)
-        save_txt (bool): whether or not to save the txt file; default=True.
-        txt_fname (str): filename of csv file, default='nn_data.txt'
+        start (`str`): filename of structure, takes all pymatgen-supported formats.
+        elements (`list`): List of elements in the structure in any order 
+            e.g. ``['Y', 'Ti', 'O', 'S']`` 
+        cut_off_dict (`dict`): Dictionary of bond lengths
+            e.g. ``{('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,
+            ('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}``
+        end (`str`, optional): filename of structure to analyse, use if 
+            comparing initial and final structures. The structures must have 
+            same constituent atoms and number of sites. Defaults to ``None``. 
+        ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
+            to the structure. Different types of oxidation states specified will 
+            result in different pymatgen functions used. The options are: 
+            
+            * if supplied as ``list``: The oxidation states are added by site 
+                    
+                    e.g. ``[3, 2, 2, 1, -2, -2, -2, -2]``
+            
+            * if supplied as ``dict``: The oxidation states are added by element
+                    
+                    e.g. ``{'Fe': 3, 'O':-2}``
+            
+            * if ``None``: No oxidation states are added - different from other
+              functions in ``surfaxe``. 
+
+            Defaults to ``None`` 
+        save_txt (`bool`, optional): Save to a txt file. Defaults to ``True``.
+        txt_fname (`str`, optional): Filename of the txt file. Defaults to 
+            ``'nn_data.txt'``
     
     Returns
         DataFrame
@@ -405,7 +450,7 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     
     # Save the txt file or return as dataframe 
     if save_txt: 
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w', **kwargs)
+        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
     else:    
         return df
 
