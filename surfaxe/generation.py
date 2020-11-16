@@ -20,10 +20,14 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     Note that using this method of slab generation will result in different slab 
     index numbers as in the `get_all_slabs` - the slabs identified are the same, 
     the index varies based on the position in the list of generated slabs. 
-    The function returns a list of dicts of all unique slabs or 
-    POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with POSCARs 
-    or hkl/slab_vac_index with all VASP input files. 
+    The function returns None by default and generates either: 
 
+    (i) POSCAR_hkl_slab_vac_index.vasp (default) 
+    (ii) hkl/slab_vac_index folders with POSCARs
+    (iii) hkl/slab_vac_index with all VASP input files 
+    
+    Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
+    
     Args:
         structure (`str`): Filename of structure file in any format supported by 
             pymatgen. 
@@ -173,6 +177,10 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
                             's_index': i,
                             'slab': slab})
                   
+    ### DWD: This is block is repeated almost exactly in both the functions
+    ### so could we farm it out to another function e.g. filter_slabs() 
+    ### so that it is only written once and makes the two main functions
+    ### a bit shorter? 
     # Iterate though provisional slabs to extract the unique slabs
     unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
 
@@ -226,18 +234,22 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
     slab index values as in the `get_one_hkl_slabs` - the slabs identified are 
     the same, the index varies based on the position in the list of generated 
     slabs.
-    The function returns a list of dicts of all unique slabs or 
-    POSCAR_hkl_slab_vac_index.vasp or hkl/slab_vac_index folders with POSCARs 
-    or hkl/slab_vac_index with all VASP input files.
+    The function returns None by default and generates either: 
+
+    (i) POSCAR_hkl_slab_vac_index.vasp (default) 
+    (ii) hkl/slab_vac_index folders with POSCARs
+    (iii) hkl/slab_vac_index with all VASP input files 
+    
+    Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
 
     Args:
         structure (`str`, required): Filename of structure file in any 
             format supported by pymatgen. 
         max_index (`int`, required): The maximum Miller index to go up to.
         thicknesses (`list`, required): The minimum size of the slab in 
-            Angstroms. Defaults to ``None``. 
+            Angstroms. 
         vacuums (`list`, required): The minimum size of the vacuum in 
-            Angstroms. Defaults to ``None``. 
+            Angstroms. 
         make_fols (`bool`, optional): Makes folders for each termination 
             and slab/vacuum thickness combinations containing POSCARs. 
             
@@ -315,7 +327,8 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
             settings. Defaults to ``None``.
 
     Returns:
-        Surface slabs 
+        None (default) 
+        or unique_slabs (list of dicts) 
 
     """
    
