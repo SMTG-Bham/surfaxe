@@ -340,11 +340,11 @@ save_csv=True, csv_fname='nn_data.csv'):
 
     Args:
         start (`str`): filename of structure, takes all pymatgen-supported formats.
-        elements (`list`): List of elements in the structure in any order 
+        elements (`list`): List of elements in the structure in any order \n 
             e.g. ``['Y', 'Ti', 'O', 'S']`` 
         cut_off_dict (`dict`): Dictionary of bond lengths
-            e.g. ``{('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,
-            ('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}``
+            e.g. ``{('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,``
+            ``('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}``
         end (`str`, optional): filename of structure to analyse, use if 
             comparing initial and final structures. The structures must have 
             same constituent atoms and number of sites. Defaults to ``None``. 
