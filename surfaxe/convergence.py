@@ -42,16 +42,16 @@ def slab_from_file(structure, hkl):
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
 
-def parse_fols(hkl=None, bulk_per_atom=None, path_to_fols=None, plt_enatom=True, 
-plt_surfen=True, save_csv=True):
+def parse_fols(hkl, bulk_per_atom, path_to_fols=None, plt_enatom=True, 
+plt_surfen=True, save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
     combination.
 
     Args:
-        hkl (`tuple`, required): Miller index of the slab.
-        bulk_per_atom (`float`, required): Bulk energy per atom from a converged 
+        hkl (`tuple`): Miller index of the slab.
+        bulk_per_atom (`float`): Bulk energy per atom from a converged 
             bulk calculation.
         plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
             ``True``.
@@ -62,18 +62,14 @@ plt_surfen=True, save_csv=True):
     Returns:
         DataFrame 
     """
-     # Check all neccessary input parameters are present 
-    if not any ([hkl, bulk_per_atom]): 
-        raise ValueError('One or more of the required arguments (bulk_per_atom,'
-                         ' hkl) were not supplied.')
-    
+   
     df_list = []
     hkl_string = ''.join(map(str, hkl))
 
-    if path_to_fols is not None:
-        cwd = path_to_fols
-    else: 
+    if path_to_fols is None:
         cwd = os.getcwd()
+    else: 
+        cwd = path_to_fols
 
     for root, fols, files in os.walk(cwd):
         for fol in fols:
@@ -112,11 +108,15 @@ plt_surfen=True, save_csv=True):
         ) 
 
     # Plot energy per atom and surface energy
+    plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'fmt': 'png', 'dpi': 300, 
+    'heatmap': False}
+    plt_kwargs.update(**kwargs)
+
     if plt_enatom: 
-        plot_enatom(df, hkl=hkl)
+        plot_enatom(df, hkl=hkl, **plt_kwargs)
     
     if plt_surfen: 
-        plot_surfen(df, hkl=hkl)
+        plot_surfen(df, hkl=hkl, **plt_kwargs)
 
     # Save the csv or return the dataframe
     if save_csv: 

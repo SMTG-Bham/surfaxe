@@ -27,7 +27,7 @@ from surfaxe.generation import oxidation_states
 from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
 
 def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
-                       txt_fname='cart_displacements.txt'):
+txt_fname='cart_displacements.txt'):
     """
     Produces a text file with all the magnitude of displacements of atoms
     in Cartesian space
@@ -89,8 +89,8 @@ def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
         return df
 
 def bond_analysis(structure=None, bonds=None, nn_method=CrystalNN(), 
-                  ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
-                  save_plt=True, plt_fname='bond_analysis.png', dpi=300):
+ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
+save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
     nearest neighbour method on the bulk structure before using it on slabs.
@@ -150,24 +150,26 @@ def bond_analysis(structure=None, bonds=None, nn_method=CrystalNN(),
                     if d.get('site').specie.symbol is atom2:
                         matched_sites.append(d)
                 bond_distances = [struc.get_distance(n,x['site_index']) for x in matched_sites]
-                bonds_info.append({'{}_index'.format(atom1): n+1,
-                                   '{}_c_coord'.format(atom1): pos.c,
-                                   '{}-{}_bond_distance'.format(atom1,atom2): np.mean(bond_distances)})
+                bonds_info.append({
+                    '{}_index'.format(atom1): n+1,
+                    '{}_c_coord'.format(atom1): pos.c,
+                    '{}-{}_bond_distance'.format(atom1,atom2): np.mean(bond_distances)
+                })
 
     df = pd.DataFrame(bonds_info)
     
     # Save plot and csv, or return the DataFrame 
     if save_plt: 
-        plot_bond_analysis(bonds, plt_fname=plt_fname, df=df)
+        plot_bond_analysis(bonds, df=df, plt_fname=plt_fname, dpi=dpi)
     if save_csv: 
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
 
 
-def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
-                            save_csv=True, csv_fname='potential.csv', 
-                            save_plt=True, plt_fname='potential.png', dpi=300):
+def electrostatic_potential(lattice_vector, locpot='./LOCPOT', axis=2,
+save_csv=True, csv_fname='potential.csv', save_plt=True, 
+plt_fname='potential.png', dpi=300):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
     direction. 
@@ -191,10 +193,6 @@ def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
     Returns:
         DataFrame
     """
-    # Check all neccessary input parameters are present 
-    if not lattice_vector: 
-        raise ValueError('The required argument lattice_vector was not supplied.')
-
     # Read potential and structure data
     lpt = Locpot.from_file(locpot)
     struc = Structure.from_file(locpot)
@@ -232,8 +230,8 @@ def electrostatic_potential(lattice_vector=None, locpot='./LOCPOT', axis=2,
     else: 
         return df
 
-def simple_nn(start=None, elements=None, end=None, ox_states=None, 
-              nn_method=CrystalNN(), save_txt=True, txt_fname='nn_data.txt'):
+def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(), 
+save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure. The required arguments
@@ -263,18 +261,13 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
             Defaults to ``None``. 
         nn_method (`class`, optional): The pymatgen.analysis.local_env nearest 
             neighbour method. Defaults to ``CrystalNN()``.
-        save_txt (`bool`, optional): Save to a txt file. Defaults to ``True``.
-        txt_fname (`str`, optional): Filename of the txt file. Defaults to 
-            ``'nn_data.txt'``
+        save_csv (`bool`, optional): Save to a csv file. Defaults to ``True``.
+        csv_fname (`str`, optional): Filename of the csv file. Defaults to 
+            ``'nn_data.csv'``
     
     Returns
         DataFrame
     """
-    # Check all neccessary input parameters are present 
-    if not any([start, elements]): 
-        raise ValueError('One or more of the required arguments (start, elements)' 
-                         ' were not supplied.')
-
     # Instantiate start structure object
     start_struc = Structure.from_file(start)
 
@@ -287,60 +280,58 @@ def simple_nn(start=None, elements=None, end=None, ox_states=None,
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
     
-    # Add oxidation states 
+    # Add oxidation states and get bonded structure
     start_struc = oxidation_states(start_struc)
+    bonded_start = nn_method.get_bonded_structure(start_struc)
 
-    # Get bonded start structure
-    bonded_start = nn_method.get_bonded_structure(structure=start_struc)
-
-    # Nearest neighbours for just one structure
-    if not end:
-        nn_list = []
-        for n, site in enumerate(start_struc):
-            cn_start = bonded_start.get_coordination_of_site(n)
-            label = site_labels[n]
-            nn_list.append({'site': n+1,
-                           'atom': label,
-                           'cn start': cn_start})
-
-        # Make a dataframe from nn_list 
-        df = pd.DataFrame(nn_list)
-
-    # Nearest neighbour for two compared structures of the same system
-    else:
+    if end: 
         end_struc = Structure.from_file(end)
         end_struc = oxidation_states(end_struc)
-
-        # Get the bonded end structure
         bonded_end = nn_method.get_bonded_structure(end_struc)
+    
+    # Iterate through structure, evaluate the coordination number and the 
+    # nearest neighbours species for start and end structures, collects the
+    # symbol and index of the site (atom) evaluated and its nearest neighbours 
+    df_list = []
+    for n, site in enumerate(start_struc):
+        cn_start = bonded_start.get_coordination_of_site(n)
+        coord_start = nn_method.get_nn_info(start_struc, n)
+        specie_list = []
+        for d in coord_start: 
+            spc = d.get('site').specie.symbol 
+            specie_list.append(spc)
+        specie_list.sort()
+        site_nn_start = ' '.join(specie_list)
+        label = site_labels[n]
 
-        # Get coordination numbers for start and end structures, calculates the
-        # end - start difference, collects the site labels and passes it all to
-        # a dataframe
-        nn_list = []
-        for n, site in enumerate(start_struc):
-            cn_start = bonded_start.get_coordination_of_site(n)
+        if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
-            cn_diff = cn_end - cn_start
-            label = site_labels[n]
-            nn_list.append({'site': n+1,
-                           'atom': label,
-                           'cn start': cn_start,
-                           'cn_end': cn_end,
-                           'diff': cn_diff})
+            coord_end = nn_method.get_nn_info(end_struc, n)
+            specie_list = []
+            for d in coord_end: 
+                spc = d.get('site').specie.symbol 
+                specie_list.append(spc)
+            specie_list.sort()
+            site_nn_end = ' '.join(specie_list)
+            df_list.append({'site': n+1, 'atom': label, 'cn start': cn_start,
+            'nn_start': site_nn_start, 'cn_end': cn_end, 'nn_end': site_nn_end})
 
-        # Make a dataframe from nn_list 
-        df = pd.DataFrame(nn_list)
+        else: 
+            df_list.append({'site_index': n+1, 'site': label,
+            'cn_start': cn_start, 'nn_start': site_nn_start})
 
-    # Save the txt file or return as dataframe 
-    if save_txt: 
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
+    # Make a dataframe from df_list 
+    df = pd.DataFrame(df_list)
+
+    # Save the csv file or return as dataframe 
+    if save_csv: 
+        df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df
 
 
-def complex_nn(start=None, elements=None, cut_off_dict=None, end=None, 
-                ox_states=None, save_txt=True, txt_fname='nn_data.txt'):
+def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None, 
+save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
@@ -373,19 +364,14 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
               functions in ``surfaxe``. 
 
             Defaults to ``None`` 
-        save_txt (`bool`, optional): Save to a txt file. Defaults to ``True``.
-        txt_fname (`str`, optional): Filename of the txt file. Defaults to 
-            ``'nn_data.txt'``
+        save_csv (`bool`, optional): Save to a csv file. Defaults to ``True``.
+        csv_fname (`str`, optional): Filename of the csv file. Defaults to 
+            ``'nn_data.csv'``
     
     Returns
         DataFrame
     """
-    # Check all neccessary input parameters are present 
-    if not any([start, elements, cut_off_dict]): 
-        raise ValueError('One or more of the required arguments (start, elements,' 
-                         ' cut_off_dict) were not supplied.')
-
-     # Instantiate start structure object
+    # Instantiate start structure object
     start_struc = Structure.from_file(start)
 
     # Add atom site labels to the structure
@@ -401,56 +387,53 @@ def complex_nn(start=None, elements=None, cut_off_dict=None, end=None,
     if ox_states is not None:
         start_struc = oxidation_states(start_struc, ox_states=ox_states)
 
-    # Instantiate the nearest neighbour algorithm
+    # Instantiate the nearest neighbour algorithm and get bonded structure
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
-
-    # Get the bonded end structure
     bonded_start = codnn.get_bonded_structure(start_struc)
 
-    # Nearest neighbours for just one structure
-    if not end:
-        nn_list = []
-        for n, site in enumerate(start_struc):
-            cn_start = bonded_start.get_coordination_of_site(n)
-            label = site_labels[n]
-            nn_list.append({'site': n+1,
-                           'atom': label,
-                           'cn start': cn_start})
-
-        # Make a dataframe from nn_list 
-        df = pd.DataFrame(nn_list)
-            
-    #nearest neighbour for two compared structures
-    else:
+    # Instantiate the end structure if provided
+    if end: 
         end_struc = Structure.from_file(end)
-        
-        if ox_states is not None:
-            end_struc = oxidation_states(end_struc, ox_states=ox_states)
-
-        # Get the bonded end structure
+        end_struc = oxidation_states(end_struc)
         bonded_end = codnn.get_bonded_structure(end_struc)
 
-        # Get coordination numbers for start and end structures, calculates the
-        # end - start difference, collects the site labels and passes it all to
-        # a dataframe
-        nn_list = []
-        for n, site in enumerate(start_struc):
-            cn_start = bonded_start.get_coordination_of_site(n)
-            cn_end = bonded_end.get_coordination_of_site(n)
-            cn_diff = cn_end - cn_start
-            label = site_labels[n]
-            nn_list.append({'site': n+1,
-                           'atom': label,
-                           'cn start': cn_start,
-                           'cn_end': cn_end,
-                           'diff': cn_diff})
+    # Iterate through structure, evaluate the coordination number and the 
+    # nearest neighbours species for start and end structures, collects the
+    # symbol and index of the site (atom) evaluated and its nearest neighbours 
+    df_list = []
+    for n, site in enumerate(start_struc):
+        cn_start = bonded_start.get_coordination_of_site(n)
+        coord_start = codnn.get_nn_info(start_struc, n)
+        specie_list = []
+        for d in coord_start: 
+            spc = d.get('site').specie.symbol 
+            specie_list.append(spc)
+        specie_list.sort()
+        site_nn_start = ' '.join(specie_list)
+        label = site_labels[n]
 
-        # Make a dataframe from nn_list 
-        df = pd.DataFrame(nn_list)
+        if end: 
+            cn_end = bonded_end.get_coordination_of_site(n)
+            coord_end = codnn.get_nn_info(end_struc, n)
+            specie_list = []
+            for d in coord_end: 
+                spc = d.get('site').specie.symbol 
+                specie_list.append(spc)
+            specie_list.sort()
+            site_nn_end = ' '.join(specie_list)
+            df_list.append({'site': n+1, 'atom': label, 'cn start': cn_start,
+            'nn_start': site_nn_start, 'cn_end': cn_end, 'nn_end': site_nn_end})
+
+        else: 
+            df_list.append({'site_index': n+1, 'site': label,
+            'cn_start': cn_start, 'nn_start': site_nn_start})
+
+    # Make a dataframe from df_list 
+    df = pd.DataFrame(df_list)
     
-    # Save the txt file or return as dataframe 
-    if save_txt: 
-        df.to_csv(txt_fname, header=True, index=False, sep='\t', mode='w')
+    # Save the csv file or return as dataframe 
+    if save_csv: 
+        df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df
 
@@ -475,9 +458,7 @@ def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
     Returns
         slab thickness to terminal
     """
-    if not start: 
-        raise ValueError('The required argument (start) was not supplied')
-    
+   
     start_struc = Structure.from_file(start)
     start_struc = start_struc.cart_coords
 

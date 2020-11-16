@@ -20,7 +20,7 @@ from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning
 
 def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None, 
-                    parse_folders=True, parse_core_energy=False, 
+                    parse_folders=True, parse_core_energy=False, bulk_nn=None,
                     parse_electrostatic=True, save_csv=True, 
                     csv_fname='data.csv',
                     **kwargs): 
@@ -28,15 +28,17 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
     
     Args:
         bulk_per_atom (float): bulk energy per atom from a converged bulk calculation
-        folders (list): list of folders where the calculations are ? 
+        folders (list): list of folders where the calculations are ? like pbesol
+        hse06 - whatever the folders that contain the calcs are called  
         hkl_dict (dict): dictionary of tuples of Miller indices and the folders the 
         calculations relating to them are in, e.g. {(1,-1,2): '1-12'}; default=None
         parse_fols (bool): if true the script parses the root folders to get the 
         Miller indices; default=True.
         parse_core_energy (bool): if True will attempt to parse core energies 
         from a supplied OUTCAR for core level energies; default=False.
+        bulk_nn (list, optional): 
         parse_electrostatic (bool): if True will attempt to parse LOCPOT using 
-        analysis.electrostatic_potential() for vacuum potential; default=True. 
+        analysis.electrostatic_potential for vacuum potential; default=True. 
         save_csv (bool): whether or not to save to csv; default=True.
         csv_fname (str): filename of the csv; default='data.csv' 
     Returns: 
@@ -52,7 +54,8 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
 
     # Get the Miller indices as tuples and strings from folders in root dir
     if parse_folders:
-        if not hkl_dict: hkl_dict = {}
+        if not hkl_dict: 
+            hkl_dict = {}
         for root, fols, files in os.walk('.'):
             for fol in fols: 
                 if fol is not root and len(fol)==3 and fol.isdigit():
@@ -75,8 +78,8 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
                         vsp_dict = vsp.as_dict()
                         slab = slab_from_file(vsp_path, hkl_tuple)
                         
-                        df_list.append(
-                            {'hkl': hkl_string, 
+                        df_list.append({
+                            'hkl': hkl_string, 
                             'hkl_tuple': hkl_tuple,
                             'area': slab.surface_area, 
                             'atoms': vsp_dict['nsites'], 
@@ -87,17 +90,17 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
                             'bandgap': vsp_dict['output']['bandgap'],  
                             'slab_energy': vsp_dict['output']['final_energy'],
                             'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
-                            'vasprun_dictionary': vsp_dict}
-                            )
+                            'vasprun_dictionary': vsp_dict
+                        })
 
                         if parse_electrostatic: 
                             electrostatic_list.append(
-                                parse_electrostatic(path)
+                                get_vacuum_level(path)
                             )
                                                     
                         if parse_core_energy: 
                             core_energy_list.append(
-                                parse_core_energy()
+                                get_core_energy(path, bulk_nn)
                             )
                             
                     
@@ -119,7 +122,7 @@ def data_collection(bulk_per_atom=None, folders=None, hkl_dict=None,
     else:
         return df
 
-def parse_electrostatic(path): 
+def get_vacuum_level(path): 
     '''
     checks if a potential.csv file exists in folder, if not tries to calculate
     planar potential from locpot. If neither exist it returns a np.nan 
@@ -142,17 +145,52 @@ def parse_electrostatic(path):
     return max_potential
         
 
-def parse_core_energy(filename=None, core_atom=None, ox_states=None, 
+def get_core_energy(path, bulk_nn, orbital='1s', ox_states=None, 
 nn_method=CrystalNN()): 
-    
-    struc = Structure.from_file(filename) 
-    struc = oxidation_states(struc)
+    """
+    Args: 
 
-       
-    # figure out how to get through the bonding enviornment 
-    # need outcar read_core_state_eigen() -> output is dict
-    # with [index of atom, zero indexed][str of orbital][ionic run - default=-1 
-    # as last run] 
+    Returns: 
+        core state energy 
+    """
+    struc = Structure.from_file('{}/vasprun.xml'.format(path)) 
+    struc = oxidation_states(struc)
+    bulk_nn.sort()
+    bulk_nn_str = ''.join(bulk_nn)
+    
+    # Get the nearest neighbours info, the c-coordinate and index number 
+    # for each atom
+    list_of_dicts = [] 
+    for n, pos in enumerate(struc): 
+        nn_info = nn_method.get_nn_info(struc, n)
+        slab_nn_list = []
+        for d in nn_info: 
+            nn = d.get('site').specie.symbol
+            slab_nn_list.append(nn)
+        slab_nn_list.sort()
+        slab_nn = ''.join(slab_nn_list)
+        list_of_dicts.append({
+            'atom': n, 
+            'nn': slab_nn, 
+            'c_coord': pos.c
+        })
+
+    # Make pandas Dataframe, query the interquartile range of fractional 
+    # coordinates of atoms whose nearest neighbour environment is same as the
+    # bulk nearest neighbours provided, get the atom that is the nearest to the 
+    # median of the interquartile range 
+    df = pd.DataFrame(list_of_dicts)
+    low, high = df['c_coord'].quantile([0.25,0.75])
+    df = df.query('@low<c_coord<@high and nn==@bulk_nn_str')
+    atom = df['atom'].quantile(interpolation='nearest')        
+
+    # Read OUTCAR, get the core state energy 
+    otc = Outcar('{}/OUTCAR'.format(path))
+    core_energy_dict = otc.read_core_state_eigen()
+    core_energy = core_energy_dict[atom][orbital][-1]
+
+    return core_energy
+
     
 
 
