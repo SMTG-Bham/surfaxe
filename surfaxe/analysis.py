@@ -266,7 +266,7 @@ save_csv=True, csv_fname='nn_data.csv'):
             ``'nn_data.csv'``
     
     Returns
-        DataFrame
+        None (default) or DataFrame containing coordination data 
     """
     # Instantiate start structure object
     start_struc = Structure.from_file(start)
@@ -369,7 +369,7 @@ save_csv=True, csv_fname='nn_data.csv'):
             ``'nn_data.csv'``
     
     Returns
-        DataFrame
+        None (default) or DataFrame containing coordination data.
     """
     # Instantiate start structure object
     start_struc = Structure.from_file(start)
