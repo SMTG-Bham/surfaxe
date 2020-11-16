@@ -47,7 +47,7 @@ txt_fname='cart_displacements.txt'):
             ``'cart_displacement.txt'``.
 
     Returns:
-        Displacements of atoms in Cartesian space 
+       None (default) or DataFrame of displacements of atoms in Cartesian space 
 
     """
     # Instantiate the structures from files
@@ -464,6 +464,9 @@ def slab_thickness(start, start_zmax=None, end=None, end_zmax=None):
 
     # just one slab
     if end is None and start_zmax is None:
+        ### DWD: A lot of these variables don't end up getting used
+        ### so could just do e.g. 
+        ### s_zmax = start_struc.max(axis = 0)[2] 
         s_xmax, s_ymax, s_zmax = start_struc.max(axis = 0)
         s_xmin, s_ymin, s_zmin = start_struc.min(axis = 0)
 
