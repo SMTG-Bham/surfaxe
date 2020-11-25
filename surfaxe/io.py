@@ -66,14 +66,41 @@ def load_config_dict(config_dict):
 def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files, 
 config_dict, **save_slabs_kwargs): 
     """
-    Saves the slabs to file 
+    Saves the slabs to file, optionally creates input files. The function can 
+    take any relevant keyword argument for DictSet. 
 
     Args: 
-        list_of_slabs (list): a list of slab dictionaries made with either of
-        surfaxe.generation get_slab functions 
+        list_of_slabs (`list`): a list of slab dictionaries made with either of
+            surfaxe.generation get_slab functions 
+        structure (`str`): Filename of structure file in any format supported by 
+            pymatgen. 
+        make_fols (`bool`): Makes folders for each termination and slab/vacuum 
+            thickness combinations containing POSCARs. 
+            
+            * ``True``: A Miller index folder is created, in which folders 
+              named slab_vac_index are created to which the relevant POSCARs 
+              are saved. 
+                    
+                    E.g. for a (0,0,1) slab of index 1 with a slab thickness of 
+                    20 Å and vacuum thickness of 30 Å the folder structure would 
+                    be: ``001/20_30_1/POSCAR``  
+
+            * ``False``: The indexed POSCARs are put in a folder named after 
+              the bulk formula. 
+              
+                    E.g. for a (0,0,1) MgO slab of index 1 with a slab thickness 
+                    of 20 Å and vacuum thickness of 30 Å the folder structure 
+                    would be: ``MgO/POSCAR_001_20_30_1``
+ 
+        make_input_files (`bool`): Makes INCAR, POTCAR and KPOINTS files in each 
+            folder. If ``make_input_files`` is ``True`` but ``make_files`` or 
+            ``save_slabs`` is ``False``, files will be saved to folders 
+            regardless. 
+        config_dict (`dict` or `str`): Specifies the dictionary used for the 
+            generation of the input files.
 
     Returns: 
-        POSCARs in folders 
+        POSCARs of surface slabs 
     """
     struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
@@ -165,11 +192,17 @@ plt_fname='bond_analysis.png', dpi=300):
 def plot_electrostatic_potential(df=None, filename=None, dpi=300, 
 plt_fname='potential.png'): 
     """
-    Plots the electrostatic potential along one direction. 
+    Plots the planar and macroscopic electrostatic potential along one 
+    direction. Can take both a DataFrame or a potential.csv file as input. 
 
     Args: 
-        df: pandas DataFrame from surfaxe.analysis.electrostatic_potential 
-        filename (str): the filename of csv with potential
+        df (`pandas DataFrame`, optional): pandas DataFrame from 
+            surfaxe.analysis.electrostatic_potential. Defaults to ``None``. 
+        filename (`str`, optional): The filename of csv file with potential 
+            data. Defaults to ``None``. 
+        dpi (`int`, optional): Dots per inch. Defaults to 300.
+        plt_fname (`str`, optional): Filename of the plot. Defaults to 
+            ``'potential.png'``.
     
     Returns: 
         potential.png
@@ -380,13 +413,14 @@ heatmap=False):
     parse_fols.
 
     Args:
-        df (pandas DataFrame): DataFrame from `parse_fols` 
-        hkl (`tuple`): Miller index of the slab.
-        time_taken (`bool`): whether it shows the time taken for calculation to
-            finish on the graph; default=True
-        cmap (`str`): Matplotlib colourmap used; defaut='Wistia'
-        fmt (`str`): format for the output file; default='png'
-        dpi (`int`): dots per inch; default=300
+        df (pandas DataFrame): DataFrame from `parse_fols`
+        time_taken (bool): Show the time taken for calculation to finish on the
+            figure. Defaults to True.
+        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
+        fmt (`str`, optional): Format for the output file. Defaults to 'png'
+        dpi (`int`, optional): Dots per inch. Defaults to 300.
+        heatmap (`bool`, optional): If True plots a heatmap of surface energies.
+            Defaults to False.
 
     Returns:
         hkl_energy_per_atom.png

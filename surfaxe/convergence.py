@@ -52,7 +52,7 @@ plt_surfen=True, save_csv=True, **kwargs):
     Args:
         hkl (`tuple`): Miller index of the slab.
         bulk_per_atom (`float`): Bulk energy per atom from a converged 
-            bulk calculation.
+            bulk calculation in eV per atom.
         plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
             ``True``.
         plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 

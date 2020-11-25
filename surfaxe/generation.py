@@ -112,7 +112,8 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
             settings. Defaults to ``None``.
 
     Returns:
-        Surface slabs 
+        None (default) 
+        or unique_slabs (list of dicts) 
     """
 
     # Set up additional arguments for slab generation and saving slabs
@@ -243,13 +244,11 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
     Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
 
     Args:
-        structure (`str`, required): Filename of structure file in any 
-            format supported by pymatgen. 
-        max_index (`int`, required): The maximum Miller index to go up to.
-        thicknesses (`list`, required): The minimum size of the slab in 
-            Angstroms. 
-        vacuums (`list`, required): The minimum size of the vacuum in 
-            Angstroms. 
+        structure (`str`): Filename of structure file in any format supported 
+            by pymatgen. 
+        max_index (`int`): The maximum Miller index to go up to.
+        thicknesses (`list`): The minimum size of the slab in Angstroms. 
+        vacuums (`list`): The minimum size of the vacuum in Angstroms. 
         make_fols (`bool`, optional): Makes folders for each termination 
             and slab/vacuum thickness combinations containing POSCARs. 
             
