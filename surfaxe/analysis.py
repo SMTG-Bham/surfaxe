@@ -88,12 +88,12 @@ txt_fname='cart_displacements.txt'):
     else: 
         return df
 
-def bond_analysis(structure=None, bonds=None, nn_method=CrystalNN(), 
+def bond_analysis(structure, bonds, nn_method=CrystalNN(), 
 ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
 save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
-    nearest neighbour method on the bulk structure before using it on slabs.
+    the nearest neighbour method on the bulk structure before using it on slabs.
 
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
@@ -130,11 +130,6 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     Returns:
         DataFrame with the c coordinate of the first atom and bond length
     """
-    # Check all neccessary input parameters are present 
-    if not any ([structure, bonds]): 
-        raise ValueError('One or more of the required arguments (structure, '
-                         'bonds) were not supplied.')
-
     struc = Structure.from_file(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
@@ -180,7 +175,7 @@ plt_fname='potential.png', dpi=300):
             ``'./LOCPOT'``
         axis (`int`, optional): The direction in which the potential is 
             investigated; a=0, b=1, c=2. Defaults to `2`. 
-        save_csv (`bool`, optional): Makes a csv file with planar and macroscopic 
+        save_csv (`bool`, optional): Saves a csv file with planar and macroscopic 
             potential. Defaults to ``True``.
         csv_fname (`str`, optional): Filename of the csv file. Defaults 
             to ``'potential.csv'``.
@@ -234,16 +229,17 @@ def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(),
 save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
-    make sure the nn_method works with the bulk structure. The required arguments
-    are `start` and `elements`. 
+    make sure the nn_method works with the bulk structure. 
     
     Args:
-        start (`str`): filename of structure, takes all pymatgen-supported formats.
+        start (`str`): Filename of structure file in any format supported by 
+            pymatgen
         elements (`list`): List of elements in the structure in any order 
             e.g. ``['Y', 'Ti', 'O', 'S']`` 
-        end (`str`, optional): filename of structure to analyse, use if 
-            comparing initial and final structures. The structures must have 
-            same constituent atoms and number of sites. Defaults to ``None``. 
+        end (`str`, optional): Filename of structure file in any format 
+            supported by pymatgen. Use if comparing initial and final structures. 
+            The structures must have same constituent atoms and number of sites. 
+            Defaults to ``None``. 
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
             result in different pymatgen functions used. The options are: 
@@ -335,8 +331,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
-    before applying to surface slabs. The required args are `start`, `elements`
-    and `cut_off_dict`. 
+    before applying to surface slabs. 
 
     Args:
         start (`str`): filename of structure, takes all pymatgen-supported formats.

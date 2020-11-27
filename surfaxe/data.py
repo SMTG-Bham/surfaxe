@@ -75,7 +75,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Set up additional arguments for get_core_energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
-    'nn_method': 'CrystalNN()'}
+    'nn_method': 'CrystalNN()', 'structure':'vasprun.xml'}
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
@@ -171,18 +171,18 @@ def get_vacuum_level(path):
         
 
 def get_core_energy(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
-nn_method=CrystalNN()): 
+nn_method=CrystalNN(), structure='vasprun.xml'): 
     """
-    Parses the structure and OUTCAR for the core level energy. Check the 
+    Parses the structure and OUTCAR files for the core level energy. Check the 
     validity of nearest neighbour method on the bulk structure before using it 
     on slabs.
 
     Args: 
         path (`str`): the path to potential.csv or LOCPOT files.
         core_atom (`str`, optional): The symbol of atom the core state energy 
-            level should be parsed from. Defaults to ``None``. 
+            level should be parsed from.  
         bulk_nn (`list`, optional): The symbols of the nearest neighbours of the 
-            `core_atom`. Defaults to ``None``.  
+            `core_atom`.   
         orbital (`str`, optional): The orbital of core state. Defaults to 1s.
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
@@ -201,11 +201,13 @@ nn_method=CrystalNN()):
             Defaults to ``None``.
         nn_method (`class`, optional): pymatgen.analysis.local_env nearest 
             neighbour method. Defaults to ``CrystalNN()``
+        structure (`str`): Filename of structure file in any format supported by 
+            pymatgen. Defaults to ``vasprun.xml`` 
 
     Returns: 
         Core state energy 
     """
-    struc = Structure.from_file('{}/vasprun.xml'.format(path)) 
+    struc = Structure.from_file('{}/{}'.format(path, structure)) 
     struc = oxidation_states(struc, ox_states)
     bulk_nn.sort()
     bulk_nn_str = ' '.join(bulk_nn)

@@ -178,27 +178,8 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
                             's_index': i,
                             'slab': slab})
                   
-    ### DWD: This is block is repeated almost exactly in both the functions
-    ### so could we farm it out to another function e.g. filter_slabs() 
-    ### so that it is only written once and makes the two main functions
-    ### a bit shorter? 
     # Iterate though provisional slabs to extract the unique slabs
-    unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
-
-    for slab in provisional:
-        if slab['slab'] not in unique_list:
-            unique_list.append(slab['slab'])
-            unique_list_of_dicts.append(slab)
-            # For large slab size warning
-            atoms = len(slab['slab'].atomic_numbers)
-            if atoms > max_size:
-                large.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
-                             slab['vac_t'], slab['s_index']))
-
-        # For repeat slabs warning
-        else:
-            repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
-                          slab['vac_t'], slab['s_index']))
+    unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
     # Warnings for large and repeated slabs
     if repeat:
@@ -275,9 +256,10 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
         max_size (`int`, optional): The maximum number of atoms in the slab 
             specified to raise warning about slab size. Even if the warning is 
             raised, it still outputs the slabs regardless. Defaults to ``500``. 
-        bonds ({(specie1, specie2): max_bond_dist}: bonds are specified as  
+        bonds ({(specie1, specie2): max_bond_dist}: Bonds are specified as  
             {string tuple: float} of specie1, specie2 and the max bonding 
             distance. For example, PO4 groups may be defined as {(“P”, “O”): 3}.
+            Defaults to ``None``
         center_slab (`bool`, optional): The position of the slab in the 
             simulation cell. 
             
@@ -287,7 +269,7 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
             * ``False``: the slab is at the bottom of the simulation cell with
               all of the vacuum on top of it. 
 
-            Defaults to True. 
+            Defaults to ``True``. 
 
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
@@ -319,7 +301,7 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
             parameter settings. Defaults to ``None``.
         user_kpoints_settings (`dict` or Kpoints object, optional): 
-            Overrides the default kpoints settings. If it is supplied  
+            Overrides the default KPOINTS settings. If it is supplied  
             as `dict`, it should be as ``{'reciprocal_density': 100}``. Defaults 
             to ``None``.
         user_potcar_settings (`dict`, optional): Overrides the default POTCAR 
@@ -389,36 +371,19 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
                         })
 
     # Iterate though provisional slabs to extract the unique slabs
-    unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
-
-    for slab in provisional:
-        if slab['slab'] not in unique_list:
-            unique_list.append(slab['slab'])
-            unique_list_of_dicts.append(slab)
-            # For large slab size warning
-            atoms = len(slab['slab'].atomic_numbers)
-            if atoms > max_size:
-                large.append('{}_{}_{}_{}'.format(
-                    slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'])
-                )
-
-        # For repeat slabs warning
-        else:
-            repeat.append('{}_{}_{}_{}'.format(
-                slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'])
-            )
+    unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
     # Warnings for large and repeated slabs
-        if repeat:
-            warnings.formatwarning = _custom_formatwarning
-            warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
-            'were generated because of repeat structures. '
-            'The repeat slabs are: ' + ', '.join(map(str, repeat)))
+    if repeat:
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
+        'were generated because of repeat structures. '
+        'The repeat slabs are: ' + ', '.join(map(str, repeat)))
 
-        if large:
-            warnings.formatwarning = _custom_formatwarning
-            warnings.warn('Some generated slabs exceed the max size specified.'
-            ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+    if large:
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('Some generated slabs exceed the max size specified.'
+        ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
 
     # Save the slabs to file or return the list of dicts 
     if save_slabs: 
@@ -461,3 +426,38 @@ def oxidation_states(structure, ox_states=None):
         structure.add_oxidation_state_by_guess(max_sites=-1)
 
     return structure
+
+def _filter_slabs(provisional, max_size): 
+    """
+    Filters the repeat slabs from the list of all the zero dipole slabs. 
+    Creates lists of large and repeat slabs if any are present for the warnings
+
+    Args: 
+        provisional (`list`): All zero dipole slabs generated with SlabGenerator
+        max_size (`int`): The maximum number of atoms in the slab 
+            specified to raise warning about slab size.
+    
+    Returns: 
+        list of dictionaries with slabs, list of repeat slabs, list of slabs 
+        larger than the max_size 
+    """
+    # Iterate though provisional slabs to extract the unique slabs
+    unique_list, unique_list_of_dicts, repeat, large = ([] for i in range(4))
+
+    for slab in provisional:
+        if slab['slab'] not in unique_list:
+            unique_list.append(slab['slab'])
+            unique_list_of_dicts.append(slab)
+            
+            # For large slab size warning
+            atoms = len(slab['slab'].atomic_numbers)
+            if atoms > max_size:
+                large.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
+                             slab['vac_t'], slab['s_index']))
+
+        # For repeat slabs warning
+        else:
+            repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
+                          slab['vac_t'], slab['s_index']))
+
+    return unique_list_of_dicts, repeat, large    

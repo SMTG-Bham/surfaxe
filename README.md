@@ -1,4 +1,4 @@
-# Surfaxe (neé slabby-stabby)
+# Surfaxe
 
 Surfaxe is a python package for automating and simplifying surface calculations, as well as providing some analytical tools for bulk and surface calculations. It relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal structures and interfacing with VASP.
 
@@ -10,7 +10,7 @@ The main features include:
 
 2. **Raw data parsing:** Extracting data from convergence tests.
   * Parsing the convergence testing folders created using the slab generation scripts.
-  * Plotting scripts visualising convergence (with respect to slab and vacuum thickness). 
+  * Plotting scripts visualising convergence (with respect to slab and vacuum thickness. 
 
 3. **Analysis:** Various scripts for surface and bulk calculations.
   * Electrostatic potential tool, based on Keith Butler's [MacroDensity](https://github.com/WMD-group/MacroDensity) code, for the calculation of absolute electron energies (ionisation potential, electron affinity).
@@ -22,7 +22,6 @@ Development notes
 -----------------
 
 ### TODO 
-* implement CLI
 * tests
 * docs
 
@@ -44,24 +43,25 @@ Surfaxe can be used via the command line and python API. The manual, including t
 The `examples` folder contains the jupyter notebooks with detailed explanations 
 of functionality of all aspects of the package. 
 
-Currently the provisional scripts are separated into three stages; creation, convergence and analysis. The command line interface has not been implemented 
-yet but will be in the near future. 
+The scripts are separated into four stages; creation, convergence, analysis and data. 
 
 Creation:
 * `surfaxe-getall`: For generating all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified.
-* `surfaxe-getone`: For generating all unique symmetric zero-dipole surface slabs for one specified Miller index.
+* `surfaxe-gethkl`: For generating all unique symmetric zero-dipole surface slabs for one specified Miller index.
 
 Convergence:
-* `surfaxe-parse`: For parsing the convergence folders set up with `surfaxe-getall` or `surfaxe-getone`.
-* `surfaxe-surfenplot`: For plotting the surface energy and time taken for calculation to complete for each unique termination of surface slabs in convergence tests.
-* `surfaxe-enatomplot`: For plotting the energy per atom and time taken for calculation to complete for each unique termination of surface slabs in convergence tests.
+* `surfaxe-parsefols`: For parsing the convergence folders set up with `surfaxe-gethkl` or `surfaxe-getone`.
 
 Analysis:
-* `surfaxe-bond`
-* `surfaxe-bondplot`
+* `surfaxe-bonds`
 * `surfaxe-simplenn`
 * `surfaxe-complexnn`
-* `surfaxe-electrostatic`
+* `surfaxe-potential`
+* `surfaxe-cartdisp` 
+
+Data: 
+* `surfaxe-core` 
+* `surfaxe-vacuum` 
 
 ## Installation
 Surfaxe is a Python 3 package and requires pymatgen and other standard scientific python packages.
@@ -85,7 +85,7 @@ Tests are incoming...
 Surfaxe is free to use under the [sort licence out, probably MIT]. Please cite [add link] if you use it in your research.
 
 ## Detailed requirements 
-Surfaxe is compatible with python 3.something+ and requires the following packages:
+Surfaxe is compatible with python 3.6+ and requires the following packages:
 
 * Pymatgen
 * Pandas
