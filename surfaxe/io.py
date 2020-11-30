@@ -262,9 +262,7 @@ heatmap=False):
         # Plotting has to be separated into plotting for one and more than one
         # indices mpl won't let you index axes if there's only one set
         if len(indices) == 1:
-            mpl.rcParams['figure.figsize'] = (6.0,6.0)
             fig, ax = plt.subplots(1,1)
-            ax.set_title('{} surface energies'.format(hkl))
 
             for (index, val, time, df) in zip(indices, vals, times, dfs):
                 ax.set_yticks(list(range(len(df.index))))
@@ -276,7 +274,8 @@ heatmap=False):
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.2)
                 im = ax.imshow(val, cmap=cmap)
-                fig.colorbar(im, cax=cax, orientation='vertical')
+                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+                cbar.set_title('Surface energy / Jm$^{-2}$')
                 ax.invert_yaxis()
 
             # Add the surface energy value labels to the plot - the for loops 
@@ -303,17 +302,10 @@ heatmap=False):
             mpl.rcParams['figure.figsize'] = (10.0,10.0)
             fig, ax = plt.subplots(ncols=len(indices))
 
-            # The extra args are there because the default leaves a massive gap
-            # between the title and subplot titles, no amount of changing 
-            # tight_layout and subplots_adjust helped with the issue - this is 
-            # a known mpl issue
-            fig.suptitle('{} surface energies'.format(hkl), y=0.73, ha='center',
-                        va='top', size=22)
-
             # Iterate through the values for plotting, create each plot on a 
             # separate ax, add the colourbar to each ax
             for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-                ax[i].set_title('Slab index {}'.format(index))
+                ax[i].set_title('{}'.format(index))
                 ax[i].set_yticks(list(range(len(df.index))))
                 ax[i].set_yticklabels(df.index)
                 ax[i].set_ylabel('Slab thickness')
@@ -323,7 +315,8 @@ heatmap=False):
                 im = ax[i].imshow(val, cmap=cmap)
                 divider = make_axes_locatable(ax[i])
                 cax = divider.append_axes("right", size="5%", pad=0.2)
-                plt.colorbar(im, cax=cax)
+                cbar = plt.colorbar(im, cax=cax)
+                cbar.set_title('Surface energy / Jm$^{-2}$')
                 ax[i].invert_yaxis()
             fig.tight_layout()
 
@@ -354,16 +347,13 @@ heatmap=False):
         if nrows==1 and ncols==1: 
             fig, ax = plt.subplots(1,1)
             dfs[0].plot(ax=ax, marker='x', xticks=dfs[0].index, 
-            xlabel='Slab thickness / Å', ylabel='Surface energy / J/m2')
+            xlabel='Slab thickness / Å', ylabel='Surface energy / Jm$^{-2}$')
             ax.legend(title='Vacuum / Å')
-            ax.set_title('{} surface energies'.format(hkl))
 
         elif nrows==1 and ncols==2: 
             fig, ax = plt.subplots(1,2)
-            fig.suptitle('{} surface energies'.format(hkl), y=1.03, size=20, 
-            va='top')
             dfs[0].plot(ax=ax[0], xticks=dfs[0].index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Surface energy / J/m2')
+            xlabel='Slab thickness / Å', ylabel='Surface energy / Jm$^{-2}$')
             ax[0].legend(title='Vacuum / Å')
             dfs_times[0].plot(ax=ax[1], xticks=dfs_times[0].index, marker='x', 
             xlabel='Slab thickness / Å', ylabel='Time taken / s')
@@ -373,8 +363,6 @@ heatmap=False):
         # Plot times taken and or different terminations 
         else: 
             fig, ax = plt.subplots(nrows=nrows,ncols=ncols) 
-            fig.suptitle('{} surface energies'.format(hkl), y=1.03, size=20, 
-            va='top')
 
             # Separate plotting of times and energies, energies in the first
             # column, times in the second. Annoyingly matplotlib doesn't like 
@@ -384,7 +372,8 @@ heatmap=False):
             if time_taken: 
                 for i, df in enumerate(dfs): 
                     df.plot(ax=ax[i,0], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Surface energy / J/m2')
+                    xlabel='Slab thickness / Å', 
+                    ylabel='Surface energy / Jm$^{-2}$')
                     ax[i,0].legend(title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
             
@@ -396,7 +385,8 @@ heatmap=False):
             else: 
                 for i, df in enumerate(dfs): 
                     df.plot(ax=ax[i], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Surface energy / J/m2')
+                    xlabel='Slab thickness / Å', 
+                    ylabel='Surface energy / Jm$^{-2}$')
                     ax[i].legend(title='Vacuum / Å')
                     ax[i].set_title('{}'.format(indices[i]))
             
@@ -443,9 +433,7 @@ heatmap=False):
     # Plots the heatmap
     if heatmap:
         if len(indices) == 1:
-            mpl.rcParams['figure.figsize'] = (6.0,6.0)
             fig, ax = plt.subplots(1,1)
-            ax.set_title('{} energies per atom'.format(hkl))
 
             # Iterate through the values for plotting, create each plot on a 
             # separate ax, add the colourbar to each ax
@@ -459,7 +447,8 @@ heatmap=False):
                 im = ax.imshow(val, cmap=cmap)
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.2)
-                plt.colorbar(im, cax=cax)
+                cbar = plt.colorbar(im, cax=cax)
+                cbar.set_label('Energy per atom / eV')
                 ax.invert_yaxis()
 
             # Add the surface energy value labels to the plot, the for loop have 
@@ -483,19 +472,12 @@ heatmap=False):
 
         # Plotting for multiple indices
         else:
-            mpl.rcParams['figure.figsize'] = (10.0,10.0)
             fig, ax = plt.subplots(ncols=len(indices))
-
-            # The extra args are there because the default leaves a massive gap
-            # between the title and subplot titles, no amount of changing 
-            # tight_layout and subplots_adjust helped with the issue
-            fig.suptitle('{} energies per atom'.format(hkl), y=0.73, ha='center',
-                        va='top', size=22)
 
             # Iterate through the values for plotting, create each plot on a 
             # separate ax, add the colourbar to each ax
             for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-                ax[i].set_title('Slab index {}'.format(index))
+                ax[i].set_title('{}'.format(index))
                 ax[i].set_yticks(list(range(len(df.index))))
                 ax[i].set_yticklabels(df.index)
                 ax[i].set_ylabel('Slab thickness')
@@ -505,7 +487,8 @@ heatmap=False):
                 im = ax[i].imshow(val, cmap=cmap)
                 divider = make_axes_locatable(ax[i])
                 cax = divider.append_axes("right", size="5%", pad=0.2)
-                plt.colorbar(im, cax=cax)
+                cbar = plt.colorbar(im, cax=cax)
+                cbar.set_label('Energy per atom / eV')
                 ax[i].invert_yaxis()
             fig.tight_layout()
 
@@ -542,12 +525,9 @@ heatmap=False):
             dfs[0].plot(ax=ax, xticks=df.index, marker='x', 
             xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
             ax.legend(title='Vacuum / Å')
-            ax.set_title('{} energies per atom'.format(hkl))
 
         elif nrows==1 and ncols==2: 
             fig, ax = plt.subplots(1,2)
-            fig.suptitle('{} energies per atom'.format(hkl), y=1.03, size=20, 
-            va='top')
             dfs[0].plot(ax=ax[0], xticks=dfs[0].index, marker='x', 
             xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
             ax[0].legend(title='Vacuum / Å')
@@ -559,8 +539,6 @@ heatmap=False):
         # Plot times taken and or different terminations 
         else: 
             fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
-            fig.suptitle('{} energies per atom'.format(hkl), y=1.03, size=20, 
-            va='top')
 
             # Separate plotting of times and energies, energies in the first
             # column, times in the second. Annoyingly matplotlib doesn't like 
