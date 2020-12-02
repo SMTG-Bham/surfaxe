@@ -143,7 +143,8 @@ plt_fname='bond_analysis.png', dpi=300):
 
     Args:
         bonds (`list` of `tuples): List of bonds to compare
-            e.g. [('Y', 'O'), ('Ti', 'S')]; order does not matter
+            e.g. [('Y', 'O'), ('Ti', 'S')]; order of bond pairs must be the same  
+            as in the Dataframe or provided file.
         df (`pandas DataFrame`, optional): DataFrame from 
             surfaxe.analysis.bond_analysis. Defaults to ``None``.
         filename (`str`, optional): Path to csv file with data from 
@@ -193,7 +194,7 @@ def plot_electrostatic_potential(df=None, filename=None, dpi=300,
 plt_fname='potential.png'): 
     """
     Plots the planar and macroscopic electrostatic potential along one 
-    direction. Can take both a DataFrame or a potential.csv file as input. 
+    direction. Can take either a DataFrame or a potential.csv file as input. 
 
     Args: 
         df (`pandas DataFrame`, optional): pandas DataFrame from 
@@ -230,7 +231,9 @@ heatmap=False):
     parse_fols. 
 
     Args:
-        df (pandas DataFrame): DataFrame from `parse_fols`
+        df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
+            Dataframe with headings 'slab_thickness, 'vac_thickness', 
+            'surface_energy', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
@@ -336,6 +339,7 @@ heatmap=False):
                             for i, time in enumerate(times):
                                 ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                 ha="center", va="top", color="black")
+    # Line plots
     else: 
         # Get the number of subplots 
         nrows = len(indices)
@@ -403,7 +407,9 @@ heatmap=False):
     parse_fols.
 
     Args:
-        df (pandas DataFrame): DataFrame from `parse_fols`
+        df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
+            Dataframe with headings 'slab_thickness, 'vac_thickness', 
+            'slab_per_atom', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
@@ -511,7 +517,7 @@ heatmap=False):
                                 ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
                                 ha="center", va="top", color="black")
     
-    # Plots the 
+    # Line plots
     else: 
         # Get the number of subplots 
         nrows = len(indices)

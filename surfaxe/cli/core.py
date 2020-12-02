@@ -4,7 +4,7 @@ import os
 import warnings 
 
 # Surfaxe 
-from surfaxe.data import get_core_energy
+from surfaxe.data import core
 
 def _get_parser(): 
     parser = ArgumentParser(
@@ -40,7 +40,7 @@ def main():
     if args.path is not None: 
         path = args.path
 
-    get_core_energy(path, args.core_atom, args.bulk_nn, 
+    core(path, args.core_atom, args.bulk_nn, 
     orbital=args.orbital, ox_states=args.ox_states, nn_method=args.nn_method, 
     structure=args.structure)
 

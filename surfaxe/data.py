@@ -19,7 +19,7 @@ from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning
 
-def data_collection(bulk_per_atom, folder, hkl_dict=None, parse_folders=True, 
+def data(bulk_per_atom, folder, hkl_dict=None, parse_folders=True, 
 parse_core_energy=False, core_atom=None, bulk_nn=None, parse_electrostatic=True, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
@@ -91,7 +91,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                     path = os.path.join(root,fol)
                     vsp_path = '{}/vasprun.xml'.format(path)
 
-                    vsp = Vasprun(vsp_path, **kwargs)
+                    vsp = Vasprun(vsp_path)
                     vsp_dict = vsp.as_dict()
                     slab = slab_from_file(vsp_path, hkl_tuple)
                     
@@ -111,12 +111,12 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
                     if parse_electrostatic: 
                         electrostatic_list.append(
-                            get_vacuum_level(path)
+                            vacuum(path)
                         )
                                                 
                     if parse_core_energy: 
                         core_energy_list.append(
-                            get_core_energy(path, core_atom, bulk_nn, 
+                            core(path, core_atom, bulk_nn, 
                             **get_core_energy_kwargs)
                             )
                             
@@ -139,7 +139,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     else:
         return df
 
-def get_vacuum_level(path): 
+def vacuum(path): 
     '''
     Gets the energy of the vacuum level. It either parses potential.csv file if 
     available or tries to calculate planar potential from LOCPOT. If neither 
@@ -152,9 +152,11 @@ def get_vacuum_level(path):
         Maximum value of planar potential
 
     '''
+
     if '{}/potential.csv'.format(path): 
-        df = pd.read_csv('{}/potential.csv')
-        max_potential = df['planar'].max().round(decimals=3)
+        df = pd.read_csv('{}/potential.csv'.format(path))
+        max_potential = df['planar'].max()
+        max_potential = round(max_potential, 3)
 
     elif '{}/LOCPOT'.format(path): 
         lpt = Locpot.from_file('{}/LOCPOT'.format(path))
@@ -170,7 +172,7 @@ def get_vacuum_level(path):
     return max_potential
         
 
-def get_core_energy(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
+def core(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
 nn_method=CrystalNN(), structure='vasprun.xml'): 
     """
     Parses the structure and OUTCAR files for the core level energy. Check the 

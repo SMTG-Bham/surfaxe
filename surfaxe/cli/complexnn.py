@@ -37,6 +37,9 @@ def _get_parser():
     
     return parser 
 
+def _ox_state_formatter(): 
+    pass
+
 def main(): 
     args = _get_parser().parse_args()
 

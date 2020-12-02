@@ -18,7 +18,7 @@ def _get_parser():
     parser.add_argument('-b', '--bulk-energy', required=True, type=str,
     dest='bulk_per_atom', help=('Bulk energy per atom from a converged bulk ' 
     'calculation in eV per atom'))
-    parser.add_argument('--path', default=None, type=str, 
+    parser.add_argument('-p', '--path', default=None, type=str, 
     help='Relative path to the convergence folders (default: cwd)')
     parser.add_argument('--no-enatom', default=True, action='store_false', 
     dest='plt_enatom', help='Turns off energy per atom plotting')
@@ -34,7 +34,7 @@ def main():
 
     # warnings? 
 
-    parse_fols(args.hkl, args.bulk_per_atom, path_to_fols=args.path_to_fols, 
+    parse_fols(args.hkl, args.bulk_per_atom, path=args.path, 
     plt_enatom=args.plt_enatom, plt_surfen=args.plt_surfen, 
     save_csv=args.save_csv)
 

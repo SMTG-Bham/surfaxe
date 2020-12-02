@@ -4,7 +4,7 @@ import os
 import warnings 
 
 # Surfaxe 
-from surfaxe.data import get_vacuum_level
+from surfaxe.data import vacuum
 
 def _get_parser(): 
     parser = ArgumentParser(
@@ -25,7 +25,7 @@ def main():
     if args.path is not None: 
         path = args.path
 
-    get_vacuum_level(path)
+    vacuum(path)
 
 if __name__ == "__main__":
     main()
