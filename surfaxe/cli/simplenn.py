@@ -21,12 +21,15 @@ def _get_parser():
     parser.add_argument('-e', '--end', type=str, default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
-    # not sure what to do if theres more than one supported type 
-    parser.add_argument('--oxstates', default=None, dest='ox_states',
-    help='Add oxidation states to the structure.')
+    parser.add_argument('--oxstates-list', default=None, type=list,
+    dest='ox_states_list', 
+    help='Add oxidation states to the structure as a list.')
+    parser.add_argument('--oxstates-dict', default=None, type=dict,
+    dest='ox_states_dict', 
+    help='Add oxidation states to the structure as a dictionary.')
     # not sure how to pass class as the default here? 
     parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
-    dest='nn_method'
+    dest='nn_method',
     help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )
@@ -38,9 +41,14 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    # warnings? 
+    if args.ox_states_dict: 
+        ox_states = args.ox_states_dict 
+    elif args.ox_states_list: 
+        ox_states = args.ox_states_list
+    else: 
+        ox_states=None
 
-    simple_nn(args.start, args.elements, end=args.end, ox_states=args.ox_states, 
+    simple_nn(args.start, args.elements, end=args.end, ox_states=ox_states, 
     nn_method=args.nn_method, save_csv=args.save_csv, csv_fname=args.csv_fname)
 
 if __name__ == "__main__":

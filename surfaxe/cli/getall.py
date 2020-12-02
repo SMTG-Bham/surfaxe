@@ -37,8 +37,12 @@ def _get_parser():
     help='Bonds to keep intact while cleaving the slab')
     parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
     action='store_false', help='The position of the slab in the simulation cell')
-    parser.add_argument('--oxstates', default=None, dest='ox_states',
-    help='Add oxidation states to the structure.')
+    parser.add_argument('--oxstates-list', default=None, type=list,
+    dest='ox_states_list', 
+    help='Add oxidation states to the structure as a list.')
+    parser.add_argument('--oxstates-dict', default=None, type=dict,
+    dest='ox_states_dict', 
+    help='Add oxidation states to the structure as a dictionary.')
     parser.add_argument('--no-save', default=True, action='store_false', 
     dest='save_slabs', 
     help='Whether to save the slabs to file (default: True)')
@@ -58,11 +62,16 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    # Warnings? 
+    if args.ox_states_dict: 
+        ox_states = args.ox_states_dict 
+    elif args.ox_states_list: 
+        ox_states = args.ox_states_list
+    else: 
+        ox_states=None 
 
     get_all_slabs(args.structure, args.hkl, args.thicknesses, args.vacuums, 
     make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
-    bonds=args.bonds, center_slab=args.center_slab, ox_states=args.ox_states, 
+    bonds=args.bonds, center_slab=args.center_slab, ox_states=ox_states, 
     save_slabs=args.save_slabs, is_symmetric=args.sym, config_dict=args.config_dict, 
     user_incar_settings=args.incar, user_potcar_settings=args.potcar, 
     user_kpoints_settings=args.kpoints)

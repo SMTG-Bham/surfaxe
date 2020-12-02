@@ -25,8 +25,12 @@ def _get_parser():
     parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
     dest='nn_method', 
     help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
-    parser.add_argument('--oxstates', default=None, dest='ox_states',
-    help='Add oxidation states to the structure.')
+    parser.add_argument('--oxstates-list', default=None, type=list,
+    dest='ox_states_list', 
+    help='Add oxidation states to the structure as a list.')
+    parser.add_argument('--oxstates-dict', default=None, type=dict,
+    dest='ox_states_dict', 
+    help='Add oxidation states to the structure as a dictionary.')
     parser.add_argument('-s', '--structure', default='vasprun.xml', type=str,
     help=('Filename of structure file in any format supported by pymatgen '
     'default: vasprun.xml'))
@@ -39,9 +43,16 @@ def main():
     path = os.getcwd()
     if args.path is not None: 
         path = args.path
+    
+    if args.ox_states_dict: 
+        ox_states = args.ox_states_dict 
+    elif args.ox_states_list: 
+        ox_states = args.ox_states_list
+    else: 
+        ox_states=None
 
     core(path, args.core_atom, args.bulk_nn, 
-    orbital=args.orbital, ox_states=args.ox_states, nn_method=args.nn_method, 
+    orbital=args.orbital, ox_states=ox_states, nn_method=args.nn_method, 
     structure=args.structure)
 
 if __name__ == "__main__":
