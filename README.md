@@ -78,7 +78,7 @@ pip install --user .
 
 
 #### Tests
-Tests are incoming...
+Unit tests are in the `tests/` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate. 
 
 ## License and how to cite
 
