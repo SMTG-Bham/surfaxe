@@ -42,9 +42,9 @@ Surfaxe can be used via the command line and python API. The manual, including t
 
 The `tutorials` directory contains the jupyter notebooks with detailed explanations of functionality of all aspects of the package.
 
-The scripts are separated into four modules that follow a typical surfaces workflow; these are creation, convergence, analysis and data. The vast majority of `surfaxe` functionality is available via the command line interface, but some more involved functions must be used via python API.
+The scripts are separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data. The vast majority of `surfaxe` functionality is available via the command line interface, but some more involved functions must be used via python API.
 
-Creation:
+Generation:
 * `surfaxe-getall`: Generates all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified. Optionally provides all input files.
 * `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index. Optionally provides all input files.
 
@@ -83,7 +83,7 @@ pip install --user .
  For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
 
 #### Tests
-Unit tests are in the `tests/` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate.
+Unit tests are in the `tests` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate.
 
 ## License and how to cite
 
