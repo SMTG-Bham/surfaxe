@@ -48,7 +48,12 @@ def _get_parser():
     help='Whether to save the slabs to file (default: True)')
     parser.add_argument('--no-sym', default=True, action='store_false', 
     dest='sym', help='Whether the slabs cleaved should have inversion symmetry.')
-    parser.add_argument('--config-dict', default='PBEsol_config.json', dest='config_dict',
+    parser.add_argument('--fmt', default='poscar', type=str, 
+    help='Format of output files (default: poscar)')
+    parser.add_argument('--name', default='POSCAR', type=str, 
+    help='Name of the surface slab structure file created (default: POSCAR)')
+    parser.add_argument('--config-dict', default='PBEsol_config.json', 
+    dest='config_dict',
     help='Specifies the dictionary used for the generation of the input files')
     parser.add_argument('-i', '--incar', default=None,
     help='Overrides the default INCAR parameter settings')
@@ -72,7 +77,8 @@ def main():
     get_all_slabs(args.structure, args.hkl, args.thicknesses, args.vacuums, 
     make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
     bonds=args.bonds, center_slab=args.center_slab, ox_states=ox_states, 
-    save_slabs=args.save_slabs, is_symmetric=args.sym, config_dict=args.config_dict, 
+    save_slabs=args.save_slabs, is_symmetric=args.sym, fmt=args.fmt, 
+    name=args.name, config_dict=args.config_dict, 
     user_incar_settings=args.incar, user_potcar_settings=args.potcar, 
     user_kpoints_settings=args.kpoints)
 

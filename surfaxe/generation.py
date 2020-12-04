@@ -3,6 +3,7 @@ from pymatgen.core.surface import SlabGenerator, generate_all_slabs
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import DictSet
 import warnings
+warnings.filterwarnings('once')
 import os
 
 # surfaxe
@@ -10,7 +11,7 @@ from surfaxe.io import slabs_to_file, _custom_formatwarning
 
 def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False, 
 make_input_files=False, max_size=500, bonds=None, center_slab=True, 
-ox_states=None, save_slabs=True, is_symmetric=True, 
+ox_states=None, save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR',
 config_dict='PBEsol_config.json', user_incar_settings=None, 
 user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     """
@@ -23,7 +24,7 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     The function returns None by default and generates either: 
 
     (i) POSCAR_hkl_slab_vac_index.vasp (default) 
-    (ii) hkl/slab_vac_index folders with POSCARs
+    (ii) hkl/slab_vac_index folders with structure files
     (iii) hkl/slab_vac_index with all VASP input files 
     
     Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
@@ -37,28 +38,29 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         vacuums (`list`): The minimum size of the vacuum in Angstroms. Defaults 
             to ``None``. 
         make_fols (`bool`, optional): Makes folders for each termination 
-            and slab/vacuum thickness combinations containing POSCARs. 
+            and slab/vacuum thickness combinations containing structure files. 
             
             * ``True``: A Miller index folder is created, in which folders 
-              named slab_vac_index are created to which the relevant POSCARs 
-              are saved. 
+              named slab_vac_index are created to which the relevant structure 
+              files are saved. 
                     
                     E.g. for a (0,0,1) slab of index 1 with a slab thickness of 
                     20 Å and vacuum thickness of 30 Å the folder structure would 
                     be: ``001/20_30_1/POSCAR``  
 
-            * ``False``: The indexed POSCARs are put in a folder named after 
-              the bulk formula. 
+            * ``False``: The indexed structure files are put in a folder named  
+              after the bulk formula. 
               
                     E.g. for a (0,0,1) MgO slab of index 1 with a slab thickness 
                     of 20 Å and vacuum thickness of 30 Å the folder structure 
                     would be: ``MgO/POSCAR_001_20_30_1``
 
-            Defaults to ``False``.  
+            Defaults to ``False``.    
         make_input_files (`bool`, optional): Makes INCAR, POTCAR and 
             KPOINTS files in each folder. If ``make_input_files`` is ``True`` 
             but ``make_files`` or ``save_slabs`` is ``False``, files will be 
-            saved to folders regardless. Defaults to ``False``. 
+            saved to folders regardless. This only works with VASP input files, 
+            other formats are not yet supported. Defaults to ``False``. 
         max_size (`int`, optional): The maximum number of atoms in the slab 
             specified to raise warning about slab size. Even if the warning is 
             raised, it still outputs the slabs regardless. Defaults to ``500``. 
@@ -77,8 +79,8 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
             Defaults to True. 
 
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
-            to the structure. Different types of oxidation states specified will 
-            result in different pymatgen functions used. The options are: 
+            to the bulk structure. Different types of oxidation states specified 
+            will result in different pymatgen functions used. The options are: 
             
             * if supplied as ``list``: The oxidation states are added by site 
                     
@@ -100,6 +102,11 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
+        fmt (`str`, optional): The format of the output files. Options include 
+            'cif', 'poscar', 'cssr', 'json', not case sensitive. 
+            Defaults to 'poscar'. 
+        name (`str`, optional): The name of the surface slab structure file 
+            created. Case sensitive. Defaults to 'POSCAR'
         config_dict (`dict` or `str`, optional): Specifies the dictionary used 
             for the generation of the input files. Defaults to ``PBEsol_config.json`` 
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
@@ -197,15 +204,16 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     if save_slabs: 
         slabs_to_file(list_of_slabs=unique_list_of_dicts, structure=structure, 
         make_fols=make_fols, make_input_files=make_input_files, 
-        config_dict=config_dict, **save_slabs_kwargs)
+        config_dict=config_dict, fmt=fmt, name=name, **save_slabs_kwargs)
     
     else: 
         return unique_list_of_dicts
 
 def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False, 
 make_input_files=False, max_size=500, bonds=None, center_slab=True, 
-ox_states=None, save_slabs=True, is_symmetric=True, config_dict=None, 
-user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None, 
+ox_states=None, save_slabs=True, is_symmetric=True, fmt='poscar', 
+name='POSCAR', config_dict=None, user_incar_settings=None, 
+user_potcar_settings=None, user_kpoints_settings=None, 
 **kwargs):
     """
     Generates all unique slabs with specified maximum Miller index, minimum slab
@@ -219,30 +227,30 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
     The function returns None by default and generates either: 
 
     (i) POSCAR_hkl_slab_vac_index.vasp (default) 
-    (ii) hkl/slab_vac_index folders with POSCARs
+    (ii) hkl/slab_vac_index folders with structure files
     (iii) hkl/slab_vac_index with all VASP input files 
     
     Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
 
     Args:
-        structure (`str`): Filename of structure file in any format supported 
-            by pymatgen. 
+        structure (`str`): Filename of bulk structure file in any format 
+            supported by pymatgen. 
         max_index (`int`): The maximum Miller index to go up to.
         thicknesses (`list`): The minimum size of the slab in Angstroms. 
         vacuums (`list`): The minimum size of the vacuum in Angstroms. 
         make_fols (`bool`, optional): Makes folders for each termination 
-            and slab/vacuum thickness combinations containing POSCARs. 
+            and slab/vacuum thickness combinations containing structure files. 
             
             * ``True``: A Miller index folder is created, in which folders 
-              named slab_vac_index are created to which the relevant POSCARs 
-              are saved. 
+              named slab_vac_index are created to which the relevant structure 
+              files are saved. 
                     
                     E.g. for a (0,0,1) slab of index 1 with a slab thickness of 
                     20 Å and vacuum thickness of 30 Å the folder structure would 
                     be: ``001/20_30_1/POSCAR``  
 
-            * ``False``: The indexed POSCARs are put in a folder named after 
-              the bulk formula. 
+            * ``False``: The indexed structure files are put in a folder named  
+              after the bulk formula. 
               
                     E.g. for a (0,0,1) MgO slab of index 1 with a slab thickness 
                     of 20 Å and vacuum thickness of 30 Å the folder structure 
@@ -252,7 +260,8 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
         make_input_files (`bool`, optional): Makes INCAR, POTCAR and 
             KPOINTS files in each folder. If ``make_input_files`` is ``True`` 
             but ``make_files`` or ``save_slabs`` is ``False``, files will be 
-            saved to folders regardless. Defaults to ``False``. 
+            saved to folders regardless. This only works with VASP input files, 
+            other formats are not yet supported. Defaults to ``False``.  
         max_size (`int`, optional): The maximum number of atoms in the slab 
             specified to raise warning about slab size. Even if the warning is 
             raised, it still outputs the slabs regardless. Defaults to ``500``. 
@@ -272,8 +281,8 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
             Defaults to ``True``. 
 
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
-            to the structure. Different types of oxidation states specified will 
-            result in different pymatgen functions used. The options are: 
+            to the bulk structure. Different types of oxidation states specified 
+            will result in different pymatgen functions used. The options are: 
             
             * if supplied as ``list``: The oxidation states are added by site 
                     
@@ -295,6 +304,11 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
+        fmt (`str`, optional): The format of the output files. Options include 
+            'cif', 'poscar', 'cssr', 'json', not case sensitive. 
+            Defaults to 'poscar'. 
+        name (`str`, optional): The name of the surface slab structure file 
+            created. Case sensitive. Defaults to 'POSCAR'
         config_dict (`dict` or `str`, optional): Specifies the dictionary used 
             for the generation of the input files. Defaults to ``None`` which 
             loads the ``PBEsol_config.json`` file. 
@@ -389,7 +403,7 @@ user_incar_settings=None, user_potcar_settings=None, user_kpoints_settings=None,
     if save_slabs: 
         slabs_to_file(list_of_slabs=unique_list_of_dicts, structure=structure, 
         make_fols=make_fols, make_input_files=make_input_files, 
-        config_dict=config_dict, **save_slabs_kwargs)
+        config_dict=config_dict, fmt=fmt, name=name, **save_slabs_kwargs)
     
     else: 
         return unique_list_of_dicts 

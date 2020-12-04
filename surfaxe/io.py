@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np 
 import os
 import warnings 
+warnings.filterwarnings('once')
 import json
 
 # Monkeypatching straight from Stackoverflow
@@ -64,7 +65,7 @@ def load_config_dict(config_dict):
     return cd 
 
 def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files, 
-config_dict, **save_slabs_kwargs): 
+config_dict, fmt, name, **save_slabs_kwargs): 
     """
     Saves the slabs to file, optionally creates input files. The function can 
     take any relevant keyword argument for DictSet. 
@@ -72,21 +73,21 @@ config_dict, **save_slabs_kwargs):
     Args: 
         list_of_slabs (`list`): a list of slab dictionaries made with either of
             surfaxe.generation get_slab functions 
-        structure (`str`): Filename of structure file in any format supported by 
-            pymatgen. 
+        structure (`str`): Filename of bulk structure file in any format 
+            supported by pymatgen. 
         make_fols (`bool`): Makes folders for each termination and slab/vacuum 
-            thickness combinations containing POSCARs. 
+            thickness combinations containing structure files. 
             
             * ``True``: A Miller index folder is created, in which folders 
-              named slab_vac_index are created to which the relevant POSCARs 
-              are saved. 
+              named slab_vac_index are created to which the relevant structure  
+              files are saved. 
                     
                     E.g. for a (0,0,1) slab of index 1 with a slab thickness of 
                     20 Å and vacuum thickness of 30 Å the folder structure would 
                     be: ``001/20_30_1/POSCAR``  
 
-            * ``False``: The indexed POSCARs are put in a folder named after 
-              the bulk formula. 
+            * ``False``: The indexed structure files are put in a folder named 
+              after the bulk formula. 
               
                     E.g. for a (0,0,1) MgO slab of index 1 with a slab thickness 
                     of 20 Å and vacuum thickness of 30 Å the folder structure 
@@ -95,12 +96,18 @@ config_dict, **save_slabs_kwargs):
         make_input_files (`bool`): Makes INCAR, POTCAR and KPOINTS files in each 
             folder. If ``make_input_files`` is ``True`` but ``make_files`` or 
             ``save_slabs`` is ``False``, files will be saved to folders 
-            regardless. 
+            regardless. This only works with VASP input files, 
+            other formats are not yet supported. Defaults to ``False``. 
         config_dict (`dict` or `str`): Specifies the dictionary used for the 
             generation of the input files.
+        fmt (`str`, optional): The format of the output files. Options include 
+            'cif', 'poscar', 'cssr', 'json', not case sensitive. 
+            Defaults to 'poscar'. 
+        name (`str`, optional): The name of the surface slab structure file 
+            created. Case sensitive. Defaults to 'POSCAR'
 
     Returns: 
-        POSCARs of surface slabs 
+        None, saves surface slabs to file
     """
     struc = Structure.from_file(structure)
     bulk_name = struc.formula.replace(" ", "")
@@ -122,18 +129,18 @@ config_dict, **save_slabs_kwargs):
 
             # Just makes the folders with POSCARs
             else:
-                slab['slab'].to(fmt='poscar',
-                filename=r'{}/{}_{}_{}/POSCAR'.format(slab['hkl'],
-                slab['slab_t'], slab['vac_t'], slab['s_index']))
+                slab['slab'].to(fmt=fmt,
+                filename=r'{}/{}_{}_{}/{}'.format(slab['hkl'],
+                slab['slab_t'], slab['vac_t'], slab['s_index'], name))
 
     # Makes POSCAR_hkl_slab_vac_index files in the bulk_name folder
     else:
         os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
         exist_ok=True)
         for slab in list_of_slabs:
-            slab['slab'].to(fmt='poscar',
-            filename=r'{}/POSCAR_{}_{}_{}_{}.vasp'.format(bulk_name,slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index']))
+            slab['slab'].to(fmt=fmt,
+            filename=r'{}/{}_{}_{}_{}_{}.vasp'.format(bulk_name, name, 
+            slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
 
 def plot_bond_analysis(bonds, df=None, filename=None, 
 plt_fname='bond_analysis.png', dpi=300): 
