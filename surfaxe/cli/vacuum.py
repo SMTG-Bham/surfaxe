@@ -18,8 +18,6 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
-
-    # warnings? 
         
     path = os.getcwd()
     if args.path is not None: 

@@ -18,9 +18,8 @@ def _get_parser():
     parser.add_argument('-s', '--structure', required=True, type=str,
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('-b', '--bonds', required=True, type=list, 
-    help='List of bonds to compare in any order')
-    parser.add_argument('--oxstates-list', default=None, type=list,
-    dest='ox_states_list', 
+    help='List of bonds as tuples to compare in any order')
+    parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
@@ -43,7 +42,7 @@ def main():
     if args.ox_states_dict: 
         ox_states = args.ox_states_dict 
     elif args.ox_states_list: 
-        ox_states = args.ox_states_list
+        ox_states = map(float, args.ox_states_list.strip('[]').split(','))
     else: 
         ox_states=None 
     

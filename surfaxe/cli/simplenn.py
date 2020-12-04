@@ -17,13 +17,12 @@ def _get_parser():
     
     parser.add_argument('-s', '--start', required=True, type=str, 
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('-a', '--atoms', required=True, type=list, dest='elements',
+    parser.add_argument('-a', '--atoms', required=True, 
     help='List of elements in the structure in any order')
     parser.add_argument('-e', '--end', type=str, default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
-    parser.add_argument('--oxstates-list', default=None, type=list,
-    dest='ox_states_list', 
+    parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
@@ -37,16 +36,22 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
+    elements = map(str, args.atoms.strip('[]').split(','))
 
     if args.ox_states_dict: 
         ox_states = args.ox_states_dict 
     elif args.ox_states_list: 
-        ox_states = args.ox_states_list
+        ox_states = map(float, args.ox_states_list.strip('[]').split(','))
     else: 
         ox_states=None
-
-    simple_nn(args.start, args.elements, end=args.end, ox_states=ox_states, 
-    nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
+    
+    if args.save_csv is True: 
+        simple_nn(args.start, elements, end=args.end, ox_states=ox_states, 
+        nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
+    else: 
+        nn = simple_nn(args.start, elements, end=args.end, ox_states=ox_states, 
+        nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
+        print(nn)
 
 if __name__ == "__main__":
     main()

@@ -16,15 +16,14 @@ def _get_parser():
     
     parser.add_argument('-s', '--start', required=True, type=str, 
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('-a', '--atoms', required=True, type=list, dest='elements',
+    parser.add_argument('-a', '--atoms', required=True, 
     help='List of elements in the structure in any order')
     parser.add_argument('-c', '--cutoffdict', required=True, type=dict, 
     dest='cut_off_dict', help='Dictionary of bond lengths')
     parser.add_argument('-e', '--end', type=str, default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
-    parser.add_argument('--oxstates-list', default=None, type=list,
-    dest='ox_states_list', 
+    parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
@@ -36,20 +35,18 @@ def _get_parser():
     
     return parser 
 
-def _ox_state_formatter(): 
-    pass
-
 def main(): 
     args = _get_parser().parse_args()
+    elements = map(str, args.atoms.strip('[]').split(','))
 
     if args.ox_states_dict: 
         ox_states = args.ox_states_dict 
     elif args.ox_states_list: 
-        ox_states = args.ox_states_list
+        ox_states = map(float, args.ox_states_list.strip('[]').split(','))
     else: 
         ox_states=None 
 
-    complex_nn(args.start, args.elements, args.cut_off_dict, end=args.end, 
+    complex_nn(args.start, elements, args.cut_off_dict, end=args.end, 
     ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ def _get_parser():
     parser.add_argument('-e', '--end', required=True, type=str,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
-    parser.add_argument('-a', '--atoms', required=True, type=list, dest='elements',
+    parser.add_argument('-a', '--atoms', required=True,
     help='List of elements in the structure in any order')
     parser.add_argument('--max-disp', type=float, default=0.1, dest='max_disp', 
     help='The maximum displacement shown (default: 0.1')
@@ -33,9 +33,10 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
+    elements = map(str, args.atoms.strip('[]').split(','))
 
-    cart_displacements(args.start, args.end, args.elements, 
-    max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
+    cart_displacements(args.start, args.end, elements, max_disp=args.max_disp, 
+    save_txt=args.save_txt, txt_fname=args.txt_fname)
 
 if __name__ == "__main__":
     main()

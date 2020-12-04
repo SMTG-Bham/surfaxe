@@ -20,9 +20,9 @@ def _get_parser():
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('--hkl', required=True, type=int,
     help='The maximum Miller index to go up to.')
-    parser.add_argument('-t', '--thicknesses', required=True, type=list,
+    parser.add_argument('-t', '--thicknesses', required=True, 
     help='The minimum size of the slab in Angstroms.')
-    parser.add_argument('-v', '--vacuums', required=True, type=list,
+    parser.add_argument('-v', '--vacuums', required=True, 
     help='The minimum size of the vacuum in Angstroms.')
     parser.add_argument('-r', '--fols', default=False, action='store_true', 
     help=('Makes folders for each termination and slab/vacuum thickness ' 
@@ -37,8 +37,7 @@ def _get_parser():
     help='Bonds to keep intact while cleaving the slab')
     parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
     action='store_false', help='The position of the slab in the simulation cell')
-    parser.add_argument('--oxstates-list', default=None, type=list,
-    dest='ox_states_list', 
+    parser.add_argument('--oxstates-list', default=None, 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
@@ -53,7 +52,7 @@ def _get_parser():
     parser.add_argument('--name', default='POSCAR', type=str, 
     help='Name of the surface slab structure file created (default: POSCAR)')
     parser.add_argument('--config-dict', default='PBEsol_config.json', 
-    dest='config_dict',
+    dest='config_dict', type=str,
     help='Specifies the dictionary used for the generation of the input files')
     parser.add_argument('-i', '--incar', default=None,
     help='Overrides the default INCAR parameter settings')
@@ -66,15 +65,17 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
+    thicknesses = map(int, args.thicknesses.strip('[]()').split(','))
+    vacuums = map(int, args.vacuums.strip('[]()').split(','))
 
     if args.ox_states_dict: 
         ox_states = args.ox_states_dict 
     elif args.ox_states_list: 
-        ox_states = args.ox_states_list
+        ox_states = map(float, args.ox_states_list.strip('[]').split(','))
     else: 
         ox_states=None 
 
-    get_all_slabs(args.structure, args.hkl, args.thicknesses, args.vacuums, 
+    get_all_slabs(args.structure, args.hkl, thicknesses, vacuums, 
     make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
     bonds=args.bonds, center_slab=args.center_slab, ox_states=ox_states, 
     save_slabs=args.save_slabs, is_symmetric=args.sym, fmt=args.fmt, 

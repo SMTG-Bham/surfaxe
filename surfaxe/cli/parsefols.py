@@ -13,9 +13,8 @@ def _get_parser():
         Before using on slabs make sure the nn_method works with the bulk 
         structure."""
     )
-    parser.add_argument('--hkl', required=True, type=tuple,
-    help='Miller index')
-    parser.add_argument('-b', '--bulk-energy', required=True, type=str,
+    parser.add_argument('--hkl', required=True, help='Miller index')
+    parser.add_argument('-b', '--bulk-energy', required=True, type=float,
     dest='bulk_per_atom', help=('Bulk energy per atom from a converged bulk ' 
     'calculation in eV per atom'))
     parser.add_argument('-p', '--path', default=None, type=str, 
@@ -24,19 +23,20 @@ def _get_parser():
     dest='plt_enatom', help='Turns off energy per atom plotting')
     parser.add_argument('--no-surfen', default=True, action='store_false', 
     dest='plt_surfen', help='Turns off surface energy plotting')
-    parser.add_argument('--no-csv', default=True, action='store_false', 
-    dest='save_csv', help='Turns off saving data to csv file' )
 
     return parser
 
 def main(): 
     args = _get_parser().parse_args()
+    hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
 
-    # warnings? 
+    path = os.getcwd()
+    if args.path is not None: 
+        path = args.path
 
-    parse_fols(args.hkl, args.bulk_per_atom, path=args.path, 
+    parse_fols(hkl, args.bulk_per_atom, path=path, 
     plt_enatom=args.plt_enatom, plt_surfen=args.plt_surfen, 
-    save_csv=args.save_csv)
+    save_csv=True)
 
 if __name__ == "__main__":
     main()
