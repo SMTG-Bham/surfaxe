@@ -14,7 +14,7 @@ def _get_parser():
         structure."""
     )
 
-    parser.add_argument('-s' '--start', required=True, type=str, 
+    parser.add_argument('-s', '--start', required=True, type=str, 
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('-e', '--end', required=True, type=str,
     help=('Filename of structure file in any format supported by pymatgen. ' 
@@ -34,7 +34,6 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    # warnings? 
     cart_displacements(args.start, args.end, args.elements, 
     max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
 

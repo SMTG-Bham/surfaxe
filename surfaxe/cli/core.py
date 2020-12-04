@@ -28,9 +28,9 @@ def _get_parser():
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
     help='Add oxidation states to the structure as a dictionary.')
-    parser.add_argument('-s', '--structure', default='vasprun.xml', type=str,
+    parser.add_argument('-s', '--structure', default='POSCAR', type=str,
     help=('Filename of structure file in any format supported by pymatgen '
-    'default: vasprun.xml'))
+    'default: POSCAR'))
 
     return parser
 
@@ -48,8 +48,9 @@ def main():
     else: 
         ox_states=None
 
-    core_energy(path, args.core_atom, args.bulk_nn, orbital=args.orbital, 
+    core = core_energy(path, args.core_atom, args.bulk_nn, orbital=args.orbital, 
     ox_states=ox_states, nn_method=CrystalNN(), structure=args.structure)
-
+    print(core)
+    
 if __name__ == "__main__":
     main()

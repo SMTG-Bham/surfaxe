@@ -19,8 +19,6 @@ def _custom_formatwarning(message, category, filename, lineno, line=''):
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-mpl.rcParams['figure.figsize'] = (10.0,8.0)
-mpl.rcParams.update({'font.size': 14})
 
 from surfaxe import _config_directory
 

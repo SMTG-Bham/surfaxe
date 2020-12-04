@@ -25,7 +25,8 @@ def main():
     if args.path is not None: 
         path = args.path
 
-    vacuum(path)
+    vac = vacuum(path)
+    print(vac)
 
 if __name__ == "__main__":
     main()

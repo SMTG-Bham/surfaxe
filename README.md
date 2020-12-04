@@ -49,7 +49,7 @@ Generation:
 * `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index. Optionally provides all input files.
 
 Convergence:
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-gethkl` or `surfaxe-getone`. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-gethkl` or `surfaxe-gethkl`. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
 
 Analysis:
 * `surfaxe-bonds`: Parses the structure, looking for bonds between specified atoms.

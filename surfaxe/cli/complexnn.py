@@ -14,7 +14,7 @@ def _get_parser():
         validity on bulk structure before applying to surface slabs."""
     )
     
-    parser.add_argument('-s' '--start', required=True, type=str, 
+    parser.add_argument('-s', '--start', required=True, type=str, 
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('-a', '--atoms', required=True, type=list, dest='elements',
     help='List of elements in the structure in any order')

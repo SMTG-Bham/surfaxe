@@ -13,7 +13,7 @@ def _get_parser():
         potential in specified direction"""
     )
 
-    parser.add_argument('-v' '--lattice-vector', type=float, required=True,
+    parser.add_argument('-v', '--lattice-vector', type=float, required=True,
     dest='lattice_vector', help='The periodicity of the slab')
     parser.add_argument('-l', '--locpot', type=str, default='./LOCPOT', 
     help='The path to the LOCPOT file (default: ./LOCPOT ')
@@ -35,7 +35,7 @@ def main():
     # warnings? 
 
     electrostatic_potential(args.lattice_vector, locpot=args.locpot, 
-    axis=args.axis, save_csv=args.save_csv, csv_fname=args.csv_fname, 
+    axis=2, save_csv=args.save_csv, csv_fname=args.csv_fname, 
     save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi)
 
 if __name__ == "__main__":

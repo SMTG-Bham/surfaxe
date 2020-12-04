@@ -33,5 +33,19 @@ if __name__ == "__main__":
         'Intended Audience :: Science/Research',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering'
-      ]
+      ], 
+      entry_points={
+        'console_scripts': [
+          'surfaxe-getall = surfaxe.cli.getall:main', 
+          'surfaxe-gethkl = surfaxe.cli.gethkl:main', 
+          'surfaxe-parsefols = surfaxe.cli.parsefols:main', 
+          'surfaxe-bonds = surfaxe.cli.bonds:main', 
+          'surfaxe-simplenn = surfaxe.cli.simplenn:main', 
+          'surfaxe-complexnn = surfaxe.cli.complexnn:main', 
+          'surfaxe-potential = surfaxe.cli.potential:main', 
+          'surfaxe-cartdisp = surfaxe.cli.cartdisp:main', 
+          'surfaxe-core = surfaxe.cli.core:main', 
+          'surfaxe-vacuum = surfaxe.cli.vacuum:main'
+        ]
+      }
     )

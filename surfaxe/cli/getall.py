@@ -20,7 +20,7 @@ def _get_parser():
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('--hkl', required=True, type=int,
     help='The maximum Miller index to go up to.')
-    parser.add_argument('-t', '-thicknesses', required=True, type=list,
+    parser.add_argument('-t', '--thicknesses', required=True, type=list,
     help='The minimum size of the slab in Angstroms.')
     parser.add_argument('-v', '--vacuums', required=True, type=list,
     help='The minimum size of the vacuum in Angstroms.')
