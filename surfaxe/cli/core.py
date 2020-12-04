@@ -2,9 +2,10 @@
 from argparse import ArgumentParser
 import os
 import warnings 
+from pymatgen.analysis.local_env import CrystalNN
 
 # Surfaxe 
-from surfaxe.data import core
+from surfaxe.data import core_energy
 
 def _get_parser(): 
     parser = ArgumentParser(
@@ -21,10 +22,6 @@ def _get_parser():
     dest='bulk_nn', help='The symbols of the nearest neighbours of the core atom')
     parser.add_argument('-o', '--orbital', type=str, default='1s', 
     help='The orbital of core state (default: 1s)')
-    # not sure how to pass class as the default here? 
-    parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
-    dest='nn_method', 
-    help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
     parser.add_argument('--oxstates-list', default=None, type=list,
     dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
@@ -51,9 +48,8 @@ def main():
     else: 
         ox_states=None
 
-    core(path, args.core_atom, args.bulk_nn, 
-    orbital=args.orbital, ox_states=ox_states, nn_method=args.nn_method, 
-    structure=args.structure)
+    core_energy(path, args.core_atom, args.bulk_nn, orbital=args.orbital, 
+    ox_states=ox_states, nn_method=CrystalNN(), structure=args.structure)
 
 if __name__ == "__main__":
     main()

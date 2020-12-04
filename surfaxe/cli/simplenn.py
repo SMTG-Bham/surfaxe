@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import json
 import os
 import warnings 
+from pymatgen.analysis.local_env import CrystalNN
 
 # Surfaxe 
 from surfaxe.analysis import simple_nn
@@ -27,10 +28,6 @@ def _get_parser():
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
     help='Add oxidation states to the structure as a dictionary.')
-    # not sure how to pass class as the default here? 
-    parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
-    dest='nn_method',
-    help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )
     parser.add_argument('--csv-fname', default='nn_data.csv', type=str,
@@ -49,7 +46,7 @@ def main():
         ox_states=None
 
     simple_nn(args.start, args.elements, end=args.end, ox_states=ox_states, 
-    nn_method=args.nn_method, save_csv=args.save_csv, csv_fname=args.csv_fname)
+    nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
 
 if __name__ == "__main__":
     main()

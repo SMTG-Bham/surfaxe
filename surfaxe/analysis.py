@@ -19,8 +19,6 @@ warnings.filterwarnings('once')
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-mpl.rcParams['figure.figsize'] = (10.0,8.0)
-mpl.rcParams.update({'font.size': 14})
 
 # surfaxe
 from surfaxe.generation import oxidation_states
@@ -100,8 +98,10 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
             formats.
         bonds (`list` of `tuples`): List of bonds to compare in any order
             e.g. ``[('Y', 'O'), ('Ti', 'S')]``
-        nn_method (`class`, optional): pymatgen.analysis.local_env nearest 
-            neighbour method. Defaults to ``CrystalNN()``
+        nn_method (`class`, optional): The coordination number prediction 
+            algorithm used. Because the ``nn_method`` is a class, the class 
+            needs to be imported from pymatgen.analysis.local_env before it 
+            can be instantiated here. Defaults to ``CrystalNN()``.
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
             result in different pymatgen functions used. The options are: 
@@ -144,7 +144,8 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
                 for d in nearest_neighbours:
                     if d.get('site').specie.symbol is atom2:
                         matched_sites.append(d)
-                bond_distances = [struc.get_distance(n,x['site_index']) for x in matched_sites]
+                bond_distances = [struc.get_distance(n,x['site_index']) 
+                for x in matched_sites]
                 bonds_info.append({
                     '{}_index'.format(atom1): n+1,
                     '{}_c_coord'.format(atom1): pos.c,
@@ -231,6 +232,9 @@ save_csv=True, csv_fname='nn_data.csv'):
     Finds the nearest neighbours for simple structures. Before using on slabs
     make sure the nn_method works with the bulk structure. 
     
+    The ``site_index`` in the produced DataFrame or csv file is one-indexed and 
+    represents the atom index in the structure. 
+
     Args:
         start (`str`): Filename of structure file in any format supported by 
             pymatgen
@@ -255,8 +259,10 @@ save_csv=True, csv_fname='nn_data.csv'):
             * if ``None``: The oxidation states are added by guess. 
               
             Defaults to ``None``. 
-        nn_method (`class`, optional): The pymatgen.analysis.local_env nearest 
-            neighbour method. Defaults to ``CrystalNN()``.
+        nn_method (`class`, optional): The coordination number prediction 
+            algorithm used. Because the ``nn_method`` is a class, the class 
+            needs to be imported from pymatgen.analysis.local_env before it 
+            can be instantiated here. Defaults to ``CrystalNN()``.
         save_csv (`bool`, optional): Save to a csv file. Defaults to ``True``.
         csv_fname (`str`, optional): Filename of the csv file. Defaults to 
             ``'nn_data.csv'``
@@ -309,7 +315,7 @@ save_csv=True, csv_fname='nn_data.csv'):
                 specie_list.append(spc)
             specie_list.sort()
             site_nn_end = ' '.join(specie_list)
-            df_list.append({'site': n+1, 'atom': label, 'cn start': cn_start,
+            df_list.append({'site': n+1, 'atom': label, 'cn_start': cn_start,
             'nn_start': site_nn_start, 'cn_end': cn_end, 'nn_end': site_nn_end})
 
         else: 
@@ -332,6 +338,9 @@ save_csv=True, csv_fname='nn_data.csv'):
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
     class as the nearest neighbour method. Check validity on bulk structure
     before applying to surface slabs. 
+
+    The ``site_index`` in the produced DataFrame or csv file is one-indexed and 
+    represents the atom index in the structure. 
 
     Args:
         start (`str`): filename of structure, takes all pymatgen-supported formats.

@@ -6,6 +6,7 @@ import warnings
 
 # Surfaxe 
 from surfaxe.analysis import bond_analysis
+from pymatgen.analysis.local_env import CrystalNN
 
 def _get_parser(): 
     parser = ArgumentParser(
@@ -18,10 +19,6 @@ def _get_parser():
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('-b', '--bonds', required=True, type=list, 
     help='List of bonds to compare in any order')
-    # not sure how to pass class as the default here? 
-    parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
-    dest='nn_method', 
-    help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
     parser.add_argument('--oxstates-list', default=None, type=list,
     dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
@@ -50,7 +47,7 @@ def main():
     else: 
         ox_states=None 
     
-    bond_analysis(args.structure, args.bonds, nn_method=args.nn_method, 
+    bond_analysis(args.structure, args.bonds, nn_method=CrystalNN(), 
     ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname, 
     save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi)
 

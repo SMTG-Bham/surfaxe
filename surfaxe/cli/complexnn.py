@@ -29,10 +29,6 @@ def _get_parser():
     parser.add_argument('--oxstates-dict', default=None, type=dict,
     dest='ox_states_dict', 
     help='Add oxidation states to the structure as a dictionary.')
-    # not sure how to pass class as the default here? 
-    parser.add_argument('-n', '--nnmethod', default='CrystalNN()', type=str, 
-    dest='nn_method', 
-    help='The pymatgen local_env nearest neighbour method (default: CrystalNN()')
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )
     parser.add_argument('--csv-fname', default='nn_data.csv', type=str,

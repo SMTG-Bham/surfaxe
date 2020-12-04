@@ -12,7 +12,7 @@ import os
 import pandas as pd 
 import numpy as np 
 import warnings 
-
+warnings.filterwarnings('once')
 
 # surfaxe 
 from surfaxe.convergence import slab_from_file
@@ -102,7 +102,8 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         'atoms': vsp_dict['nsites'], 
                         'functional': vsp_dict['run_type'], 
                         'encut': vsp_dict['input']['incar']['ENCUT'], 
-                        'ismear': vsp_dict['input']['incar']['ISMEAR'], 
+                        'ismear': vsp_dict['input']['parameters']['ISMEAR'],
+                        'sigma': vsp_dict['input']['parameters']['SIGMA'],
                         'kpoints': vsp_dict['input']['kpoints']['kpoints'],
                         'bandgap': vsp_dict['output']['bandgap'],  
                         'slab_energy': vsp_dict['output']['final_energy'],
@@ -116,7 +117,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                                                 
                     if parse_core_energy: 
                         core_energy_list.append(
-                            core(path, core_atom, bulk_nn, 
+                            core_energy(path, core_atom, bulk_nn, 
                             **get_core_energy_kwargs)
                             )
                             
@@ -172,8 +173,8 @@ def vacuum(path):
     return max_potential
         
 
-def core(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
-nn_method=CrystalNN(), structure='vasprun.xml'): 
+def core_energy(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
+nn_method=CrystalNN(), structure='POSCAR'): 
     """
     Parses the structure and OUTCAR files for the core level energy. Check the 
     validity of nearest neighbour method on the bulk structure before using it 
@@ -201,10 +202,12 @@ nn_method=CrystalNN(), structure='vasprun.xml'):
             * if ``None``: The oxidation states are added by guess.  
 
             Defaults to ``None``.
-        nn_method (`class`, optional): pymatgen.analysis.local_env nearest 
-            neighbour method. Defaults to ``CrystalNN()``
+        nn_method (`class`, optional): The coordination number prediction 
+            algorithm used. Because the ``nn_method`` is a class, the class 
+            needs to be imported from pymatgen.analysis.local_env before it 
+            can be instantiated here. Defaults to ``CrystalNN()``.
         structure (`str`): Filename of structure file in any format supported by 
-            pymatgen. Defaults to ``vasprun.xml`` 
+            pymatgen. Defaults to ``POSCAR`` 
 
     Returns: 
         Core state energy 
