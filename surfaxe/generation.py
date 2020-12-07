@@ -10,8 +10,8 @@ import os
 from surfaxe.io import slabs_to_file, _custom_formatwarning
 
 def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False, 
-make_input_files=False, max_size=500, bonds=None, center_slab=True, 
-ox_states=None, save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR',
+make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
+save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR',
 config_dict='PBEsol_config.json', user_incar_settings=None, 
 user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     """
@@ -64,9 +64,6 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         max_size (`int`, optional): The maximum number of atoms in the slab 
             specified to raise warning about slab size. Even if the warning is 
             raised, it still outputs the slabs regardless. Defaults to ``500``. 
-        bonds ({(specie1, specie2): max_bond_dist}: bonds are specified as  
-            {string tuple: float} of specie1, specie2 and the max bonding 
-            distance. For example, PO4 groups may be defined as {(“P”, “O”): 3}.
         center_slab (`bool`, optional): The position of the slab in the 
             simulation cell. 
             
@@ -131,7 +128,7 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         )
     
     get_slabs_kwargs = {'ftol': 0.1, 'tol': 0.1, 'max_broken_bonds': 0, 
-    'symmetrize': False, 'repair': False}
+    'symmetrize': False, 'repair': False, 'bonds': None}
     get_slabs_kwargs.update(
         (k, kwargs[k]) for k in get_slabs_kwargs.keys() & kwargs.keys()
         )
@@ -163,7 +160,7 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
                                     center_slab=center_slab,  
                                     **SlabGenerator_kwargs) 
                                     
-            slabs = slabgen.get_slabs(bonds, **get_slabs_kwargs)
+            slabs = slabgen.get_slabs(**get_slabs_kwargs)
             for i, slab in enumerate(slabs):
                 # Get all the zero-dipole slabs with inversion symmetry
                 if is_symmetric: 
@@ -210,11 +207,10 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         return unique_list_of_dicts
 
 def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False, 
-make_input_files=False, max_size=500, bonds=None, center_slab=True, 
-ox_states=None, save_slabs=True, is_symmetric=True, fmt='poscar', 
-name='POSCAR', config_dict=None, user_incar_settings=None, 
-user_potcar_settings=None, user_kpoints_settings=None, 
-**kwargs):
+make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
+save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR', 
+config_dict=None, user_incar_settings=None, user_potcar_settings=None, 
+user_kpoints_settings=None, **kwargs):
     """
     Generates all unique slabs with specified maximum Miller index, minimum slab
     and vacuum thicknesses. It includes all combinations for multiple zero
@@ -265,10 +261,6 @@ user_potcar_settings=None, user_kpoints_settings=None,
         max_size (`int`, optional): The maximum number of atoms in the slab 
             specified to raise warning about slab size. Even if the warning is 
             raised, it still outputs the slabs regardless. Defaults to ``500``. 
-        bonds ({(specie1, specie2): max_bond_dist}: Bonds are specified as  
-            {string tuple: float} of specie1, specie2 and the max bonding 
-            distance. For example, PO4 groups may be defined as {(“P”, “O”): 3}.
-            Defaults to ``None``
         center_slab (`bool`, optional): The position of the slab in the 
             simulation cell. 
             
@@ -330,7 +322,7 @@ user_potcar_settings=None, user_kpoints_settings=None,
     # Set up additional arguments for slab generation and saving slabs
     all_slabs_kwargs = {'in_unit_planes': False, 'primitive': True, 
     'max_normal_search': None, 'lll_reduce': True, 'ftol': 0.1, 'tol': 0.1, 
-    'max_broken_bonds': 0, 'symmetrize': False, 'repair': False}
+    'max_broken_bonds': 0, 'symmetrize': False, 'repair': False, 'bonds': None}
     all_slabs_kwargs.update(
         (k, kwargs[k]) for k in all_slabs_kwargs.keys() & kwargs.keys()
         )
@@ -359,7 +351,7 @@ user_potcar_settings=None, user_kpoints_settings=None,
     for vacuum in vacuums:
         for thickness in thicknesses:
             all_slabs = generate_all_slabs(struc, max_index, thickness, vacuum,
-                                        center_slab=center_slab, bonds=bonds, 
+                                        center_slab=center_slab,  
                                         **all_slabs_kwargs)
             
             for i, slab in enumerate(all_slabs):

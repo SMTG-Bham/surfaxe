@@ -96,8 +96,8 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
             formats.
-        bonds (`list` of `tuples`): List of bonds to compare in any order
-            e.g. ``[('Y', 'O'), ('Ti', 'S')]``
+        bonds (`list` of `lists`): List of bonds to compare in any order
+            e.g. ``[['Y', 'O'], ['Ti', 'S']]``
         nn_method (`class`, optional): The coordination number prediction 
             algorithm used. Because the ``nn_method`` is a class, the class 
             needs to be imported from pymatgen.analysis.local_env before it 
@@ -138,14 +138,15 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     bonds_info = []
     for n, pos in enumerate(struc):
         for atom1, atom2 in bonds:
-            if pos.specie.symbol is atom1:
+            if pos.specie.symbol == atom1:
                 nearest_neighbours = nn_method.get_nn_info(struc, n)
                 matched_sites = []
                 for d in nearest_neighbours:
-                    if d.get('site').specie.symbol is atom2:
+                    if d.get('site').specie.symbol == atom2:
                         matched_sites.append(d)
-                bond_distances = [struc.get_distance(n,x['site_index']) 
-                for x in matched_sites]
+                bond_distances = [
+                    struc.get_distance(n,x['site_index']) for x in matched_sites
+                ]
                 bonds_info.append({
                     '{}_index'.format(atom1): n+1,
                     '{}_c_coord'.format(atom1): pos.c,

@@ -1,6 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
-import json
+import yaml
 import os
 import warnings 
 
@@ -13,7 +13,7 @@ def _get_parser():
         potential in specified direction"""
     )
 
-    parser.add_argument('-v', '--lattice-vector', type=float, required=True,
+    parser.add_argument('-v', '--lattice-vector', type=float, 
     dest='lattice_vector', help='The periodicity of the slab')
     parser.add_argument('-l', '--locpot', type=str, default='./LOCPOT', 
     help='The path to the LOCPOT file (default: ./LOCPOT ')
@@ -26,13 +26,20 @@ def _get_parser():
     parser.add_argument('--plt-fname', default='potential.png', type=str,
     dest='plt_fname', help='Filename of the plot')
     parser.add_argument('--dpi', default=300, type=int, help='Dots per inch')
+    parser.add_argument('--yaml', default=False, action='store_true', 
+    help='Read optional args from surfaxe_config.yaml file.')
 
     return parser
 
 def main(): 
     args = _get_parser().parse_args()
 
-    # warnings? 
+    if args.yaml==True: 
+        with open('surfaxe_config.yaml', 'r') as y: 
+            yaml_args = yaml.load(y)
+        args.update(
+            (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
+        ) 
 
     electrostatic_potential(args.lattice_vector, locpot=args.locpot, 
     axis=2, save_csv=args.save_csv, csv_fname=args.csv_fname, 
