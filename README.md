@@ -87,7 +87,7 @@ Unit tests are in the `tests` directory and can be run from the top directory us
 
 ## License and how to cite
 
-Surfaxe is free to use under the [sort licence out, probably MIT]. Please cite [add link] if you use it in your research.
+Surfaxe is free to use under the MIT License. Please cite [add link] if you use it in your research.
 
 ## Detailed requirements 
 Surfaxe is compatible with python 3.6+ and requires the following packages:
