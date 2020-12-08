@@ -92,7 +92,7 @@ Surfaxe is free to use under the MIT License. Please cite [add link] if you use 
 ## Detailed requirements 
 Surfaxe is compatible with python 3.6+ and requires the following packages:
 
-* Pymatgen
-* Pandas
-* Matplotlib
-* Numpy
+* [Pymatgen](https://pymatgen.org/)
+* [Pandas](https://pandas.pydata.org/)
+* [Matplotlib](https://matplotlib.org/)
+* [Numpy](https://numpy.org/)
