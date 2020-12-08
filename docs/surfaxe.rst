@@ -1,11 +1,11 @@
-.. _smact_module:
+.. _surfaxe_module:
 
 surfaxe Python package
 ======================
 
 The core module of :mod:`surfaxe` contains not much.
 
- .. automodule:: smact
+ .. automodule:: surfaxe
      :members:
      :undoc-members:
      :show-inheritance:
