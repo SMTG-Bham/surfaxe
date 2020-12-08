@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest)
+
 # Surfaxe (neé slabby-stabby)
 
 Surfaxe is a python package for automating and simplifying surface calculations, as well as providing some analytical tools for bulk and surface calculations. It relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal structures and interfacing with VASP.
