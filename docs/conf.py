@@ -56,22 +56,32 @@ html_static_path = ['_static']
 
 # Mock modules to prevent import failures
 
- import sys
- from mock import Mock as MagicMock
+import sys
+from mock import Mock as MagicMock
 
 
- class Mock(MagicMock):
+class Mock(MagicMock):
 
-     @classmethod
-     def __getattr__(cls, name):
-         return Mock()
+    @classmethod
+    def __getattr__(cls, name):
+        return Mock()
 
 
- MOCK_MODULES = [
-   'spglib',
-   'pyspglib',
-   'numpy',
-   'pandas',
-   'pymatgen',
- ]
- sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+MOCK_MODULES = [
+  'spglib',
+  'pyspglib',
+  'numpy',
+  'pandas',
+  'pymatgen',
+  'pymatgen.core.surface',
+  'pymatgen.io.vasp.sets',
+  'matplotlib',
+  'mpl_toolkits.axes_grid1',
+  'pymatgen.core.sites',
+  'pymatgen.io.vasp.outputs',
+  'pymatgen.core.sites',
+  'pymatgen.core.structure',
+  'pymatgen.core.lattice',
+  'pymatgen.analysis.local_env'
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
