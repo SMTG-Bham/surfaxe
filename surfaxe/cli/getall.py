@@ -44,7 +44,7 @@ def _get_parser():
           'the slabs regardless.'))
     parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
     action='store_false', help='The position of the slab in the simulation cell')
-    parser.add_argument('--oxstates-list', default=None, 
+    parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
     dest='ox_states_dict', help=('Add oxidation states to the structure as' 
