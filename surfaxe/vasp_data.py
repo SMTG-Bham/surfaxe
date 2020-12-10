@@ -3,9 +3,7 @@ from pymatgen.core.surface import Slab
 from pymatgen import Structure, Specie, Element
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.io.vasp.outputs import Locpot, Outcar, Vasprun
-from pymatgen.analysis.local_env import BrunnerNN_real, BrunnerNN_reciprocal,\
-BrunnerNN_relative, CovalentBondNN, Critic2NN, CrystalNN, CutOffDictNN, EconNN,\
-JmolNN, MinimumDistanceNN, MinimumOKeeffeNN, MinimumVIRENN, NearNeighbors, VoronoiNN
+from pymatgen.analysis.local_env import CrystalNN
 
 # Misc
 import os
@@ -19,7 +17,7 @@ from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning
 
-def data(bulk_per_atom, hkl_dict=None, parse_hkl=True, path_to_fols=None,
+def process_data(bulk_per_atom, hkl_dict=None, parse_hkl=True, path_to_fols=None,
 parse_core_energy=False, core_atom=None, bulk_nn=None, parse_electrostatic=True, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
@@ -37,6 +35,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
             E.g. {(1,-1,2): '1-12'}
         parse_hkl (`bool`, optional): If ``True`` the script parses the names   
             of the folders to get the Miller indices. Defaults to ``True``.
+        path_to_fols (`str`, optional): Path to where the hkl folders are 
         parse_core_energy (`bool`, optional): If True the scripts attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
         core_atom (`str`, optional): The symbol of atom the core state energy 
