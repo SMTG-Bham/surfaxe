@@ -146,10 +146,10 @@ def vacuum(path):
     available or tries to calculate planar potential from LOCPOT. If neither 
     file is available, function returns np.nan.  
 
-    Args
+    Args:
         path (`str`): the path to potential.csv or LOCPOT files. 
 
-    Returns
+    Returns:
         Maximum value of planar potential
 
     '''

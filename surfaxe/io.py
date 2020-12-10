@@ -33,9 +33,9 @@ def load_config_dict(config_dict):
             * ``dict``: All settings for the calculations provided as a 
               dictionary of dictionaries 
 
-                    e.g. ``{'INCAR': {'ENCUT': 500, 'ISYM': 2, 'GGA': 'PE'}, 
+                    e.g. {'INCAR': {'ENCUT': 500, 'ISYM': 2, 'GGA': 'PE'}, 
                     'KPOINTS': {'reciprocal_density': 20}, 
-                    'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}``
+                    'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}
 
             * ``str``: Filename of the config dictionary in the 
               ``_config_directory`` folder. If the filename does not exist,  
@@ -147,7 +147,7 @@ plt_fname='bond_analysis.png', dpi=300):
     conjunction with surfaxe.analysis.bond_analysis.   
 
     Args:
-        bonds (`list` of `tuples): List of bonds to compare
+        bonds (`list` of `tuples`): List of bonds to compare
             e.g. [('Y', 'O'), ('Ti', 'S')]; order of bond pairs must be the same  
             as in the Dataframe or provided file.
         df (`pandas DataFrame`, optional): DataFrame from 
@@ -237,7 +237,7 @@ heatmap=False):
 
     Args:
         df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
-            Dataframe with headings 'slab_thickness, 'vac_thickness', 
+            Dataframe with headings 'slab_thickness', 'vac_thickness', 
             'surface_energy', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.

@@ -15,6 +15,8 @@ Submodules
 
 .. toctree::
 
-  surfaxe.generation
-  surfaxe.analysis
+  surfaxe.generation  
   surfaxe.convergence
+  surfaxe.analysis
+  surfaxe.io
+  surfaxe.data
