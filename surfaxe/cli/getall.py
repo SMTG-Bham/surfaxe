@@ -25,13 +25,13 @@ def _get_parser():
         same Miller index"""
     )
 
-    parser.add_argument('-s', '--structure', required=True,
+    parser.add_argument('-s', '--structure',
     help='Filename of structure file in any format supported by pymatgen')
     parser.add_argument('--hkl', type=int, default=1,
     help='The maximum Miller index.')
-    parser.add_argument('-t', '--thicknesses', required=True, nargs='+', type=int,
+    parser.add_argument('-t', '--thicknesses', nargs='+', type=int,
     help='The minimum size of the slab in Angstroms.')
-    parser.add_argument('-v', '--vacuums', required=True, nargs='+', type=int,
+    parser.add_argument('-v', '--vacuums', nargs='+', type=int,
     help='The minimum size of the vacuum in Angstroms.')
     parser.add_argument('-r', '--fols', default=False, action='store_true', 
     help=('Makes folders for each termination and slab/vacuum thickness ' 
