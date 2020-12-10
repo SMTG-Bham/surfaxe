@@ -13,12 +13,11 @@ import warnings
 warnings.filterwarnings('once')
 
 # surfaxe 
-from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
-from surfaxe.io import _custom_formatwarning
+from surfaxe.io import _custom_formatwarning, slab_from_file
 
 def process_data(bulk_per_atom, hkl_dict=None, parse_hkl=True, path_to_fols=None,
-parse_core_energy=False, core_atom=None, bulk_nn=None, parse_electrostatic=True, 
+parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=True, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
     Parses the folders to collect all final data on relevant input and output 
@@ -35,14 +34,15 @@ save_csv=True, csv_fname='data.csv', **kwargs):
             E.g. {(1,-1,2): '1-12'}
         parse_hkl (`bool`, optional): If ``True`` the script parses the names   
             of the folders to get the Miller indices. Defaults to ``True``.
-        path_to_fols (`str`, optional): Path to where the hkl folders are 
+        path_to_fols (`str`, optional): Path to where the hkl folders are. 
+            Defaults to None which searches in cwd. 
         parse_core_energy (`bool`, optional): If True the scripts attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
         core_atom (`str`, optional): The symbol of atom the core state energy 
             level should be parsed from. Defaults to ``None``. 
         bulk_nn (`list`, optional): The symbols of the nearest neighbours of the 
             `core_atom`. Defaults to ``None``. 
-        parse_electrostatic (`bool`, optional): if ``True`` the script attempts 
+        parse_vacuum (`bool`, optional): if ``True`` the script attempts 
             to parse LOCPOT using analysis.electrostatic_potential to use the 
             maximum value of planar potential as the vacuum energy level. 
             Defaults to ``True``. 
@@ -76,7 +76,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Set up additional arguments for get_core_energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
-    'nn_method': 'CrystalNN()', 'structure':'POSCAR'}
+    'nn_method': CrystalNN(), 'structure': 'POSCAR'}
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
@@ -92,7 +92,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                     path = os.path.join(root,fol)
                     vsp_path = '{}/vasprun.xml'.format(path)
 
-                    vsp = Vasprun(vsp_path)
+                    vsp = Vasprun(vsp_path, parse_potcar_file=False)
                     vsp_dict = vsp.as_dict()
                     slab = slab_from_file(vsp_path, hkl_tuple)
                     
@@ -103,6 +103,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         'atoms': vsp_dict['nsites'], 
                         'functional': vsp_dict['run_type'], 
                         'encut': vsp_dict['input']['incar']['ENCUT'], 
+                        'algo': vsp_dict['input']['incar']['ALGO'],
                         'ismear': vsp_dict['input']['parameters']['ISMEAR'],
                         'sigma': vsp_dict['input']['parameters']['SIGMA'],
                         'kpoints': vsp_dict['input']['kpoints']['kpoints'],
@@ -111,7 +112,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         'slab_per_atom': vsp_dict['output']['final_energy_per_atom']
                     })
 
-                    if parse_electrostatic: 
+                    if parse_vacuum: 
                         electrostatic_list.append(
                             vacuum(path)
                         )
@@ -135,7 +136,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Save to csv or return DataFrame
     if save_csv: 
-        save_csv(df, **kwargs)
+        df.to_csv(csv_fname, header=True, index=False)
     else:
         return df
 

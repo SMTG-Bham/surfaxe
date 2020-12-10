@@ -1,6 +1,7 @@
 # pymatgen
 from pymatgen.io.vasp.sets import DictSet
 from pymatgen import Structure
+from pymatgen.core.surface import Slab
 
 # Misc 
 import pandas as pd 
@@ -61,6 +62,27 @@ def load_config_dict(config_dict):
             cd = json.load(f)
 
     return cd 
+
+def slab_from_file(structure, hkl):
+    """
+    Reads in structure from the file and returns slab object.
+
+    Args:
+         structure (str): Structure file in any format supported by pymatgen.
+         hkl (tuple): Miller index of the slab in the input file.
+
+    Returns:
+         Slab object
+    """
+    slab_input = Structure.from_file(structure)
+    return Slab(slab_input.lattice,
+                slab_input.species_and_occu,
+                slab_input.frac_coords,
+                hkl,
+                Structure.from_sites(slab_input, to_unit_cell=True),
+                shift=0,
+                scale_factor=np.eye(3, dtype=np.int),
+                site_properties=slab_input.site_properties)
 
 def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files, 
 config_dict, fmt, name, **save_slabs_kwargs): 

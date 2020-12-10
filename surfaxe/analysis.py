@@ -2,9 +2,7 @@
 from pymatgen import Structure, Element, Specie
 from pymatgen.core.structure import SiteCollection
 from pymatgen.core.lattice import Lattice
-from pymatgen.analysis.local_env import BrunnerNN_real, BrunnerNN_reciprocal,\
-BrunnerNN_relative, CovalentBondNN, Critic2NN, CrystalNN, CutOffDictNN, EconNN,\
-JmolNN, MinimumDistanceNN, MinimumOKeeffeNN, MinimumVIRENN, NearNeighbors, VoronoiNN
+from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
 from pymatgen.io.vasp.outputs import Locpot, VolumetricData
 
 # Misc 

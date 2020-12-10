@@ -17,30 +17,8 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
 # surfaxe
-from surfaxe.io import plot_enatom, plot_surfen
-
-def slab_from_file(structure, hkl):
-    """
-    Reads in structure from the file and returns slab object.
-
-    Args:
-         structure (str): Structure file in any format supported by pymatgen.
-         hkl (tuple): Miller index of the slab in the input file.
-
-    Returns:
-         Slab object
-    """
-    slab_input = Structure.from_file(structure)
-    return Slab(slab_input.lattice,
-                slab_input.species_and_occu,
-                slab_input.frac_coords,
-                hkl,
-                Structure.from_sites(slab_input, to_unit_cell=True),
-                shift=0,
-                scale_factor=np.eye(3, dtype=np.int),
-                site_properties=slab_input.site_properties)
+from surfaxe.io import plot_enatom, plot_surfen, slab_from_file
 
 def parse_fols(hkl, bulk_per_atom, path=None, plt_enatom=True, 
 plt_surfen=True, save_csv=True, **kwargs):
@@ -80,7 +58,7 @@ plt_surfen=True, save_csv=True, **kwargs):
                 otc_path = '{}/OUTCAR'.format(path)
 
                 # instantiate structure, slab, vasprun and outcar objects
-                vsp = Vasprun(vsp_path)
+                vsp = Vasprun(vsp_path, parse_potcar_file=False)
                 otc = Outcar(otc_path)
                 slab = slab_from_file(vsp_path, hkl)
                 vsp_dict = vsp.as_dict()
