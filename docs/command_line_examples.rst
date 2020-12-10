@@ -33,7 +33,7 @@ the :mod:`--help` or :mod:`-h` flag, e.g.:
     --oxstates-list OX_STATES_LIST
                             Add oxidation states to the structure as a list.
     --oxstates-dict OX_STATES_DICT
-                            Add oxidation states to the structure asa dictionary
+                            Add oxidation states to the structure as a dictionary
                             e.g. "Fe:3,O:-2"
     --no-csv              Turns off saving data to csv file
     --csv-fname CSV_FNAME

@@ -42,7 +42,7 @@ def _get_parser():
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
-    dest='ox_states_dict', help=('Add oxidation states to the structure as' 
+    dest='ox_states_dict', help=('Add oxidation states to the structure as ' 
     'a dictionary e.g. "Fe:3,O:-2"'))
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )
