@@ -25,13 +25,13 @@ def _get_parser():
         same Miller index"""
     )
 
-    parser.add_argument('-s', '--structure', default=None,
+    parser.add_argument('-s', '--structure', required=True,
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('--hkl', type=int, default=None,
+    parser.add_argument('--hkl', type=int, default=1,
     help='The maximum Miller index.')
-    parser.add_argument('-t', '--thicknesses', default=None,
+    parser.add_argument('-t', '--thicknesses', required=True, nargs='+', type=int,
     help='The minimum size of the slab in Angstroms.')
-    parser.add_argument('-v', '--vacuums', default=None,
+    parser.add_argument('-v', '--vacuums', required=True, nargs='+', type=int,
     help='The minimum size of the vacuum in Angstroms.')
     parser.add_argument('-r', '--fols', default=False, action='store_true', 
     help=('Makes folders for each termination and slab/vacuum thickness ' 
@@ -75,11 +75,6 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    if args.thicknesses: 
-        thicknesses = map(int, args.thicknesses.strip('[]()').split(','))
-    if args.vacuums: 
-        vacuums = map(int, args.vacuums.strip('[]()').split(','))
-
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
             yaml_args = yaml.load(y)
@@ -94,7 +89,7 @@ def main():
     else: 
         ox_states=None 
 
-    get_all_slabs(args.structure, args.hkl, thicknesses, vacuums, 
+    get_all_slabs(args.structure, args.hkl, args.thicknesses, args.vacuums, 
     make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
     center_slab=args.center_slab, ox_states=ox_states, 
     save_slabs=args.save_slabs, is_symmetric=args.sym, fmt=args.fmt, 
