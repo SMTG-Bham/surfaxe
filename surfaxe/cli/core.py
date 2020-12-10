@@ -5,7 +5,7 @@ import yaml
 from pymatgen.analysis.local_env import CrystalNN
 
 # Surfaxe 
-from surfaxe.data import core_energy
+from surfaxe.vasp_data import core_energy
 
 def _get_parser(): 
     parser = ArgumentParser(

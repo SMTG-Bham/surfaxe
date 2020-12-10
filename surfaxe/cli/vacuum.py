@@ -4,7 +4,7 @@ import os
 import warnings 
 
 # Surfaxe 
-from surfaxe.data import vacuum
+from surfaxe.vasp_data import vacuum
 
 def _get_parser(): 
     parser = ArgumentParser(
