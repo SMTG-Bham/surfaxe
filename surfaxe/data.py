@@ -19,7 +19,7 @@ from surfaxe.convergence import slab_from_file
 from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning
 
-def data(bulk_per_atom, folder, hkl_dict=None, parse_folders=True, 
+def data(bulk_per_atom, hkl_dict=None, parse_hkl=True, path_to_fols=None,
 parse_core_energy=False, core_atom=None, bulk_nn=None, parse_electrostatic=True, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
@@ -31,13 +31,11 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     Args:
         bulk_per_atom (`float`): Bulk energy per atom in eV per atom. 
-        folder (`str`): Folder containing the output files in the 
-            root/hkl/folder/output_files tree 
         hkl_dict (`dict`, optional): dictionary of tuples of Miller indices 
             and the folders the calculations relating to them are in. Defaults 
             to ``None``. 
             E.g. {(1,-1,2): '1-12'}
-        parse_fols (`bool`, optional): If ``True`` the script parses the names   
+        parse_hkl (`bool`, optional): If ``True`` the script parses the names   
             of the folders to get the Miller indices. Defaults to ``True``.
         parse_core_energy (`bool`, optional): If True the scripts attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
@@ -63,19 +61,23 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                 raise TypeError('The keys supplied to hkl_dict are not tuples.')
             if isinstance(value, str): 
                 raise TypeError('The values supplied to hkl_dict are not strings.')
+    
+    cwd = os.getcwd()
+    if path_to_fols: 
+        cwd = path_to_fols 
 
     # Get the Miller indices as tuples and strings from folders in root dir
-    if parse_folders:
+    if parse_hkl:
         if not hkl_dict: 
             hkl_dict = {}
-        for root, fols, files in os.walk('.'):
+        for root, fols, files in os.walk(cwd):
             for fol in fols: 
                 if fol is not root and len(fol)==3 and fol.isdigit():
                     hkl_dict[tuple(map(int, fol))] = fol
 
     # Set up additional arguments for get_core_energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
-    'nn_method': 'CrystalNN()', 'structure':'vasprun.xml'}
+    'nn_method': 'CrystalNN()', 'structure':'POSCAR'}
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
@@ -85,9 +87,9 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
 
     for hkl_tuple, hkl_string in hkl_dict.items(): 
-        for root, fols, files in os.walk('./{}'.format(hkl_string)): 
+        for root, fols, files in os.walk(cwd): 
             for fol in fols: 
-                if folder == fol: 
+                if fol == hkl_string:
                     path = os.path.join(root,fol)
                     vsp_path = '{}/vasprun.xml'.format(path)
 
@@ -119,9 +121,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         core_energy_list.append(
                             core_energy(path, core_atom, bulk_nn, 
                             **get_core_energy_kwargs)
-                            )
-                            
-                    
+                            )      
                         
     df = pd.DataFrame(df_list)
     df['surface_energy'] = (
@@ -154,12 +154,12 @@ def vacuum(path):
 
     '''
 
-    if '{}/potential.csv'.format(path): 
+    if os.path.isfile('{}/potential.csv'.format(path)): 
         df = pd.read_csv('{}/potential.csv'.format(path))
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
 
-    elif '{}/LOCPOT'.format(path): 
+    elif os.path.isfile('{}/LOCPOT'.format(path)): 
         lpt = Locpot.from_file('{}/LOCPOT'.format(path))
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
