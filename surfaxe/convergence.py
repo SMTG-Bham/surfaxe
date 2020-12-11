@@ -20,18 +20,21 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 # surfaxe
 from surfaxe.io import plot_enatom, plot_surfen, slab_from_file
 
-def parse_fols(hkl, bulk_per_atom, path=None, plt_enatom=True, 
+def parse_fols(hkl, bulk_per_atom, path_to_fols=None, plt_enatom=True, 
 plt_surfen=True, save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
-    combination.
+    combination. The convergence folders must be the only ones in the folder to 
+    which the ``path`` leads. Folders need to contain vasprun.xml and 
+    OUTCAR files. 
 
     Args:
         hkl (`tuple`): Miller index of the slab.
         bulk_per_atom (`float`): Bulk energy per atom from a converged 
             bulk calculation in eV per atom.
-        path (`str`, optional): Relative path to the convergence folders
+        path_to_fols (`str`, optional): Relative path to the convergence folders. 
+            Defaults to cwd
         plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
             ``True``.
         plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 
@@ -45,10 +48,10 @@ plt_surfen=True, save_csv=True, **kwargs):
     df_list = []
     hkl_string = ''.join(map(str, hkl))
 
-    if path is None:
+    if path_to_fols is None:
         cwd = os.getcwd()
     else: 
-        cwd = path
+        cwd = path_to_fols
 
     for root, fols, files in os.walk(cwd):
         for fol in fols:

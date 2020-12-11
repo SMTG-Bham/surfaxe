@@ -76,7 +76,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Set up additional arguments for get_core_energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
-    'nn_method': CrystalNN(), 'structure': 'POSCAR'}
+    'nn_method': CrystalNN()}
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
@@ -118,9 +118,10 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         )
                                                 
                     if parse_core_energy: 
+                        otc_path='{}/OUTCAR'.format(path)
                         core_energy_list.append(
-                            core_energy(path, core_atom, bulk_nn, 
-                            **get_core_energy_kwargs)
+                            core_energy(core_atom, bulk_nn, outcar=otc_path, 
+                            structure=vsp_path, **get_core_energy_kwargs)
                             )      
                         
     df = pd.DataFrame(df_list)
@@ -140,48 +141,66 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     else:
         return df
 
-def vacuum(path): 
+def vacuum(path=None): 
     '''
     Gets the energy of the vacuum level. It either parses potential.csv file if 
     available or tries to calculate planar potential from LOCPOT. If neither 
     file is available, function returns np.nan.  
 
     Args:
-        path (`str`): the path to potential.csv or LOCPOT files. 
+        path (`str`, optional): the path to potential.csv or LOCPOT files. 
+            Can be the path to a directory in which either file is or you can 
+            specify a path that must end in .csv or LOCPOT. Defaults to looking 
+            for potential.csv or LOCPOT in cwd. 
 
     Returns:
         Maximum value of planar potential
 
     '''
-
-    if os.path.isfile('{}/potential.csv'.format(path)): 
-        df = pd.read_csv('{}/potential.csv'.format(path))
+    
+    if path.endswith('.csv'): 
+        df = pd.read_csv(path)
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
-
-    elif os.path.isfile('{}/LOCPOT'.format(path)): 
-        lpt = Locpot.from_file('{}/LOCPOT'.format(path))
+    
+    elif path.endswith('LOCPOT'): 
+        lpt = Locpot.from_file(path)
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
-
+    
     else: 
-        max_potential = np.nan
-        warnings.formatwarning = _custom_formatwarning
-        warnings.warn('Vacuum electrostatic potential was not parsed - '
-        'no LOCPOT or potential.csv files were provided.')
+        if path is None: 
+            cwd = os.getcwd()
+        else: 
+            cwd = path 
+
+        if os.path.isfile('{}/potential.csv'.format(cwd)): 
+            df = pd.read_csv('{}/potential.csv'.format(cwd))
+            max_potential = df['planar'].max()
+            max_potential = round(max_potential, 3)
+
+        elif os.path.isfile('{}/LOCPOT'.format(cwd)): 
+            lpt = Locpot.from_file('{}/LOCPOT'.format(cwd))
+            planar = lpt.get_average_along_axis(2)
+            max_potential = float(f"{np.max(planar): .3f}")
+
+        else: 
+            max_potential = np.nan
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn('Vacuum electrostatic potential was not parsed - '
+            'no LOCPOT or potential.csv files were provided.')
 
     return max_potential
         
 
-def core_energy(path, core_atom, bulk_nn, orbital='1s', ox_states=None, 
-nn_method=CrystalNN(), structure='POSCAR'): 
+def core_energy(core_atom, bulk_nn, orbital='1s', ox_states=None, 
+nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'): 
     """
     Parses the structure and OUTCAR files for the core level energy. Check the 
     validity of nearest neighbour method on the bulk structure before using it 
     on slabs.
 
     Args: 
-        path (`str`): the path to potential.csv or LOCPOT files.
         core_atom (`str`, optional): The symbol of atom the core state energy 
             level should be parsed from.  
         bulk_nn (`list`, optional): The symbols of the nearest neighbours of the 
@@ -202,17 +221,19 @@ nn_method=CrystalNN(), structure='POSCAR'):
             * if ``None``: The oxidation states are added by guess.  
 
             Defaults to ``None``.
-        nn_method (`class`, optional): The coordination number prediction 
+        nn_method (`class` instance, optional): The coordination number 
             algorithm used. Because the ``nn_method`` is a class, the class 
             needs to be imported from pymatgen.analysis.local_env before it 
             can be instantiated here. Defaults to ``CrystalNN()``.
-        structure (`str`): Filename of structure file in any format supported by 
-            pymatgen. Defaults to ``POSCAR`` 
+        outcar (`str`, optional): Path to the OUTCAR file. Defaults to
+             ``./OUTCAR``. 
+        structure (`str`, optional): Path to the structure file in any format 
+            supported by pymatgen. Defaults to ``./POSCAR`` 
 
     Returns: 
         Core state energy 
     """
-    struc = Structure.from_file('{}/{}'.format(path, structure)) 
+    struc = Structure.from_file(structure) 
     struc = oxidation_states(struc, ox_states)
     bulk_nn.sort()
     bulk_nn_str = ' '.join(bulk_nn)
@@ -245,7 +266,7 @@ nn_method=CrystalNN(), structure='POSCAR'):
     atom = df['atom'].quantile(interpolation='nearest')        
 
     # Read OUTCAR, get the core state energy 
-    otc = Outcar('{}/OUTCAR'.format(path))
+    otc = Outcar(outcar)
     core_energy_dict = otc.read_core_state_eigen()
     core_energy = core_energy_dict[atom][orbital][-1]
 
