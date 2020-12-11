@@ -1,11 +1,11 @@
 import unittest
 import warnings
 import os
+from pathlib import Path
 from pymatgen import Structure
-from surfaxe.data import vacuum, core_energy
+from surfaxe.vasp_data import vacuum, core_energy
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(THIS_DIR, os.pardir, 'data/')
+data_dir = str(Path(__file__).parents[1].joinpath('example_data/vasp_data'))
 
 class VacuumTestCase(unittest.TestCase): 
 

@@ -1,16 +1,16 @@
 import unittest
 import warnings
 import os
+from pathlib import Path
 from pymatgen import Structure
 from surfaxe.analysis import simple_nn, complex_nn
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(THIS_DIR, os.pardir, 'data/')
+data_dir = str(Path(__file__).parents[1].joinpath('example_data/analysis'))
 
 class NNTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.SnO2 = os.path.join(data_dir,'CONTCAR_SnO2')
+        self.SnO2 = os.path.join(data_dir, 'CONTCAR_SnO2')
         self.lta = os.path.join(data_dir,'POSCAR_LTA_010')
 
     def test_simple_nn(self):
