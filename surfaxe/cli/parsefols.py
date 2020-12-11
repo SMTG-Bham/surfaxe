@@ -44,7 +44,7 @@ def main():
     if args.path is not None: 
         path = args.path
 
-    parse_fols(hkl, args.bulk_per_atom, path=path, 
+    parse_fols(hkl, args.bulk_per_atom, path_to_fols=path, 
     plt_enatom=args.plt_enatom, plt_surfen=args.plt_surfen, 
     save_csv=True)
 

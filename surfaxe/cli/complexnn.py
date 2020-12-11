@@ -38,8 +38,8 @@ def _get_parser():
     
     parser.add_argument('-s', '--start', default=None, 
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('-a', '--atoms',default=None,
-    help='List of elements in the structure in any order e.g. La,Ti,O,S,Ag')
+    parser.add_argument('-a', '--atoms',default=None, nargs='+', type=str,
+    help='List of elements in the structure in any order e.g. La Ti O S Ag')
     parser.add_argument('-c', '--cutoffdict', type=_cutoff_to_dict,
     dest='cut_off_dict', help='Bond lengths e.g. "La-O-2.91,Ag-S-3.09"')
     parser.add_argument('-e', '--end', default=None,
@@ -62,9 +62,6 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    if args.atoms is not None: 
-        elements = map(str, args.atoms.strip('[]').split(','))
-
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
             yaml_args = yaml.load(y)
@@ -78,9 +75,14 @@ def main():
         ox_states = map(float, args.ox_states_list.strip('[]').split(','))
     else: 
         ox_states=None 
-
-    complex_nn(args.start, elements, args.cut_off_dict, end=args.end, 
-    ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
+    
+    if args.save_csv==True: 
+        complex_nn(args.start, args.atoms, args.cut_off_dict, end=args.end, 
+        ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
+    else: 
+        nn = complex_nn(args.start, args.atoms, args.cut_off_dict, end=args.end, 
+        ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
+        print(nn)
 
 if __name__ == "__main__":
     main()

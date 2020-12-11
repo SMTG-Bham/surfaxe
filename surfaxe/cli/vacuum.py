@@ -12,7 +12,7 @@ def _get_parser():
     )
 
     parser.add_argument('-p', '--path', default=None, type=str,  help=('The path ' 
-    'to the structure and OUTCAR files (default: cwd)'))
+    'to the LOCPOT or potential.csv files (default: cwd)'))
 
     return parser 
 

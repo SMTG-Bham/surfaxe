@@ -27,8 +27,8 @@ def _get_parser():
     
     parser.add_argument('-s', '--start', 
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('-a', '--atoms', default=None,
-    help='List of elements in the structure in any order e.g. Y,Ti,O,S')
+    parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
+    help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('-e', '--end', default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
@@ -48,8 +48,6 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
-    if args.atoms is not None: 
-        elements = map(str, args.atoms.strip('[]').split(','))
 
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
@@ -65,11 +63,11 @@ def main():
     else: 
         ox_states=None
     
-    if args.save_csv is True: 
-        simple_nn(args.start, elements, end=args.end, ox_states=ox_states, 
+    if args.save_csv==True: 
+        simple_nn(args.start, args.atoms, end=args.end, ox_states=ox_states, 
         nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
     else: 
-        nn = simple_nn(args.start, elements, end=args.end, ox_states=ox_states, 
+        nn = simple_nn(args.start, args.atoms, end=args.end, ox_states=ox_states, 
         nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
         print(nn)
 
