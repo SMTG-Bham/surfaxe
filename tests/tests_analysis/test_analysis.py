@@ -5,7 +5,7 @@ from pathlib import Path
 from pymatgen import Structure
 from surfaxe.analysis import simple_nn, complex_nn
 
-data_dir = str(Path(__file__).parents[1].joinpath('example_data/analysis'))
+data_dir = str(Path(__file__).parents[2].joinpath('example_data/analysis'))
 
 class NNTestCase(unittest.TestCase):
 
