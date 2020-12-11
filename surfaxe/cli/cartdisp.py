@@ -14,8 +14,9 @@ def _get_parser():
         structure."""
     )
 
-    parser.add_argument('-s', '--start', default=None,
-    help='Filename of structure file in any format supported by pymatgen')
+    parser.add_argument('-s', '--start', default='POSCAR',
+    help=('Filename of structure file in any format supported by pymatgen '
+          '(default: POSCAR'))
     parser.add_argument('-e', '--end', default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
@@ -27,7 +28,7 @@ def _get_parser():
     dest='save_txt', help='Turns off saving data to a txt file' )
     parser.add_argument('--txt-fname', default='cart_displacament.txt', type=str,
     dest='txt_fname', help=('Filename of the txt file (default: '
-    'cart_displacement.txt)'))
+         'cart_displacement.txt)'))
     parser.add_argument('--yaml', default=False, action='store_true', 
     help='Read optional args from surfaxe_config.yaml file')
 
@@ -42,9 +43,15 @@ def main():
         args.update(
             (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
         )
-
-    cart_displacements(args.start, args.end, args.atoms, max_disp=args.max_disp, 
-    save_txt=args.save_txt, txt_fname=args.txt_fname)
+    
+    if args.save_txt: 
+        cart_displacements(args.start, args.end, args.atoms, 
+        max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
+    
+    else: 
+        cart_disp = cart_displacements(args.start, args.end, args.atoms, 
+        max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
+        print(cart_disp)
 
 if __name__ == "__main__":
     main()

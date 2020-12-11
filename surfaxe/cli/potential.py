@@ -15,7 +15,7 @@ def _get_parser():
 
     parser.add_argument('-v', '--lattice-vector', type=float, 
     dest='lattice_vector', help='The periodicity of the slab')
-    parser.add_argument('-l', '--locpot', type=str, default='./LOCPOT', 
+    parser.add_argument('-l', '--locpot', type=str, default='LOCPOT', 
     help='The path to the LOCPOT file (default: ./LOCPOT ')
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )

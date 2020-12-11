@@ -25,8 +25,9 @@ def _get_parser():
         structure."""
     )
     
-    parser.add_argument('-s', '--start', 
-    help='Filename of structure file in any format supported by pymatgen')
+    parser.add_argument('-s', '--start', default='POSCAR',
+    help=('Filename of structure file in any format supported by pymatgen '
+          '(default: POSCAR'))
     parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
     help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('-e', '--end', default=None,

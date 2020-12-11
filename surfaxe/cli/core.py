@@ -36,11 +36,11 @@ def _get_parser():
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
     dest='ox_states_dict', help=('Add oxidation states to the structure as ' 
     'a dictionary e.g. "Fe:3,O:-2"'))
-    parser.add_argument('-s', '--structure', default='POSCAR', 
+    parser.add_argument('-s', '--structure', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
-    '(default: ./POSCAR)'))
-    parser.add_argument('-o', '--outcar', default='OUTCAR', 
-    help='Path to OUTCAR file (default: ./OUTCAR)')
+          '(default: POSCAR'))
+    parser.add_argument('--outcar', default='OUTCAR', 
+    help='Path to OUTCAR file (default: OUTCAR)')
     parser.add_argument('--yaml', default=False, action='store_true', 
     help='Read optional args from surfaxe_config.yaml file.')
 

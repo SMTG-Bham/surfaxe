@@ -35,22 +35,24 @@ def _get_parser():
         before using it on slabs."""
     )
 
-    parser.add_argument('-s', '--structure',
-    help='Filename of structure file in any format supported by pymatgen')
+    parser.add_argument('-s', '--structure', default='POSCAR',
+    help=('Filename of structure file in any format supported by pymatgen '
+          '(default: POSCAR'))
     parser.add_argument('-b', '--bonds', type=_bonds_to_list, dest='list_of_bonds', 
-    help='List of bonds as lists to compare in any order (e.g. Y-O,Ti-S')
+    help='List of bonds as lists to compare in any order (e.g. Y-O,Ti-S)')
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
-    dest='ox_states_dict', help=('Add oxidation states to the structure as ' 
-    'a dictionary e.g. "Fe:3,O:-2"'))
+    dest='ox_states_dict', 
+    help=('Add oxidation states to the structure as a dictionary '
+          ' e.g. "Fe:3,O:-2"'))
     parser.add_argument('--no-csv', default=True, action='store_false', 
     dest='save_csv', help='Turns off saving data to csv file' )
-    parser.add_argument('--csv-fname', default='bond_analysis.csv', type=str,
+    parser.add_argument('--csv-fname', default='bond_analysis.csv', 
     dest='csv_fname', help='Filename of the csv file (default: bond_analysis.csv)')
     parser.add_argument('--no-plot', default=True, action='store_false', 
     dest='save_plt', help='Turns off plotting the bond lengths')
-    parser.add_argument('--plt-fname', default='bond_analysis.png', type=str,
+    parser.add_argument('--plt-fname', default='bond_analysis.png',
     dest='plt_fname', help='Filename of the plot')
     parser.add_argument('--dpi', default=300, type=int, help='Dots per inch')
     parser.add_argument('--yaml', default=False, action='store_true', 
