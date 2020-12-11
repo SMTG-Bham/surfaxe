@@ -5,7 +5,7 @@ from pathlib import Path
 from pymatgen import Structure
 from surfaxe.vasp_data import vacuum, core_energy, process_data
 
-data_dir = str(Path(__file__).parents[1].joinpath('example_data/vasp_data'))
+data_dir = str(Path(__file__).parents[2].joinpath('example_data/vasp_data'))
 
 class VacuumTestCase(unittest.TestCase): 
 
@@ -28,6 +28,8 @@ class CoreTestCase(unittest.TestCase):
 
 class DataTestCase(unittest.TestCase): 
     def setUp(self): 
-        pass 
+        self.path = data_dir 
     def test_data(self): 
-        pass 
+        data = process_data(-6.6118, path_to_fols=self.path, save_csv=False) 
+        self.assertEqual(data.shape, (2,13))
+        self.assertEqual(data.loc[data['algo']], 'Normal')
