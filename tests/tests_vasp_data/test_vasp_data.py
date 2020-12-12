@@ -31,5 +31,5 @@ class DataTestCase(unittest.TestCase):
         self.path = data_dir 
     def test_data(self): 
         data = process_data(-6.6118, path_to_fols=self.path, save_csv=False) 
-        self.assertEqual(data.shape, (2,13))
+        self.assertEqual(data.shape, (2,15))
         self.assertEqual(data.loc[data['algo']], 'Normal')

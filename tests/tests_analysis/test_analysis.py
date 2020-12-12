@@ -3,7 +3,8 @@ import warnings
 import os
 from pathlib import Path
 from pymatgen import Structure
-from surfaxe.analysis import simple_nn, complex_nn
+from surfaxe.analysis import simple_nn, complex_nn, cart_displacements, \
+bond_analysis
 
 data_dir = str(Path(__file__).parents[2].joinpath('example_data/analysis'))
 
@@ -27,5 +28,25 @@ class NNTestCase(unittest.TestCase):
         self.assertEqual(coord_data.shape, (240,4))
         
 
+class CartDisplacementsTestCase(unittest.TestCase): 
 
+    def setUp(self): 
+        self.start = os.path.join(data_dir, 'POSCAR_LTA_010')
+        self.end = os.path.join(data_dir, 'CONTCAR_LTA_010')
+    
+    def test_cart_displacements(self): 
+        cart_data = cart_displacements(start=self.start, 
+            end=self.end, elements=['La', 'Ti', 'Ag', 'S', 'O'],
+            save_txt=False)
+        self.assertIsNotNone(cart_data)
+        self.assertEqual(len(cart_data['site']), 240)
 
+class BondAnalysisTestCase(unittest.TestCase): 
+
+    def setUp(self): 
+        self.structure = os.path.join(data_dir, 'CONTCAR_SnO2')
+
+    def test_bond_analysis(self): 
+        bonds_data = bond_analysis(structure=self.structure, 
+        bonds = [['Sn', 'O']], save_csv=False, save_plt=False)
+        self.assertEqual(bonds_data.shape, (30,4))
