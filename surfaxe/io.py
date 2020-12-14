@@ -44,7 +44,7 @@ def load_config_dict(config_dict, path_to_config_dir=None):
             * ``None``: The default option, makes a PBEsol config dictionary for
               a single shot calculation from the ``PBEsol_config.json`` file. 
         path_to_config_dir (`str`, optional). The path to the directory in which 
-            the config json files are. Defaults to 
+            the json config files are. Defaults to 
             ``surfaxe/surfaxe/_config_dictionaries``. 
     Returns: 
         Dictionary

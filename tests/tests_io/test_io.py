@@ -9,7 +9,7 @@ import surfaxe.io
 
 class LoadTestCase(unittest.TestCase): 
     def setUp(self): 
-        self.path = str(Path(__file__).parents[1].joinpath('_config_dictionaries'))
+        self.path = str(Path(__file__).parents[2].joinpath('_config_dictionaries'))
 
     def test_load_cd(self): 
         cd1 = load_config_dict('HSE06_config.json', path_to_config_dir=self.path)
