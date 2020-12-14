@@ -397,7 +397,8 @@ save_csv=True, csv_fname='nn_data.csv'):
     # Instantiate the end structure if provided
     if end: 
         end_struc = Structure.from_file(end)
-        end_struc = oxidation_states(end_struc)
+        if ox_states is not None: 
+            end_struc = oxidation_states(end_struc, ox_states=ox_states)
         bonded_end = codnn.get_bonded_structure(end_struc)
 
     # Iterate through structure, evaluate the coordination number and the 

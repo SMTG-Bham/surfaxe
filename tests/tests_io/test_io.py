@@ -9,7 +9,7 @@ import surfaxe.io
 
 class LoadTestCase(unittest.TestCase): 
     def setUp(self): 
-        self.path = str(Path(__file__).parents[2].joinpath('_config_dictionaries'))
+        self.path = str(Path(__file__).parents[2].joinpath('surfaxe/_config_dictionaries'))
 
     def test_load_cd(self): 
         cd1 = load_config_dict('HSE06_config.json', path_to_config_dir=self.path)
@@ -18,8 +18,9 @@ class LoadTestCase(unittest.TestCase):
 
         self.assertEqual(cd1['INCAR']['AEXX'], 0.25)
         self.assertEqual(cd1['INCAR']['ALGO'], 'All')
+        self.assertEqual(cd2, cd3)
+        self.assertNotEqual(cd1, cd2)
         self.assertEqual(cd2['INCAR']['GGA'], 'PS')
-        self.assertEqual(cd2['INCAR']['ALGO'], 'Normal')
         self.assertEqual(cd3['INCAR']['ALGO'], 'Normal')
 
 class SlabFromFileTestCase(unittest.TestCase): 
