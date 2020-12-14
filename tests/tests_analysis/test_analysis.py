@@ -39,7 +39,7 @@ class CartDisplacementsTestCase(unittest.TestCase):
             end=self.end, elements=['La', 'Ti', 'Ag', 'S', 'O'],
             save_txt=False)
         self.assertIsNotNone(cart_data)
-        self.assertEqual(len(cart_data['site']), 240)
+        self.assertEqual(len(cart_data['site']), 192)
 
 class BondAnalysisTestCase(unittest.TestCase): 
 
@@ -49,4 +49,4 @@ class BondAnalysisTestCase(unittest.TestCase):
     def test_bond_analysis(self): 
         bonds_data = bond_analysis(structure=self.structure, 
         bonds = [['Sn', 'O']], save_csv=False, save_plt=False)
-        self.assertEqual(bonds_data.shape, (30,4))
+        self.assertEqual(bonds_data.shape, (30,3))
