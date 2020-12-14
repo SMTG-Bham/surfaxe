@@ -40,7 +40,7 @@ class GetAllTestCase(unittest.TestCase):
         self.assertEqual(len(sym_false), 2) 
     
     def test_no_structure(self): 
-        self.assertRaises(FileNotFoundError, get_one_hkl_slabs, structure='waa', 
+        self.assertRaises(FileNotFoundError, get_all_slabs, structure='waa', 
         max_index=1, thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
     def test_save_to_file(self): 
