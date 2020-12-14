@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from pymatgen import Structure
 from surfaxe.analysis import simple_nn, complex_nn, cart_displacements, \
-bond_analysis
+bond_analysis, electrostatic_potential
 
 data_dir = str(Path(__file__).parents[2].joinpath('example_data/analysis'))
 
@@ -26,6 +26,7 @@ class NNTestCase(unittest.TestCase):
                           ('La','S'): 3.559, ('Ti','O'): 2.35,
                           ('Ti','S'): 2.91,}, save_csv=False)
         self.assertEqual(coord_data.shape, (240,4))
+        self.assertEqual(coord_data['nn_start'][52], 'O O S S S')
         
 
 class CartDisplacementsTestCase(unittest.TestCase): 
@@ -50,3 +51,14 @@ class BondAnalysisTestCase(unittest.TestCase):
         bonds_data = bond_analysis(structure=self.structure, 
         bonds = [['Sn', 'O']], save_csv=False, save_plt=False)
         self.assertEqual(bonds_data.shape, (30,3))
+
+class ElectrostaticPotentialTestCase(unittest.TestCase): 
+
+    def setUp(self): 
+        self.locpot = os.path.join(data_dir, 'LOCPOT')
+
+    def test_electrostatic_potential(self): 
+        potential_data = electrostatic_potential(10, locpot=self.locpot, 
+        save_csv=False, save_plt=False)
+        self.assertEqual(potential_data.shape, (1372,2))
+        self.assertEqual(potential_data['planar'][394], -10.668138966414821)
