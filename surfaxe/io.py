@@ -10,6 +10,7 @@ import os
 import warnings 
 warnings.filterwarnings('once')
 import json
+from pathlib import Path
 
 # Monkeypatching straight from Stackoverflow
 def _custom_formatwarning(message, category, filename, lineno, line=''):
@@ -21,7 +22,8 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from surfaxe import _config_directory
+# define path to where config dicts are
+conf_dir = str(Path(__file__).parent.joinpath('_config_dictionaries'))
 
 def load_config_dict(config_dict): 
     """
@@ -39,7 +41,7 @@ def load_config_dict(config_dict):
                     'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}
 
             * ``str``: Filename of the config dictionary in the 
-              ``_config_directory`` folder. If the filename does not exist,  
+              ``_config_directories`` folder. If the filename does not exist,  
               the function defaults to the ``PBEsol_config.json`` file.            
 
             * ``None``: The default option, makes a PBEsol config dictionary for
@@ -51,14 +53,14 @@ def load_config_dict(config_dict):
     if type(config_dict) is dict: 
         cd = config_dict 
     elif type(config_dict) is str: 
-        if os.path.isfile(os.path.join(_config_directory, config_dict)): 
-            with open(os.path.join(_config_directory, config_dict), 'r') as f:
+        if os.path.isfile(os.path.join(conf_dir, config_dict)): 
+            with open(os.path.join(conf_dir, config_dict), 'r') as f:
                 cd = json.load(f)
         else: 
-            with open(os.path.join(_config_directory, 'PBEsol_config.json'), 'r') as f:
+            with open(os.path.join(conf_dir, 'PBEsol_config.json'), 'r') as f:
                 cd = json.load(f)
     else: 
-        with open(os.path.join(_config_directory, 'PBEsol_config.json'), 'r') as f:
+        with open(os.path.join(conf_dir, 'PBEsol_config.json'), 'r') as f:
             cd = json.load(f)
 
     return cd 
