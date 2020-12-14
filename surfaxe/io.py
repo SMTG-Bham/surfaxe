@@ -22,15 +22,12 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-# define path to where config dicts are
-conf_dir = str(Path(__file__).parent.joinpath('_config_dictionaries'))
-
-def load_config_dict(config_dict): 
+def load_config_dict(config_dict, path_to_config_dir=None): 
     """
     Loads the config dictionary for writing VASP input files. 
 
     Args: 
-        config_dict(``None``, `dict` or `str`): The config dict containing info  
+        config_dict (``None``, `dict` or `str`): The config dict containing info  
             on INCAR, POTCAR and KPOINTS settings. Can be supplied as: 
 
             * ``dict``: All settings for the calculations provided as a 
@@ -45,11 +42,21 @@ def load_config_dict(config_dict):
               the function defaults to the ``PBEsol_config.json`` file.            
 
             * ``None``: The default option, makes a PBEsol config dictionary for
-              a single shot calculation from the ``PBEsol_config.json`` file.  
+              a single shot calculation from the ``PBEsol_config.json`` file. 
+        path_to_config_dir (`str`, optional). The path to the directory in which 
+            the config json files are. Defaults to 
+            ``surfaxe/surfaxe/_config_dictionaries``. 
     Returns: 
         Dictionary
     
     """
+
+    
+    if type(path_to_config_dir) is str: 
+        conf_dir = path_to_config_dir
+    else: 
+        conf_dir = str(Path(__file__).parent.joinpath('_config_dictionaries'))
+
     if type(config_dict) is dict: 
         cd = config_dict 
     elif type(config_dict) is str: 

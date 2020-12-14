@@ -5,12 +5,16 @@ from pathlib import Path
 from pymatgen import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.io import load_config_dict, slab_from_file
+import surfaxe.io 
 
 class LoadTestCase(unittest.TestCase): 
+    def setUp(self): 
+        self.path = str(Path(__file__).parents[1].joinpath('_config_dictionaries'))
+
     def test_load_cd(self): 
-        cd1 = load_config_dict('HSE06_config.json')
-        cd2 = load_config_dict('waa')
-        cd3 = load_config_dict((0,1,2))
+        cd1 = load_config_dict('HSE06_config.json', path_to_config_dir=self.path)
+        cd2 = load_config_dict('waa', path_to_config_dir=self.path)
+        cd3 = load_config_dict((0,1,2), path_to_config_dir=self.path)
 
         self.assertEqual(cd1['INCAR']['AEXX'], 0.25)
         self.assertEqual(cd1['INCAR']['ALGO'], 'All')
