@@ -7,7 +7,7 @@ from pymatgen.core.surface import Slab
 from surfaxe.generation import get_all_slabs, get_one_hkl_slabs
 
 ytos = str(Path(__file__).parents[2].joinpath('example_data/generation/CONTCAR_conventional'))
-cdte  = str(Path(__file__).parents[2].joinpath('example_data/generation/CdTe.cif'))
+cdte  = str(Path(__file__).parents[2].joinpath('example_data/generation/CdTe.vasp'))
 
 class GetAllTestCase(unittest.TestCase): 
 
@@ -38,7 +38,15 @@ class GetAllTestCase(unittest.TestCase):
 
         self.assertEqual(len(sym_true), 0)
         self.assertEqual(len(sym_false), 2)
+
+    def test_save_to_file(self): 
+        ytos_slabs = ytos_slabs = get_all_slabs(structure=self.ytos, 
+        max_index=1, thicknesses=[10], vacuums=[10, 20])
         
+        self.assertIsNone(ytos_slabs)
+         
+        # add how to actually check if folders are made, check if fmt and poscar 
+        # agrs work 
 
 class GetOneTestCase(unittest.TestCase): 
 
@@ -64,11 +72,11 @@ class GetOneTestCase(unittest.TestCase):
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
         self.assertEqual(ytos_no_slab, [])
-
-    def test_no_structure(self):
+    
+    #def test_no_structure(self):
        
-        self.assertRaises(FileNotFoundError, get_one_hkl_slabs(structure=None, 
-        hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False))
+    #    self.assertRaises(FileNotFoundError, get_one_hkl_slabs(structure='waa', 
+    #    hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False))
     
     def test_non_centrosymmetric(self): 
         sym_true = get_one_hkl_slabs(structure=self.cdte, hkl=(1,1,0),
@@ -79,3 +87,6 @@ class GetOneTestCase(unittest.TestCase):
         self.assertEqual(len(sym_true), 0)
         self.assertEqual(len(sym_false), 2)
         self.assertEqual(type(sym_false[0]['slab']), Slab)
+    
+    # add how to actually check if folders are made, check if fmt and poscar 
+    # agrs work
