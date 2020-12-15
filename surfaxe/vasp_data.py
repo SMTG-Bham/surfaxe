@@ -157,12 +157,12 @@ def vacuum(path=None):
 
     '''
     
-    if path.endswith('.csv'): 
+    if type(path)==str and path.endswith('.csv'): 
         df = pd.read_csv(path)
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
     
-    elif path.endswith('LOCPOT'): 
+    elif type(path)==str and path.endswith('LOCPOT'): 
         lpt = Locpot.from_file(path)
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")

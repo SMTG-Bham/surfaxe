@@ -25,7 +25,7 @@ class NNTestCase(unittest.TestCase):
         end=self.SnO2, save_csv=False)
 
         self.assertEqual(end_data.shape, (90, 6))
-        self.assertEqual(end_data['nn_start'], end_data['nn_end'])
+        self.assertEqual(end_data['nn_start'][4], end_data['nn_end'][4])
 
     def test_complex_nn(self):
         coord_data = complex_nn(start=self.lta, 
