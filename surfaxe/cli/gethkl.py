@@ -5,7 +5,7 @@ import os
 import warnings 
 
 # Surfaxe 
-from surfaxe.generation import get_one_hkl_slabs
+from surfaxe.generation import get_slabs_single_hkl
 
 def _oxstates_to_dict(ox): 
     keys, values = ([] for i in range(2))
@@ -89,7 +89,7 @@ def main():
     else: 
         ox_states=None 
 
-    get_one_hkl_slabs(args.structure, hkl, args.thicknesses, args.vacuums, 
+    get_slabs_single_hkl(args.structure, hkl, args.thicknesses, args.vacuums, 
     make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
     center_slab=args.center_slab, ox_states=ox_states, 
     save_slabs=args.save_slabs, is_symmetric=args.sym, fmt=args.fmt, 

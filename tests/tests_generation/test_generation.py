@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from pymatgen import Structure
 from pymatgen.core.surface import Slab
-from surfaxe.generation import get_all_slabs, get_one_hkl_slabs
+from surfaxe.generation import get_slabs_max_index, get_slabs_single_hkl
 
 ytos = str(Path(__file__).parents[2].joinpath('example_data/generation/CONTCAR_conventional'))
 cdte  = str(Path(__file__).parents[2].joinpath('example_data/generation/CdTe.vasp'))
@@ -15,8 +15,8 @@ class GetAllTestCase(unittest.TestCase):
         self.ytos = ytos
         self.cdte = cdte
     
-    def test_get_all(self): 
-        ytos_slabs = get_all_slabs(structure=self.ytos, 
+    def test_get_max_index(self): 
+        ytos_slabs = get_slabs_max_index(structure=self.ytos, 
         max_index=1, thicknesses=[10], vacuums=[10, 20], 
         save_slabs=False, max_size=20)
         
@@ -31,20 +31,20 @@ class GetAllTestCase(unittest.TestCase):
         '100_10_20_10'))
 
     def test_non_centrosymmetric(self): 
-        sym_true = get_all_slabs(structure=self.cdte, max_index=1, 
+        sym_true = get_slabs_max_index(structure=self.cdte, max_index=1, 
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
-        sym_false = get_all_slabs(structure=self.cdte, max_index=1, 
+        sym_false = get_slabs_max_index(structure=self.cdte, max_index=1, 
         thicknesses=[10], vacuums=[10,20], save_slabs=False, is_symmetric=False)
 
         self.assertEqual(len(sym_true), 0)
         self.assertEqual(len(sym_false), 2) 
     
     def test_no_structure(self): 
-        self.assertRaises(FileNotFoundError, get_all_slabs, structure='waa', 
+        self.assertRaises(FileNotFoundError, get_slabs_max_index, structure='waa', 
         max_index=1, thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
     def test_save_to_file(self): 
-        ytos_slabs = ytos_slabs = get_all_slabs(structure=self.ytos, 
+        ytos_slabs = ytos_slabs = get_slabs_max_index(structure=self.ytos, 
         max_index=1, thicknesses=[10], vacuums=[10, 20])
         
         self.assertIsNone(ytos_slabs)
@@ -58,8 +58,8 @@ class GetOneTestCase(unittest.TestCase):
         self.ytos = ytos 
         self.cdte = cdte
     
-    def test_get_one(self): 
-        ytos_slab = get_one_hkl_slabs(structure=self.ytos, hkl=(0,0,1), 
+    def test_get_single_hkl(self): 
+        ytos_slab = get_slabs_single_hkl(structure=self.ytos, hkl=(0,0,1), 
         thicknesses=[10,20], vacuums=[10,20], save_slabs=False, max_size=20)
 
         self.assertEqual(len(ytos_slab), 1)
@@ -72,20 +72,20 @@ class GetOneTestCase(unittest.TestCase):
 
 
     def test_get_none(self): 
-        ytos_no_slab = get_one_hkl_slabs(structure=self.ytos, hkl=(0,3,5), 
+        ytos_no_slab = get_slabs_single_hkl(structure=self.ytos, hkl=(0,3,5), 
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
         self.assertEqual(ytos_no_slab, [])
     
     def test_no_structure(self):
        
-        self.assertRaises(FileNotFoundError, get_one_hkl_slabs, structure='waa', 
+        self.assertRaises(FileNotFoundError, get_slabs_single_hkl, structure='waa', 
         hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False)
     
     def test_non_centrosymmetric(self): 
-        sym_true = get_one_hkl_slabs(structure=self.cdte, hkl=(1,1,0),
+        sym_true = get_slabs_single_hkl(structure=self.cdte, hkl=(1,1,0),
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
-        sym_false = get_one_hkl_slabs(structure=self.cdte, hkl=(1,1,0),
+        sym_false = get_slabs_single_hkl(structure=self.cdte, hkl=(1,1,0),
         thicknesses=[10], vacuums=[10,20], save_slabs=False, is_symmetric=False)
 
         self.assertEqual(len(sym_true), 0)
@@ -93,7 +93,7 @@ class GetOneTestCase(unittest.TestCase):
         self.assertEqual(type(sym_false[0]['slab']), Slab)
     
     def test_save_to_file(self): 
-        ytos_slabs = ytos_slabs = get_one_hkl_slabs(structure=self.ytos, 
+        ytos_slabs = ytos_slabs = get_slabs_single_hkl(structure=self.ytos, 
         hkl=(0,0,1), thicknesses=[10], vacuums=[10, 20])
         
         self.assertIsNone(ytos_slabs)

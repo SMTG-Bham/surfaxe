@@ -9,7 +9,7 @@ import os
 # surfaxe
 from surfaxe.io import slabs_to_file, _custom_formatwarning
 
-def get_one_hkl_slabs(structure, hkl, thicknesses, vacuums, make_fols=False, 
+def get_slabs_single_hkl(structure, hkl, thicknesses, vacuums, make_fols=False, 
 make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
 save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR',
 config_dict='PBEsol_config.json', user_incar_settings=None, 
@@ -19,8 +19,8 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     and vacuum thicknesses. 
     
     Note that using this method of slab generation will result in different slab 
-    index numbers as in the `get_all_slabs` - the slabs identified are the same, 
-    the index varies based on the position in the list of generated slabs. 
+    index numbers as in the `get_slabs_max_index` - the slabs identified are the 
+    same, the index varies based on the position in the list of generated slabs. 
     The function returns None by default and generates either: 
 
     (i) POSCAR_hkl_slab_vac_index.vasp (default) 
@@ -206,9 +206,9 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     else: 
         return unique_list_of_dicts
 
-def get_all_slabs(structure, max_index, thicknesses, vacuums, make_fols=False, 
-make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
-save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR', 
+def get_slabs_max_index(structure, max_index, thicknesses, vacuums, 
+make_fols=False, make_input_files=False, max_size=500, center_slab=True, 
+ox_states=None, save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR', 
 config_dict=None, user_incar_settings=None, user_potcar_settings=None, 
 user_kpoints_settings=None, **kwargs):
     """
@@ -217,8 +217,8 @@ user_kpoints_settings=None, **kwargs):
     dipole symmetric terminations for the same Miller index. 
     
     Note that using this method of slab generation will results in different 
-    slab index values as in the `get_one_hkl_slabs` - the slabs identified are 
-    the same, the index varies based on the position in the list of generated 
+    slab index values as in the `get_slabs_single_hkl` - the slabs identified  
+    are the same, the index varies based on the position in the list of generated 
     slabs.
     The function returns None by default and generates either: 
 
