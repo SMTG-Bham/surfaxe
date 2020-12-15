@@ -45,7 +45,7 @@ is also helpful, including a good model for docstrings.
 
 
 ## Usage
-Surfaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `- h` option is available in the command line interface for each of the scripts.
+Surfaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `-h` option is available in the command line interface for each of the scripts.
 
 The `tutorials` directory contains the jupyter notebooks with detailed explanations of functionality of all aspects of the package.
 
@@ -56,7 +56,7 @@ Generation:
 * `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index. Optionally provides all input files.
 
 Convergence:
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-gethkl` or `surfaxe-gethkl`. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-gethkl` or `surfaxe-getall`. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
 
 Analysis:
 * `surfaxe-bonds`: Parses the structure, looking for bonds between specified atoms.
