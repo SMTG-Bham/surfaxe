@@ -1,8 +1,6 @@
 import unittest
-import warnings
 import os
 from pathlib import Path
-from pymatgen import Structure
 from surfaxe.vasp_data import vacuum, core_energy, process_data
 
 data_dir = str(Path(__file__).parents[2].joinpath('example_data/vasp_data'))

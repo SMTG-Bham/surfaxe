@@ -91,10 +91,17 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                 if fol == hkl_string:
                     path = os.path.join(root,fol)
                     vsp_path = '{}/vasprun.xml'.format(path)
-
                     vsp = Vasprun(vsp_path, parse_potcar_file=False)
+                    structure = vsp.final_structure
                     vsp_dict = vsp.as_dict()
-                    slab = slab_from_file(vsp_path, hkl_tuple)
+                    slab = Slab(structure.lattice,
+                            structure.species_and_occu,
+                            structure.frac_coords,
+                            hkl_tuple,
+                            Structure.from_sites(structure, to_unit_cell=True),
+                            shift=0,
+                            scale_factor=np.eye(3, dtype=np.int),
+                            site_properties=structure.site_properties)
                     
                     df_list.append({
                         'hkl': hkl_string, 
