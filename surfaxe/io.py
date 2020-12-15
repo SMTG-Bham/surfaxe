@@ -78,12 +78,16 @@ def slab_from_file(structure, hkl):
 
     Args:
          structure (str): Structure file in any format supported by pymatgen.
+                          Will accept a pymatgen.Structure object directly. 
          hkl (tuple): Miller index of the slab in the input file.
 
     Returns:
          Slab object
     """
-    slab_input = Structure.from_file(structure)
+    if type(structure) == str:
+        slab_input = Structure.from_file(structure)
+    else:
+        slab_input = structure
     return Slab(slab_input.lattice,
                 slab_input.species_and_occu,
                 slab_input.frac_coords,

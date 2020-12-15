@@ -63,7 +63,7 @@ plt_surfen=True, save_csv=True, **kwargs):
                 # instantiate structure, slab, vasprun and outcar objects
                 vsp = Vasprun(vsp_path, parse_potcar_file=False)
                 otc = Outcar(otc_path)
-                slab = slab_from_file(vsp_path, hkl)
+                slab = slab_from_file(vsp.final_structure, hkl)
                 vsp_dict = vsp.as_dict()
 
                 # extract the data
