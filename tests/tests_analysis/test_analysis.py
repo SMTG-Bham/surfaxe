@@ -16,9 +16,16 @@ class NNTestCase(unittest.TestCase):
         self.lta_end = os.path.join(data_dir, 'CONTCAR_LTA_010')
 
     def test_simple_nn(self):
-        coord_data = simple_nn(start=self.SnO2, elements=['Sn','O'], save_csv=False)
+        coord_data = simple_nn(start=self.SnO2, elements=['Sn','O'], 
+        save_csv=False)
         self.assertEqual(coord_data.shape, (90,4))
         self.assertEqual(len(coord_data.loc[coord_data['cn_start'] == 3]), 58)
+
+        end_data = simple_nn(start=self.SnO2, elements=['Sn','O'], 
+        end=self.SnO2, save_csv=False)
+
+        self.assertEqual(end_data.shape, (90, 6))
+        self.assertEqual(end_data['nn_start'], end_data['nn_end'])
 
     def test_complex_nn(self):
         coord_data = complex_nn(start=self.lta, 

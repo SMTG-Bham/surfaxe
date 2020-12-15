@@ -19,4 +19,8 @@ class ParseFolsTestCase(unittest.TestCase):
         save_csv=False)
 
         self.assertEqual(parse_fols_data.shape, (6,11))
+
+    def test_no_pwd(self): 
+        self.assertRaises(FileNotFoundError, parse_fols, hkl=(0,0,1), 
+        bulk_per_atom=-6.188, save_csv=False, plt_enatom=False, plt_surfen=False)
         

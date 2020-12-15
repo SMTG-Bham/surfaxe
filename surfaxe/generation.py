@@ -405,8 +405,7 @@ def oxidation_states(structure, ox_states=None):
     Adds oxidation states to the structure object 
     
     Args: 
-        structure (`str`, required): Filename of structure file in any 
-            format supported by pymatgen. 
+        structure (`obj`, required): Pymatgen structure object
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
             result in different pymatgen functions used. The options are: 
