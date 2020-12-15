@@ -21,7 +21,7 @@ class VacuumTestCase(unittest.TestCase):
         fol_lpt = vacuum(self.path_lpt)
         
         self.assertEqual(csv, 7.926)
-        self.assertEqual(fol_csv, 7,926)
+        self.assertEqual(fol_csv, 7.926)
         self.assertEqual(lpt, 4.557)
         self.assertEqual(fol_lpt, 4.557)
         self.assertWarnsRegex(UserWarning, ('Vacuum electrostatic potential '
