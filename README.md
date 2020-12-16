@@ -26,7 +26,15 @@ The main features include:
 
 Surfaxe primarily supports VASP, however we would like to add support for other solid-state codes in the future.
 
+## Example outputs
+
+**Analysis of average bond lengths as a function of slab thickness**
 ![Bond analysis example](example_data/figures/bond_analysis_plot.png)
+
+**Surface energy convergence checks with respect to vacuum and slab thickness**
+![Surface energy convergence example](example_data/figures/convergence_example.png)
+
+See the tutorials directory for more examples.
 
 ## Development notes
 
