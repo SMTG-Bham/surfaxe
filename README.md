@@ -26,6 +26,7 @@ The main features include:
 
 Surfaxe primarily supports VASP, however we would like to add support for other solid-state codes in the future.
 
+![Bond analysis example](example_data/figures/bond_analysis_plot.png)
 
 ## Development notes
 
