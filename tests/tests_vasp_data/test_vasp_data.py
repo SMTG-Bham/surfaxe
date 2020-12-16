@@ -48,7 +48,7 @@ class DataTestCase(unittest.TestCase):
         self.assertEqual(data.shape, (2,15))
         self.assertEqual(data['algo'][0], 'Normal')
 
-        data_core = process_data(-6.118, path_to_fols=self.path, save_csv=False, 
-        parse_core_energy=True, core_atom='O', bulk_nn=['Sn', 'Sn', 'Sn'])
-        self.assertEqual(data_core.shape, (2,16))
-        self.assertIn(data_core['core_energy'][0], [-503.5028, -504.2464])
+        #data_core = process_data(-6.118, path_to_fols=self.path, save_csv=False, 
+        #parse_core_energy=True, core_atom='O', bulk_nn=['Sn', 'Sn', 'Sn'])
+        #self.assertEqual(data_core.shape, (2,16))
+        #self.assertIn(data_core['core_energy'][0], [-503.5028, -504.2464])

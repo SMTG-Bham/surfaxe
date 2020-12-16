@@ -120,7 +120,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
                         otc_path='{}/OUTCAR'.format(path)
                         core_energy_list.append(
                             core_energy(core_atom, bulk_nn, outcar=otc_path, 
-                            structure=vsp_path, **get_core_energy_kwargs)
+                            structure=slab, **get_core_energy_kwargs)
                             )      
                         
     df = pd.DataFrame(df_list)
@@ -227,12 +227,16 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
         outcar (`str`, optional): Path to the OUTCAR file. Defaults to
              ``./OUTCAR``. 
         structure (`str`, optional): Path to the structure file in any format 
-            supported by pymatgen. Defaults to ``./POSCAR`` 
+            supported by pymatgen. Defaults to ``./POSCAR``. Can also accept a
+            pymaten.core.Structure object directly.  
 
     Returns: 
         Core state energy 
     """
-    struc = Structure.from_file(structure) 
+    if type(structure) == str:
+        struc = Structure.from_file(structure)
+    else:
+        struc = structure
     struc = oxidation_states(struc, ox_states)
     bulk_nn.sort()
     bulk_nn_str = ' '.join(bulk_nn)
