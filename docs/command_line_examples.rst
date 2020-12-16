@@ -48,10 +48,45 @@ the :mod:`--help` or :mod:`-h` flag, e.g.:
 Pre-processing commands
 =======================
 
-**surfaxe-getall**: Generates all unique slabs with specified maximum Miller index, minimum slab
-and vacuum thicknesses. It includes all combinations for multiple zero dipole
-symmetric terminations for the same Miller index.
+**surfaxe-gethkl**: Generates all unique slabs with a specific Miller index for a set of 
+slab and vacuum thicknesses. 
 
-Example: :mod:`surfaxe-getall -s SnO2.cif --hkl 1 -t 20,40 -v 30` generates all slabs
-up to a max miller index of 1, with minimum slab thicknesses of 20 and of 40, and minimum vacuum 
+Example: :mod:`surfaxe-gethkl -s bulk_structure.cif --hkl 1,0,0 -t 20 40 -v 20 40 -f` generates
+all slabs for the (1,0,0) direction for minimum slab and vacuum thicnesses of 20 and 40. 
+The :mod:`-f` option organises these into subdirectories with all required VASP input 
+files required to run singleshot calculations uisng default settings. It includes all combinations 
+for zero-dipole, symmetric terminations.
+The directory structure produced is:
+
+.. code::
+
+    100/              <-- miller index
+      ├── 20_20_0/    <-- slab-thickness_vacuum-thickness_termination-number
+      ├── 20_40_0/   
+      ├── 40_20_0/
+      └── 40_40_0/
+        ├── POSCAR    <-- vasp files 
+        ├── INCAR
+        ├── POTCAR
+        └── KPOINTS
+
+*Note: The hkl flag must be comma-separated and the list of thicknesses and vacuums must 
+be space-separated.*
+
+
+**surfaxe-getall**: Similar to above but considers multiple Miller indices. A maximum hkl value must be 
+supplied as an integer.
+
+Example: :mod:`surfaxe-getall -s SnO2.cif --hkl 1 -t 20 40 -v 30` generates all slabs with Miller indices 
+up to a maximum value of 1, with minimum slab thicknesses of 20 and of 40, and minimum vacuum 
 thickness of 30. 
+
+========================
+Post-processing commands
+========================
+
+**surfaxe-parsefols**: Parses data produced by electronic structure codes once calculations
+have been run in then directory structures produced by one of the pre-processing commands. 
+
+Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099`. 
+

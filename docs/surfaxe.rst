@@ -19,4 +19,4 @@ Submodules
   surfaxe.convergence
   surfaxe.analysis
   surfaxe.io
-  surfaxe.data
+  surfaxe.vasp_data
