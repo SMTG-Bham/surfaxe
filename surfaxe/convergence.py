@@ -21,7 +21,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from surfaxe.io import plot_enatom, plot_surfen, slab_from_file
 
 def parse_fols(hkl, bulk_per_atom, path_to_fols=None, plt_enatom=True, 
-plt_surfen=True, save_csv=True, **kwargs):
+plt_enatom_fname='energy_per_atom.png', plt_surfen=True, 
+plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom and time taken for each slab and vacuum thickness
@@ -37,8 +38,12 @@ plt_surfen=True, save_csv=True, **kwargs):
             Defaults to cwd
         plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
             ``True``.
+        plt_enatom_fname (`str`, optional): The name of the energy per atom plot. 
+            Defaults to ``energy_per_atom.png``.
         plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 
             ``True``.
+        plt_surfen_fname (`str`, optional): The name of the surface energy plot.
+            Defaults to ``surface_energy.png``
         save_csv (`bool`, optional): Saves the csv. Defaults to ``True``.
 
     Returns:
@@ -90,15 +95,15 @@ plt_surfen=True, save_csv=True, **kwargs):
         ) 
 
     # Plot energy per atom and surface energy
-    plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'fmt': 'png', 'dpi': 300, 
+    plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
     'heatmap': False}
     plt_kwargs.update(**kwargs)
 
     if plt_enatom: 
-        plot_enatom(df, hkl=hkl, **plt_kwargs)
+        plot_enatom(df, plt_fname=plt_enatom_fname, **plt_kwargs)
     
     if plt_surfen: 
-        plot_surfen(df, hkl=hkl, **plt_kwargs)
+        plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
 
     # Save the csv or return the dataframe
     if save_csv: 

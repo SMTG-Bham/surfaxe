@@ -78,7 +78,7 @@ def slab_from_file(structure, hkl):
 
     Args:
          structure (str): Structure file in any format supported by pymatgen.
-                          Will accept a pymatgen.Structure object directly. 
+            Will accept a pymatgen.Structure object directly. 
          hkl (tuple): Miller index of the slab in the input file.
 
     Returns:
@@ -264,8 +264,8 @@ plt_fname='potential.png'):
     plt.ylabel('Potential / eV')
     plt.savefig(plt_fname, dpi=dpi)
 
-def plot_surfen(df, hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, 
-heatmap=False):
+def plot_surfen(df, time_taken=True, plt_fname='surface_energy.png', dpi=300,
+heatmap=False, cmap='Wistia'):
     """
     Plots the surface energy for all terminations. Based on surfaxe.convergence 
     parse_fols. 
@@ -276,17 +276,16 @@ heatmap=False):
             'surface_energy', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
-        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        fmt (`str`, optional): Format for the output file. Defaults to 'png'
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+            ``surface_energy.png``.
         dpi (`int`, optional): Dots per inch. Defaults to 300.
         heatmap (`bool`, optional): If True plots a heatmap of surface energies.
             Defaults to False.
-
+        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
+        
     Returns:
-        hkl_surface_energy.png
+        None, saves surface_energy.png to file
     """
-    hkl_string = ''.join(map(str, hkl))
-
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 
     # Group the values by termination slab index, create df for time and
@@ -436,12 +435,11 @@ heatmap=False):
             
             plt.tight_layout()
 
-    plt.savefig('{}_surface_energy.{}'.format(hkl_string, fmt),
-    dpi=dpi, bbox_inches='tight')
+    plt.savefig(plt_fname, dpi=dpi, bbox_inches='tight')
 
 
-def plot_enatom(df, hkl, time_taken=True, cmap='Wistia', fmt='png', dpi=300, 
-heatmap=False):
+def plot_enatom(df, time_taken=True, cmap='Wistia', dpi=300, heatmap=False, 
+plt_fname='energy_per_atom.png'):
     """
     Plots the energy per atom for all terminations. Based on surfaxe.convergence 
     parse_fols.
@@ -453,13 +451,14 @@ heatmap=False):
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        fmt (`str`, optional): Format for the output file. Defaults to 'png'
         dpi (`int`, optional): Dots per inch. Defaults to 300.
         heatmap (`bool`, optional): If True plots a heatmap of surface energies.
             Defaults to False.
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+        ``energy_per_atom.png``. 
 
     Returns:
-        hkl_energy_per_atom.png
+        None, saves energy_per_atom.png
     """
 
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
@@ -612,6 +611,4 @@ heatmap=False):
             
             plt.tight_layout()
 
-    hkl_string = ''.join(map(str, hkl))
-    plt.savefig('{}_energy_per_atom.{}'.format(hkl_string,fmt),
-    dpi=dpi, bbox_inches='tight')
+    plt.savefig(plt_fname, dpi=dpi, bbox_inches='tight')
