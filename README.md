@@ -1,7 +1,7 @@
 |         | Master | Develop |
 |---------|--------|---------|
 |CI Status| [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=master)](https://travis-ci.com/SMTG-UCL/surfaxe) | [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=develop)](https://travis-ci.com/SMTG-UCL/surfaxe)   |
-| Docs    | | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
+| [Docs](https://surfaxe.readthedocs.io/en/latest/) | | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
 
 # Surfaxe
 
@@ -29,10 +29,6 @@ Surfaxe primarily supports VASP, however we would like to add support for other 
 
 ## Development notes
 
-### TODO 
-
-* docs
-
 ### Bugs, features and questions
 
 Please use the Issue Tracker to report bugs or request features in the first instance.
@@ -48,7 +44,7 @@ is also helpful, including a good model for docstrings.
 
 ## Usage
 
-Surfaxe can be used via the command line and python API. The manual, including tutorials and API documentation can be found here. Additionally, the built-in `-h` option is available in the command line interface for each of the scripts.
+Surfaxe can be used via the command line and python API. The docs, including full python API documentation can be found [here](https://surfaxe.readthedocs.io/en/latest/) and the built-in `-h` option is available in the command line interface for each of the scripts.
 
 The `tutorials` directory contains the jupyter notebooks with detailed explanations of functionality of all aspects of the package.
 
