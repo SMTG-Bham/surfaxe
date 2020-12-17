@@ -317,7 +317,7 @@ heatmap=False, cmap='Wistia'):
                 cax = divider.append_axes("right", size="5%", pad=0.2)
                 im = ax.imshow(val, cmap=cmap)
                 cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.set_title('Surface energy / Jm$^{-2}$')
+                cbar.set_label('Surface energy / J m$^{-2}$')
                 ax.invert_yaxis()
 
             # Add the surface energy value labels to the plot - the for loops 
@@ -358,7 +358,7 @@ heatmap=False, cmap='Wistia'):
                 divider = make_axes_locatable(ax[i])
                 cax = divider.append_axes("right", size="5%", pad=0.2)
                 cbar = plt.colorbar(im, cax=cax)
-                cbar.set_title('Surface energy / Jm$^{-2}$')
+                cbar.set_label('Surface energy / J m$^{-2}$')
                 ax[i].invert_yaxis()
             fig.tight_layout()
 
@@ -387,21 +387,34 @@ heatmap=False, cmap='Wistia'):
             ncols = 2
         
         # Plot only the surface energy for the only termination present 
-        if nrows==1 and ncols==1: 
-            fig, ax = plt.subplots(1,1)
-            dfs[0].plot(ax=ax, marker='x', xticks=dfs[0].index, 
-            xlabel='Slab thickness / Å', ylabel='Surface energy / Jm$^{-2}$')
-            ax.legend(title='Vacuum / Å')
+        for index, val, time, df in zip(indices, vals, times, dfs):
+            if nrows==1 and ncols==1: 
+                fig, ax = plt.subplots(1,2)
+                ax.set_title(index)
+                ax.set_xticks(list(range(len(df.index))))
+                ax.set_xticklabels(df.index)
+                ax.set_xlabel('Slab thickness')
+                ax.set_ylabel('Surface energy / J m$^{-2}$')
+                ax.plot(val, marker='x')
+                ax.legend(df.columns, title='Vacuum / Å')
 
-        elif nrows==1 and ncols==2: 
-            fig, ax = plt.subplots(1,2)
-            dfs[0].plot(ax=ax[0], xticks=dfs[0].index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Surface energy / Jm$^{-2}$')
-            ax[0].legend(title='Vacuum / Å')
-            dfs_times[0].plot(ax=ax[1], xticks=dfs_times[0].index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Time taken / s')
-            ax[1].legend(title='Vacuum / Å')
-            plt.tight_layout()
+            elif nrows==1 and ncols==2: 
+                fig, ax = plt.subplots(1, 2)
+                ax[0].set_title(index)
+                ax[0].set_xticks(list(range(len(df.index))))
+                ax[0].set_xticklabels(df.index)
+                ax[0].set_xlabel('Slab thickness')
+                ax[0].set_ylabel('Surface energy / J m$^{-2}$')
+                ax[0].plot(val, marker='x')
+                ax[0].legend(df.columns, title='Vacuum / Å')
+                ax[1].set_title(index)
+                ax[1].set_xticks(list(range(len(df.index))))
+                ax[1].set_xticklabels(df.index)
+                ax[1].set_xlabel('Slab thickness')
+                ax[1].set_ylabel('Time taken / s')
+                ax[1].plot(time, marker='x')
+                ax[1].legend(df.columns, title='Vacuum / Å')
+                plt.tight_layout()
 
         # Plot times taken and or different terminations 
         else: 
@@ -412,25 +425,31 @@ heatmap=False, cmap='Wistia'):
             # ax[i,0] if there isn't a second axis so need to separate it for 
             # time_take True and False
             
-            if time_taken: 
-                for i, df in enumerate(dfs): 
-                    df.plot(ax=ax[i,0], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', 
-                    ylabel='Surface energy / Jm$^{-2}$')
-                    ax[i,0].legend(title='Vacuum / Å')
+            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+                if time_taken: 
+                    ax[i,0].set_xticks(list(range(len(df.index))))
+                    ax[i,0].set_xticklabels(df.index)
+                    ax[i,0].set_xlabel('Slab thickness')
+                    ax[i,0].set_ylabel('Surface energy / J m$^{-2}$')
+                    ax[i,0].plot(val, marker='x')
+                    ax[i,0].legend(df.columns, title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
             
-                for i, df in enumerate(dfs_times): 
-                    df.plot(ax=ax[i,1], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Time taken / s')
-                    ax[i,1].legend(title='Vacuum / Å')
+                    ax[i,1].set_xticks(list(range(len(df.index))))
+                    ax[i,1].set_xticklabels(df.index)
+                    ax[i,1].set_xlabel('Slab thickness')
+                    ax[i,1].set_ylabel('Time taken / s')
+                    ax[i,1].plot(time, marker='x')
+                    ax[i,1].legend(df.columns, title='Vacuum / Å')
                     ax[i,1].set_title('{}'.format(indices[i]))
-            else: 
-                for i, df in enumerate(dfs): 
-                    df.plot(ax=ax[i], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', 
-                    ylabel='Surface energy / Jm$^{-2}$')
-                    ax[i].legend(title='Vacuum / Å')
+                
+                else: 
+                    ax[i].set_xticks(list(range(len(df.index))))
+                    ax[i].set_xticklabels(df.index)
+                    ax[i].set_xlabel('Slab thickness')
+                    ax[i].set_ylabel('Surface energy / J m$^{-2}$')
+                    ax[i].plot(val, marker='x')
+                    ax[i].legend(df.columns, title='Vacuum / Å')
                     ax[i].set_title('{}'.format(indices[i]))
             
             plt.tight_layout()
@@ -565,21 +584,34 @@ plt_fname='energy_per_atom.png'):
             ncols = 2
         
         # Plot only the surface energy for the only termination present 
-        if nrows==1 and ncols==1: 
-            fig, ax = plt.subplots(1,1)
-            dfs[0].plot(ax=ax, xticks=df.index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
-            ax.legend(title='Vacuum / Å')
+        for index, val, time, df in zip(indices, vals, times, dfs):
+            if nrows==1 and ncols==1: 
+                fig, ax = plt.subplots(1,2)
+                ax.set_title(index)
+                ax.set_xticks(list(range(len(df.index))))
+                ax.set_xticklabels(df.index)
+                ax.set_xlabel('Slab thickness')
+                ax.set_ylabel('Energy per atom / eV')
+                ax.plot(val, marker='x')
+                ax.legend(df.columns, title='Vacuum / Å')
 
-        elif nrows==1 and ncols==2: 
-            fig, ax = plt.subplots(1,2)
-            dfs[0].plot(ax=ax[0], xticks=dfs[0].index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
-            ax[0].legend(title='Vacuum / Å')
-            dfs_times[0].plot(ax=ax[1], xticks=dfs_times[0].index, marker='x', 
-            xlabel='Slab thickness / Å', ylabel='Time taken / s')
-            ax[1].legend(title='Vacuum / Å')
-            plt.tight_layout()
+            elif nrows==1 and ncols==2: 
+                fig, ax = plt.subplots(1, 2)
+                ax[0].set_title(index)
+                ax[0].set_xticks(list(range(len(df.index))))
+                ax[0].set_xticklabels(df.index)
+                ax[0].set_xlabel('Slab thickness')
+                ax[0].set_ylabel('Energy per atom / eV')
+                ax[0].plot(val, marker='x')
+                ax[0].legend(df.columns, title='Vacuum / Å')
+                ax[1].set_title(index)
+                ax[1].set_xticks(list(range(len(df.index))))
+                ax[1].set_xticklabels(df.index)
+                ax[1].set_xlabel('Slab thickness')
+                ax[1].set_ylabel('Time taken / s')
+                ax[1].plot(time, marker='x')
+                ax[1].legend(df.columns, title='Vacuum / Å')
+                plt.tight_layout()
 
         # Plot times taken and or different terminations 
         else: 
@@ -590,23 +622,30 @@ plt_fname='energy_per_atom.png'):
             # ax[i,0] if there isn't a second axis so need to separate it for 
             # time_take True and False
             
-            if time_taken: 
-                for i, df in enumerate(dfs): 
-                    df.plot(ax=ax[i,0], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
-                    ax[i,0].legend(title='Vacuum / Å')
+            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+                if time_taken: 
+                    ax[i,0].set_xticks(list(range(len(df.index))))
+                    ax[i,0].set_xticklabels(df.index)
+                    ax[i,0].set_xlabel('Slab thickness')
+                    ax[i,0].set_ylabel('Energy per atom / eV')
+                    ax[i,0].plot(val, marker='x')
+                    ax[i,0].legend(df.columns, title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
-            
-                for i, df in enumerate(dfs_times): 
-                    df.plot(ax=ax[i,1], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Time taken / s')
-                    ax[i,1].legend(title='Vacuum / Å')
+             
+                    ax[i,1].set_xticks(list(range(len(df.index))))
+                    ax[i,1].set_xticklabels(df.index)
+                    ax[i,1].set_xlabel('Slab thickness')
+                    ax[i,1].set_ylabel('Time taken / s')
+                    ax[i,1].plot(time, marker='x')
+                    ax[i,1].legend(df.columns, title='Vacuum / Å')
                     ax[i,1].set_title('{}'.format(indices[i]))
-            else: 
-                for i, df in enumerate(dfs): 
-                    df.plot(ax=ax[i], xticks=df.index, marker='x', 
-                    xlabel='Slab thickness / Å', ylabel='Energy per atom / eV')
-                    ax[i].legend(title='Vacuum / Å')
+                else: 
+                    ax[i].set_xticks(list(range(len(df.index))))
+                    ax[i].set_xticklabels(df.index)
+                    ax[i].set_xlabel('Slab thickness')
+                    ax[i].set_ylabel('Energy per atom / eV')
+                    ax[i].plot(val, marker='x')
+                    ax[i].legend(df.columns, title='Vacuum / Å')
                     ax[i].set_title('{}'.format(indices[i]))
             
             plt.tight_layout()
