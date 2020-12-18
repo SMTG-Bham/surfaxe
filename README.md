@@ -97,7 +97,7 @@ Surfaxe is a Python 3 package and requires pymatgen and other standard scientifi
 Recommended installation is to git clone and install with `pip`:
 
 ```sh
-git clone https://github.com/brlec/surfaxe.git
+git clone https://github.com/SMTG-UCL/surfaxe.git
 cd surfaxe
 pip install --user .
 ```
