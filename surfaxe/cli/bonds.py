@@ -21,10 +21,10 @@ def _oxstates_to_dict(ox):
 def _bonds_to_list(bonds): 
     bonds_list = []
     for bond in bonds.split(','): 
-        waa = []
-        for el in bond.split('.'): 
-            waa.append(el)
-        bonds_list.append(waa)
+        els = []
+        for el in bond.split('-'): 
+            els.append(el)
+        bonds_list.append(els)
 
     return bonds_list 
 

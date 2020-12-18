@@ -88,5 +88,45 @@ Post-processing commands
 **surfaxe-parsefols**: Parses data produced by electronic structure codes once calculations
 have been run in then directory structures produced by one of the pre-processing commands. 
 
-Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099`. 
+Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099` saves a csv file of surface energies
+and energies per atom for each slab-vacuum combination, as well as plots for each. See the 
+Tutorials directory for examples. 
 
+=================
+Analysis commands
+=================
+
+**surfaxe-potential**: Reads the local electrostatic potential file and plots the planar and macroscopic
+averages normal to the surface (inspired by PlanarAverage.py in  
+`Keith Butler's Macrodensity code <https://www.github.com/WMD-group/macrodensity>`_. Currently
+only the VASP LOCPOT file is supported as iput. 
+
+Example: :mod:`surfaxe-potential -l LOCPOT -v 11.5` produces a plot assuming a lattice vector of 
+11.5 Angstroms and saves the plot data to a csv file. 
+
+**surfaxe-bonds**: Analyse bonding in the structure using Pymatgen's local_env module.
+Average bond lengths for each pair of species of interest can be plotted as a function 
+of c lattice vector (normal to the slab surface). This can be useful for checking whether
+the center of the slab has converged, bulk-like bond distances. 
+
+Example: :mod:`surfaxe-bonds -s CONTCAR -b Sn-O` plots the average Sn-O bond length from the 
+VASP output structure file. A csv file of the data plotted is also produced. 
+
+**surfaxe-simplenn** and **surfaxe-complexnn**: Analyse the bonding in the slab, again using Pymatgen 
+functions. *simplenn* is faster, but less reliable for systems with more complex bonding.
+*complexnn* is more robust but requires a dictionary of cutoff bond lengths to be supplied
+for each pair of species. See the analysis tutorial for further explanation. 
+
+=============
+Data commands
+=============
+
+There are some simple convenience commands that can also be used to extract key values from
+raw data files produced by solid state codes. Currently only commands relating to VASP output
+files are included, which rely on the surfaxe :mod:`vasp_data` module. We hope to expand this
+in the future. 
+
+**surfaxe-vacuum** and **surfaxe-core** can be used to extract vacuum and core energies, respectively, 
+that are needed to calculate absolute electron energies (ionisation potential and electron affinity). 
+See the `Macrodensity <https://www.github.com/WMD-group/macrodensity>`_ tutorials for more information
+on the steps needed to do this. 
