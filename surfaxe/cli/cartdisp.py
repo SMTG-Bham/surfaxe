@@ -9,17 +9,15 @@ from surfaxe.analysis import cart_displacements
 
 def _get_parser(): 
     parser = ArgumentParser(
-        description="""Finds the nearest neighbours for simple structures. 
-        Before using on slabs make sure the nn_method works with the bulk 
-        structure."""
+        description="""Produces a txt file with the magnitudes of displacements 
+        of atoms during the relaxation. """
     )
 
     parser.add_argument('-s', '--start', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
           '(default: POSCAR'))
-    parser.add_argument('-e', '--end', default=None,
-    help=('Filename of structure file in any format supported by pymatgen. ' 
-          'Use if comparing initial and final structures.'))
+    parser.add_argument('-e', '--end', default='CONTCAR',
+    help=('Filename of structure file in any format supported by pymatgen.'))
     parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
     help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('--max-disp', type=float, default=0.1, dest='max_disp', 
