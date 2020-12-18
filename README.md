@@ -7,6 +7,8 @@
 
 Surfaxe is a python package for automating and simplifying surface calculations, as well as providing some analytical tools for bulk and surface calculations. It relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal structures and interfacing with VASP.
 
+<img src="example_data/figures/surfaxe_workflow.png" alt="drawing" width="600"/>
+
 The main features include:
 
 1. **Slab generation:** Automated generation of surface slabs from command line.
