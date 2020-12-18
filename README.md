@@ -34,7 +34,7 @@ Surfaxe primarily supports VASP, however we would like to add support for other 
 **Surface energy convergence checks with respect to vacuum and slab thickness**
 ![Surface energy convergence example](example_data/figures/convergence_example.png)
 
-See the tutorials directory for more examples.
+See the [tutorials directory](tutorials/) for more examples.
 
 ## Development notes
 
@@ -55,7 +55,7 @@ is also helpful, including a good model for docstrings.
 
 Surfaxe can be used via the command line and python API. The docs, including full python API documentation can be found [here](https://surfaxe.readthedocs.io/en/latest/) and the built-in `-h` option is available in the command line interface for each of the scripts.
 
-The `tutorials` directory contains the jupyter notebooks with detailed explanations of functionality of all aspects of the package.
+The `tutorials` [directory](tutorials/) contains the jupyter notebooks with detailed explanations of functionality of all aspects of the package.
 
 The scripts are separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data. The vast majority of `surfaxe` functionality is available via the command line interface, but some more involved functions must be used via python API.
 
