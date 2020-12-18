@@ -386,8 +386,9 @@ heatmap=False, cmap='Wistia'):
         if time_taken: 
             ncols = 2
         
-        # Plot only the surface energy for the only termination present 
+        # Iterate over indices, time and enegy values and dfs
         for index, val, time, df in zip(indices, vals, times, dfs):
+            # Plot only the surface energy for the only termination present 
             if nrows==1 and ncols==1: 
                 fig, ax = plt.subplots(1,2)
                 ax.set_title(index)
@@ -398,6 +399,7 @@ heatmap=False, cmap='Wistia'):
                 ax.plot(val, marker='x')
                 ax.legend(df.columns, title='Vacuum / Å')
 
+            # Plot surface energy and time taken for the only termination present
             elif nrows==1 and ncols==2: 
                 fig, ax = plt.subplots(1, 2)
                 ax[0].set_title(index)
@@ -416,16 +418,15 @@ heatmap=False, cmap='Wistia'):
                 ax[1].legend(df.columns, title='Vacuum / Å')
                 plt.tight_layout()
 
-        # Plot times taken and or different terminations 
-        else: 
-            fig, ax = plt.subplots(nrows=nrows,ncols=ncols) 
+            # Plot surface energies and or times taken for different terminations 
+            else: 
+                fig, ax = plt.subplots(nrows=nrows,ncols=ncols) 
 
-            # Separate plotting of times and energies, energies in the first
-            # column, times in the second. Annoyingly matplotlib doesn't like 
-            # ax[i,0] if there isn't a second axis so need to separate it for 
-            # time_take True and False
+                # Separate plotting of times and energies, energies in the first
+                # column, times in the second. Annoyingly matplotlib doesn't 
+                # like ax[i,0] if there isn't a second axis so need to separate 
+                # it for time_taken True and False
             
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
                 if time_taken: 
                     ax[i,0].set_xticks(list(range(len(df.index))))
                     ax[i,0].set_xticklabels(df.index)
@@ -583,8 +584,9 @@ plt_fname='energy_per_atom.png'):
         if time_taken: 
             ncols = 2
         
-        # Plot only the surface energy for the only termination present 
+        # Iterate over indices, energy and time taken and dfs  
         for index, val, time, df in zip(indices, vals, times, dfs):
+             # Plot only the energy per atom for the only termination present 
             if nrows==1 and ncols==1: 
                 fig, ax = plt.subplots(1,2)
                 ax.set_title(index)
@@ -595,6 +597,8 @@ plt_fname='energy_per_atom.png'):
                 ax.plot(val, marker='x')
                 ax.legend(df.columns, title='Vacuum / Å')
 
+            # Plot energy per atom and time taken for the only termination
+            # present
             elif nrows==1 and ncols==2: 
                 fig, ax = plt.subplots(1, 2)
                 ax[0].set_title(index)
@@ -613,16 +617,15 @@ plt_fname='energy_per_atom.png'):
                 ax[1].legend(df.columns, title='Vacuum / Å')
                 plt.tight_layout()
 
-        # Plot times taken and or different terminations 
-        else: 
-            fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
+            # Plot energy per atom and time taken for different terminations 
+            else: 
+                fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
 
-            # Separate plotting of times and energies, energies in the first
-            # column, times in the second. Annoyingly matplotlib doesn't like 
-            # ax[i,0] if there isn't a second axis so need to separate it for 
-            # time_take True and False
+                # Separate plotting of times and energies, energies in the first
+                # column, times in the second. Annoyingly matplotlib doesn't 
+                # like ax[i,0] if there isn't a second axis so need to separate 
+                # it for time_takn True and False
             
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
                 if time_taken: 
                     ax[i,0].set_xticks(list(range(len(df.index))))
                     ax[i,0].set_xticklabels(df.index)
@@ -639,6 +642,7 @@ plt_fname='energy_per_atom.png'):
                     ax[i,1].plot(time, marker='x')
                     ax[i,1].legend(df.columns, title='Vacuum / Å')
                     ax[i,1].set_title('{}'.format(indices[i]))
+                
                 else: 
                     ax[i].set_xticks(list(range(len(df.index))))
                     ax[i].set_xticklabels(df.index)
