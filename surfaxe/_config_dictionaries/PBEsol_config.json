@@ -16,9 +16,10 @@
         "LREAL": "auto",
         "LWAVE": false,
         "NELM": 150,
+        "NEDOS": 2000,
         "NSW": 0,
         "PREC": "Accurate",
-        "SIGMA": 0.01
+        "SIGMA": 0.02
     },
     "KPOINTS": {
         "reciprocal_density": 90
