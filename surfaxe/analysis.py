@@ -282,12 +282,12 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc.add_site_property('', site_labels)
     
     # Add oxidation states and get bonded structure
-    start_struc = oxidation_states(start_struc)
+    start_struc = oxidation_states(start_struc, ox_states)
     bonded_start = nn_method.get_bonded_structure(start_struc)
 
     if end: 
         end_struc = Structure.from_file(end)
-        end_struc = oxidation_states(end_struc)
+        end_struc = oxidation_states(end_struc, ox_states)
         bonded_end = nn_method.get_bonded_structure(end_struc)
     
     # Iterate through structure, evaluate the coordination number and the 
@@ -296,10 +296,10 @@ save_csv=True, csv_fname='nn_data.csv'):
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
-        coord_start = nn_method.get_nn_info(start_struc, n)
+        coord_start = bonded_start.get_connected_sites(n)
         specie_list = []
         for d in coord_start: 
-            spc = d.get('site').specie.symbol 
+            spc = d.site.specie.symbol 
             specie_list.append(spc)
         specie_list.sort()
         site_nn_start = ' '.join(specie_list)
@@ -307,10 +307,10 @@ save_csv=True, csv_fname='nn_data.csv'):
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
-            coord_end = nn_method.get_nn_info(end_struc, n)
+            coord_end = bonded_end.get_connected_sites(n)
             specie_list = []
             for d in coord_end: 
-                spc = d.get('site').specie.symbol 
+                spc = d.site.specie.symbol 
                 specie_list.append(spc)
             specie_list.sort()
             site_nn_end = ' '.join(specie_list)
@@ -407,10 +407,10 @@ save_csv=True, csv_fname='nn_data.csv'):
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
-        coord_start = codnn.get_nn_info(start_struc, n)
+        coord_start = bonded_start.get_connected_sites(n)
         specie_list = []
         for d in coord_start: 
-            spc = d.get('site').specie.symbol 
+            spc = d.site.specie.symbol 
             specie_list.append(spc)
         specie_list.sort()
         site_nn_start = ' '.join(specie_list)
@@ -418,10 +418,10 @@ save_csv=True, csv_fname='nn_data.csv'):
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
-            coord_end = codnn.get_nn_info(end_struc, n)
+            coord_end = bonded_end.get_connected_sites(n)
             specie_list = []
             for d in coord_end: 
-                spc = d.get('site').specie.symbol 
+                spc = d.site.specie.symbol 
                 specie_list.append(spc)
             specie_list.sort()
             site_nn_end = ' '.join(specie_list)

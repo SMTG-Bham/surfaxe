@@ -238,6 +238,7 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     else:
         struc = structure
     struc = oxidation_states(struc, ox_states)
+    bonded_struc = nn_method.get_bonded_structure(struc)
     bulk_nn.sort()
     bulk_nn_str = ' '.join(bulk_nn)
     
@@ -246,10 +247,10 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     list_of_dicts = [] 
     for n, pos in enumerate(struc): 
         if pos.specie.symbol == core_atom: 
-            nn_info = nn_method.get_nn_info(struc, n)
+            nn_info = bonded_struc.get_connected_sites(n)
             slab_nn_list = []
             for d in nn_info: 
-                nn = d.get('site').specie.symbol
+                nn = d.site.specie.symbol
                 slab_nn_list.append(nn)
             slab_nn_list.sort()
             slab_nn = ' '.join(slab_nn_list)
@@ -266,12 +267,17 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     df = pd.DataFrame(list_of_dicts)
     low, high = df['c_coord'].quantile([0.25,0.75])
     df = df.query('@low<c_coord<@high and nn==@bulk_nn_str')
-    atom = df['atom'].quantile(interpolation='nearest')        
+    atom = df['atom'].quantile(interpolation='nearest')  
 
-    # Read OUTCAR, get the core state energy 
-    otc = Outcar(outcar)
-    core_energy_dict = otc.read_core_state_eigen()
-    core_energy = core_energy_dict[atom][orbital][-1]
+    # Check if the df from query isn't empty - if it is it returns
+    # a nan as core energy, otherwise it attempts to extract from OUTCAR 
+    if type(atom) is np.float64: 
+        core_energy = np.nan 
+    else:       
+        # Read OUTCAR, get the core state energy 
+        otc = Outcar(outcar)
+        core_energy_dict = otc.read_core_state_eigen()
+        core_energy = core_energy_dict[atom][orbital][-1]
 
     return core_energy
 
