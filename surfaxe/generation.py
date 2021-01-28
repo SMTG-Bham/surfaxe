@@ -5,6 +5,9 @@ from pymatgen.io.vasp.sets import DictSet
 import warnings
 warnings.filterwarnings('once')
 import os
+import itertools
+import functools
+import multiprocessing
 
 # surfaxe
 from surfaxe.io import slabs_to_file, _custom_formatwarning
@@ -120,18 +123,14 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         or unique_slabs (list of dicts) 
     """
 
-    # Set up additional arguments for slab generation and saving slabs
-    SlabGenerator_kwargs = {'in_unit_planes': False, 'primitive': True, 
-    'max_normal_search': None, 'reorient_lattice': True, 'lll_reduce': True}
-    SlabGenerator_kwargs.update(
-        (k, kwargs[k]) for k in SlabGenerator_kwargs.keys() & kwargs.keys()
-        )
-    
-    get_slabs_kwargs = {'ftol': 0.1, 'tol': 0.1, 'max_broken_bonds': 0, 
-    'symmetrize': False, 'repair': False, 'bonds': None}
-    get_slabs_kwargs.update(
-        (k, kwargs[k]) for k in get_slabs_kwargs.keys() & kwargs.keys()
-        )
+    # Set up additional arguments for multiprocessing and saving slabs
+    mp_kwargs = {'in_unit_planes': False, 'primitive': True, 
+    'max_normal_search': None, 'reorient_lattice': True, 'lll_reduce': True, 
+    'ftol': 0.1, 'tol': 0.1, 'max_broken_bonds': 0, 'symmetrize': False, 
+    'repair': False, 'bonds': None}
+    mp_kwargs.update(
+        (k, kwargs[k]) for k in mp_kwargs.keys() & kwargs.keys()
+    )
 
     save_slabs_kwargs = {'user_incar_settings': None, 
     'user_kpoints_settings': None, 'user_potcar_settings': None, 
@@ -153,34 +152,17 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     struc = oxidation_states(struc, ox_states=ox_states)
 
     # Iterate through vacuums and thicknessses 
-    provisional = []
-    for vacuum in vacuums:
-        for thickness in thicknesses:
-            slabgen = SlabGenerator(struc, hkl, thickness, vacuum,
-                                    center_slab=center_slab,  
-                                    **SlabGenerator_kwargs) 
-                                    
-            slabs = slabgen.get_slabs(**get_slabs_kwargs)
-            for i, slab in enumerate(slabs):
-                # Get all the zero-dipole slabs with inversion symmetry
-                if is_symmetric: 
-                    if slab.is_symmetric() and not slab.is_polar():
-                        provisional.append({
-                            'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
-                            'slab': slab})
-                
-                # Get all the zero-dipole slabs wihtout inversion symmetry
-                else: 
-                    if not slab.is_polar():
-                        provisional.append({
-                            'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
-                            'slab': slab})
+    combos = itertools.product(thicknesses, vacuums)
+
+    pool = multiprocessing.Pool()
+    nested_provisional = pool.starmap(
+                functools.partial(_mp_single_hkl, struc, hkl, 
+                is_symmetric=is_symmetric, center_slab=center_slab,
+                **mp_kwargs), combos)
+
+    pool.close()
+    pool.join()
+    provisional = list(itertools.chain.from_iterable(nested_provisional)) 
                   
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
@@ -320,11 +302,11 @@ user_kpoints_settings=None, **kwargs):
     """
    
     # Set up additional arguments for slab generation and saving slabs
-    all_slabs_kwargs = {'in_unit_planes': False, 'primitive': True, 
+    mp_kwargs = {'in_unit_planes': False, 'primitive': True, 
     'max_normal_search': None, 'lll_reduce': True, 'ftol': 0.1, 'tol': 0.1, 
     'max_broken_bonds': 0, 'symmetrize': False, 'repair': False, 'bonds': None}
-    all_slabs_kwargs.update(
-        (k, kwargs[k]) for k in all_slabs_kwargs.keys() & kwargs.keys()
+    mp_kwargs.update(
+        (k, kwargs[k]) for k in mp_kwargs.keys() & kwargs.keys()
         )
 
     save_slabs_kwargs = {'user_incar_settings': None, 
@@ -346,35 +328,22 @@ user_kpoints_settings=None, **kwargs):
     struc = Structure.from_file(structure)
     struc = oxidation_states(struc, ox_states=ox_states)
    
-    # Iterate through vacuums and thicknessses
-    provisional = []
-    for vacuum in vacuums:
-        for thickness in thicknesses:
-            all_slabs = generate_all_slabs(struc, max_index, thickness, vacuum,
-                                        center_slab=center_slab,  
-                                        **all_slabs_kwargs)
-            
-            for i, slab in enumerate(all_slabs):
-                # Get all the zero-dipole slabs with inversion symmetry
-                if is_symmetric: 
-                    if slab.is_symmetric() and not slab.is_polar():
-                        provisional.append({
-                            'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
-                            'slab': slab})
-                
-                # Get all the zero-dipole slabs wihtout inversion symmetry 
-                else: 
-                    if not slab.is_polar():
-                        provisional.append({
-                            'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
-                            'slab': slab
-                        })
+    # Iterate through vacuums and thicknessses, generate slabs using 
+    # multiprocessing.pool 
+
+    combos = itertools.product(thicknesses, vacuums)
+
+    pool = multiprocessing.Pool()
+
+    nested_provisional = pool.starmap(
+                functools.partial(_mp_max_index, struc, max_index, 
+                is_symmetric=is_symmetric, center_slab=center_slab,
+                **mp_kwargs), combos)
+
+    provisional = list(itertools.chain.from_iterable(nested_provisional))    
+
+    pool.close()
+    pool.join()
 
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
@@ -466,3 +435,138 @@ def _filter_slabs(provisional, max_size):
                           slab['vac_t'], slab['s_index']))
 
     return unique_list_of_dicts, repeat, large    
+
+def _mp_single_hkl(struc, hkl, thickness, vacuum, is_symmetric=True, 
+center_slab=True, **mp_kwargs): 
+
+    """
+    Helper function for multiprocessing in ``slabs_get_single_hkl``, made so 
+    that the information on slab and vacuum thickness is noted and carried 
+    forward during multiprocessing. ``**mp_kwargs`` can take any 
+    ``SlabGenerator`` argument.
+
+    Args: 
+        struc (`pymatgen Structure object`): Structure object decorated with 
+            oxidation states 
+        max_index (`int`): The maximum Miller index to go up to.
+        thickness (`int`): Minimum slab thickness 
+        vacuum (`int`): Minimum vacuum thickness
+        is_symmetric (`bool`, optional): Whether the slabs cleaved should 
+            have inversion symmetry. If bulk is non-centrosymmetric, 
+            ``is_symmetric`` needs to be ``False`` - the function will return no
+            slabs as it looks for inversion symmetry. Take care checking the 
+            slabs for mirror plane symmetry before just using them. Defaults to 
+            ``True``.  
+        center_slab (`bool`, optional): The position of the slab in the 
+            simulation cell. 
+            
+            * ``True``: the slab is centered with equal amounts of 
+              vacuum above and below.
+
+            * ``False``: the slab is at the bottom of the simulation cell with
+              all of the vacuum on top of it. 
+
+            Defaults to True. 
+
+    Returns
+        List of dicts of slabs and relevant metadata
+    
+    """
+
+    SlabGenerator_kwargs = {'in_unit_planes': False, 'primitive': True, 
+    'max_normal_search': None, 'reorient_lattice': True, 'lll_reduce': True}
+    SlabGenerator_kwargs.update(
+        (k, mp_kwargs[k]) for k in SlabGenerator_kwargs.keys() & mp_kwargs.keys()
+        )
+    
+    get_slabs_kwargs = {'ftol': 0.1, 'tol': 0.1, 'max_broken_bonds': 0, 
+    'symmetrize': False, 'repair': False, 'bonds': None}
+    get_slabs_kwargs.update(
+        (k, mp_kwargs[k]) for k in get_slabs_kwargs.keys() & mp_kwargs.keys()
+        )
+
+    slabs = []
+    slabgen = SlabGenerator(struc, hkl, thickness, vacuum, 
+    **SlabGenerator_kwargs)
+    all_slabs = slabgen.get_slabs(**get_slabs_kwargs)
+
+    for i, slab in enumerate(all_slabs):
+        if is_symmetric == True:
+            if not slab.is_polar() and slab.is_symmetric(): 
+                slabs.append({
+                'hkl': ''.join(map(str, slab.miller_index)),
+                'slab_t': thickness,
+                'vac_t': vacuum,
+                's_index': i,
+                'slab': slab})
+                
+        else: 
+            if not slab.is_polar(): 
+                slabs.append({
+                'hkl': ''.join(map(str, slab.miller_index)),
+                'slab_t': thickness,
+                'vac_t': vacuum,
+                's_index': i,
+                'slab': slab})
+    
+    return slabs 
+
+def _mp_max_index(struc, max_index, thickness, vacuum, is_symmetric=True, 
+center_slab=True, **mp_kwargs): 
+
+    """
+    Helper function for multiprocessing in slabs_get_max_index, made so that the 
+    information on slab and vacuum thickness is noted and carried forward during 
+    multiprocessing. `**mp_kwargs` can take any `generate_all_slabs` argument.
+
+    Args: 
+        struc (`pymatgen Structure object`): Structure object decorated with 
+            oxidation states 
+        max_index (`int`): The maximum Miller index to go up to.
+        thickness (`int`): Minimum slab thickness 
+        vacuum (`int`): Minimum vacuum thickness
+        is_symmetric (`bool`, optional): Whether the slabs cleaved should 
+            have inversion symmetry. If bulk is non-centrosymmetric, 
+            ``is_symmetric`` needs to be ``False`` - the function will return no
+            slabs as it looks for inversion symmetry. Take care checking the 
+            slabs for mirror plane symmetry before just using them. Defaults to 
+            ``True``.  
+        center_slab (`bool`, optional): The position of the slab in the 
+            simulation cell. 
+            
+            * ``True``: the slab is centered with equal amounts of 
+              vacuum above and below.
+
+            * ``False``: the slab is at the bottom of the simulation cell with
+              all of the vacuum on top of it. 
+
+            Defaults to True. 
+
+    Returns
+        List of dicts of slabs and relevant metadata
+    
+    """
+
+    slabs = []
+    all_slabs = generate_all_slabs(struc, max_index, thickness, vacuum, 
+    **mp_kwargs)
+    for i, slab in enumerate(all_slabs):
+        if is_symmetric == True:
+            if not slab.is_polar() and slab.is_symmetric(): 
+                slabs.append({
+                'hkl': ''.join(map(str, slab.miller_index)),
+                'slab_t': thickness,
+                'vac_t': vacuum,
+                's_index': i,
+                'slab': slab})
+                
+        else: 
+            if not slab.is_polar(): 
+                slabs.append({
+                'hkl': ''.join(map(str, slab.miller_index)),
+                'slab_t': thickness,
+                'vac_t': vacuum,
+                's_index': i,
+                'slab': slab})
+    
+    return slabs 
