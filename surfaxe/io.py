@@ -172,7 +172,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
         exist_ok=True)
         for slab in list_of_slabs:
             slab['slab'].to(fmt=fmt,
-            filename=r'{}/{}_{}_{}_{}_{}.vasp'.format(bulk_name, name, 
+            filename=r'{}/{}_{}_{}_{}_{}'.format(bulk_name, name, 
             slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
 
 def plot_bond_analysis(bonds, df=None, filename=None, 
@@ -260,6 +260,7 @@ plt_fname='potential.png'):
     fig, ax = plt.subplots()
     ax.plot(df['planar'], label='planar')
     ax.plot(df['macroscopic'], label='macroscopic')
+    ax.axes.xaxis.set_visible(False)
     ax.legend()
     plt.ylabel('Potential / eV')
     plt.savefig(plt_fname, dpi=dpi)
@@ -386,11 +387,11 @@ heatmap=False, cmap='Wistia'):
         if time_taken: 
             ncols = 2
         
-        # Iterate over indices, time and enegy values and dfs
-        for index, val, time, df in zip(indices, vals, times, dfs):
-            # Plot only the surface energy for the only termination present 
-            if nrows==1 and ncols==1: 
-                fig, ax = plt.subplots(1,2)
+        # Plot only the surface energy for the only termination present 
+        if nrows==1 and ncols==1: 
+            fig, ax = plt.subplots(1,2)
+            for index, val, time, df in zip(indices, vals, times, dfs):
+                
                 ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
@@ -399,9 +400,11 @@ heatmap=False, cmap='Wistia'):
                 ax.plot(val, marker='x')
                 ax.legend(df.columns, title='Vacuum / Å')
 
-            # Plot surface energy and time taken for the only termination present
-            elif nrows==1 and ncols==2: 
-                fig, ax = plt.subplots(1, 2)
+        # Plot surface energy and time taken for the only termination present
+        elif nrows==1 and ncols==2: 
+            fig, ax = plt.subplots(1, 2)
+            for index, val, time, df in zip(indices, vals, times, dfs):
+                
                 ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
@@ -418,9 +421,10 @@ heatmap=False, cmap='Wistia'):
                 ax[1].legend(df.columns, title='Vacuum / Å')
                 plt.tight_layout()
 
-            # Plot surface energies and or times taken for different terminations 
-            else: 
-                fig, ax = plt.subplots(nrows=nrows,ncols=ncols) 
+        # Plot surface energies and or times taken for different terminations 
+        else: 
+            fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
+            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):    
 
                 # Separate plotting of times and energies, energies in the first
                 # column, times in the second. Annoyingly matplotlib doesn't 
@@ -584,11 +588,10 @@ plt_fname='energy_per_atom.png'):
         if time_taken: 
             ncols = 2
         
-        # Iterate over indices, energy and time taken and dfs  
-        for index, val, time, df in zip(indices, vals, times, dfs):
-             # Plot only the energy per atom for the only termination present 
-            if nrows==1 and ncols==1: 
-                fig, ax = plt.subplots(1,2)
+        # Plot only the energy per atom for the only termination present 
+        if nrows==1 and ncols==1: 
+            fig, ax = plt.subplots(1,1)
+            for index, val, time, df in zip(indices, vals, times, dfs):
                 ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
@@ -597,10 +600,10 @@ plt_fname='energy_per_atom.png'):
                 ax.plot(val, marker='x')
                 ax.legend(df.columns, title='Vacuum / Å')
 
-            # Plot energy per atom and time taken for the only termination
-            # present
-            elif nrows==1 and ncols==2: 
-                fig, ax = plt.subplots(1, 2)
+        # Plot energy per atom and time taken for the only termination present
+        elif nrows==1 and ncols==2: 
+            fig, ax = plt.subplots(1, 2)
+            for index, val, time, df in zip(indices, vals, times, dfs):
                 ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
@@ -617,14 +620,14 @@ plt_fname='energy_per_atom.png'):
                 ax[1].legend(df.columns, title='Vacuum / Å')
                 plt.tight_layout()
 
-            # Plot energy per atom and time taken for different terminations 
-            else: 
-                fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
-
+        # Plot energy per atom and time taken for different terminations 
+        else: 
+            fig, ax = plt.subplots(nrows=nrows,ncols=ncols)
+            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
                 # Separate plotting of times and energies, energies in the first
                 # column, times in the second. Annoyingly matplotlib doesn't 
                 # like ax[i,0] if there isn't a second axis so need to separate 
-                # it for time_takn True and False
+                # it for time_taken True and False
             
                 if time_taken: 
                     ax[i,0].set_xticks(list(range(len(df.index))))
