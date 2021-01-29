@@ -147,22 +147,58 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         'user_potcar_settings': user_potcar_settings})
 
     # Import bulk relaxed structure, add oxidation states for slab dipole
-    # calculations
+    # calculations,  make all available combinations of slab/vacuum thicknesses
     struc = Structure.from_file(structure)
     struc = oxidation_states(struc, ox_states=ox_states)
-
-    # Iterate through vacuums and thicknessses 
     combos = itertools.product(thicknesses, vacuums)
+    
+    # Check if multiple cores are available, then iterate through the slab and 
+    # vacuum thicknesses and get all non polar symmetric slabs  
+    if multiprocessing.cpu_count() > 1:
+        pool = multiprocessing.Pool()
+        nested_provisional = pool.starmap(
+                    functools.partial(_mp_single_hkl, struc, hkl, 
+                    is_symmetric=is_symmetric, center_slab=center_slab,
+                    **mp_kwargs), combos)
 
-    pool = multiprocessing.Pool()
-    nested_provisional = pool.starmap(
-                functools.partial(_mp_single_hkl, struc, hkl, 
-                is_symmetric=is_symmetric, center_slab=center_slab,
-                **mp_kwargs), combos)
+        pool.close()
+        pool.join()
+        provisional = list(itertools.chain.from_iterable(nested_provisional)) 
 
-    pool.close()
-    pool.join()
-    provisional = list(itertools.chain.from_iterable(nested_provisional)) 
+    else: 
+        # set up kwargs again 
+        SG_kwargs = {k: mp_kwargs[k] for k in ['in_unit_planes', 'primitive' 
+        'max_normal_search', 'reorient_lattice', 'lll_reduce']}
+        gs_kwargs = {k: mp_kwargs[k] for k in ['ftol', 'tol', 'max_broken_bonds', 
+        'symmetrize', 'repair', 'bonds']}
+
+        provisional = []
+        for thickness, vacuum in combos:
+            slabgen = SlabGenerator(struc, hkl, thickness, vacuum,
+                                    center_slab=center_slab,  
+                                    **SG_kwargs) 
+                                    
+            slabs = slabgen.get_slabs(**gs_kwargs)
+            for i, slab in enumerate(slabs):
+                # Get all the zero-dipole slabs with inversion symmetry
+                if is_symmetric: 
+                    if slab.is_symmetric() and not slab.is_polar():
+                        provisional.append({
+                            'hkl': ''.join(map(str, slab.miller_index)),
+                            'slab_t': thickness,
+                            'vac_t': vacuum,
+                            's_index': i,
+                            'slab': slab})
+                
+                # Get all the zero-dipole slabs wihtout inversion symmetry
+                else: 
+                    if not slab.is_polar():
+                        provisional.append({
+                            'hkl': ''.join(map(str, slab.miller_index)),
+                            'slab_t': thickness,
+                            'vac_t': vacuum,
+                            's_index': i,
+                            'slab': slab})
                   
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
@@ -324,26 +360,55 @@ user_kpoints_settings=None, **kwargs):
         'user_potcar_settings': user_potcar_settings})
 
     # Import bulk relaxed structure, add oxidation states for slab dipole
-    # calculations
+    # calculations, make all available combinations of slab/vacuum thicknesses
     struc = Structure.from_file(structure)
     struc = oxidation_states(struc, ox_states=ox_states)
-   
-    # Iterate through vacuums and thicknessses, generate slabs using 
-    # multiprocessing.pool 
-
     combos = itertools.product(thicknesses, vacuums)
+   
+    # Check if multiple cores are available. Iterate through vacuums and 
+    # thicknessses, generate slabs using multiprocessing.pool or just using a
+    # single core 
+    if multiprocessing.cpu_count() > 1: 
+        pool = multiprocessing.Pool()
 
-    pool = multiprocessing.Pool()
+        nested_provisional = pool.starmap(
+                    functools.partial(_mp_max_index, struc, max_index, 
+                    is_symmetric=is_symmetric, center_slab=center_slab,
+                    **mp_kwargs), combos)    
 
-    nested_provisional = pool.starmap(
-                functools.partial(_mp_max_index, struc, max_index, 
-                is_symmetric=is_symmetric, center_slab=center_slab,
-                **mp_kwargs), combos)
+        pool.close()
+        pool.join()
+        provisional = list(itertools.chain.from_iterable(nested_provisional))
 
-    provisional = list(itertools.chain.from_iterable(nested_provisional))    
-
-    pool.close()
-    pool.join()
+    else: 
+        provisional = []
+        for thickness, vacuum in combos:
+            all_slabs = generate_all_slabs(struc, max_index, thickness, vacuum,
+                                        center_slab=center_slab,  
+                                        **mp_kwargs)
+            
+            for i, slab in enumerate(all_slabs):
+                # Get all the zero-dipole slabs with inversion symmetry
+                if is_symmetric: 
+                    if slab.is_symmetric() and not slab.is_polar():
+                        provisional.append({
+                            'hkl': ''.join(map(str, slab.miller_index)),
+                            'slab_t': thickness,
+                            'vac_t': vacuum,
+                            's_index': i,
+                            'slab': slab})
+                
+                # Get all the zero-dipole slabs wihtout inversion symmetry 
+                else: 
+                    if not slab.is_polar():
+                        provisional.append({
+                            'hkl': ''.join(map(str, slab.miller_index)),
+                            'slab_t': thickness,
+                            'vac_t': vacuum,
+                            's_index': i,
+                            'slab': slab
+                        })
+    
 
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
