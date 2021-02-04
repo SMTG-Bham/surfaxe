@@ -12,6 +12,9 @@ import numpy as np
 import pandas as pd
 import warnings
 warnings.filterwarnings('once')
+import functools
+import itertools
+import multiprocessing
 
 # Matplotlib
 import matplotlib as mpl
@@ -71,57 +74,79 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
 
-    df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
-    hkl_string = ''.join(map(str, hkl))
-
     if path_to_fols is None:
         cwd = os.getcwd()
     else: 
         cwd = path_to_fols
 
+    # Get all paths to folders in the slab_vac_index 
+    list_of_paths=[]
     for root, fols, files in os.walk(cwd):
         for fol in fols:
-            if not any([fol==root, fol=='.ipynb_checkpoints']):
-                path = os.path.join(root, fol)
-                vsp_path = '{}/vasprun.xml'.format(path)
-                otc_path = '{}/OUTCAR'.format(path)
+            if len(fol.split('_')) == 3:
+                list_of_paths.append([
+                    os.path.join(root, fol),
+                    fol.split('_')[0], 
+                    fol.split('_')[1], 
+                    fol.split('_')[2]
+                 ])
 
-                # instantiate structure, slab, vasprun and outcar objects
-                vsp = Vasprun(vsp_path, parse_potcar_file=False)
-                otc = Outcar(otc_path)
-                slab = slab_from_file(vsp.final_structure, hkl)
-                vsp_dict = vsp.as_dict()
+    # Check if multiple cores are available, iterate through paths to folders 
+    # and parse folders 
+    if multiprocessing.cpu_count() > 1: 
+        with multiprocessing.Pool() as pool: 
+            mp_list = pool.starmap(
+                functools.partial(_mp_helper, parse_vacuum, parse_core_energy, 
+                hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
+                **get_core_energy_kwargs), list_of_paths)
 
-                # extract the data
-                otc_times = otc.run_stats
+        # len(mp_list) == len(list_of_paths), mp_list[0][0] the is main data
+        # collected for the dataframe, mp_list[0][1] are the potentials, 
+        # mp_list[0][2] are the core energies
+        df_list = list(itertools.chain.from_iterable([i[0] for i in mp_list]))
+        electrostatic_list = list(itertools.chain.from_iterable(
+            [i[1] for i in mp_list]))
+        core_energy_list = list(itertools.chain.from_iterable(
+            [i[2] for i in mp_list]))
+    
+    else: 
+        df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+        for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
+            vsp_path = '{}/vasprun.xml'.format(path)
+            otc_path = '{}/OUTCAR'.format(path)
 
-                # name of fol has to be ./slabthickness_vacthickness_index
-                slab_vac_index = fol.split('_')
+            # instantiate structure, slab, vasprun and outcar objects
+            vsp = Vasprun(vsp_path, parse_potcar_file=False)
+            otc = Outcar(otc_path)
+            slab = slab_from_file(vsp.final_structure, hkl)
+            vsp_dict = vsp.as_dict()
 
-                df_list.append(
-                    {'hkl_string': hkl_string, 
-                    'hkl_tuple': hkl, 
-                    'slab_thickness': slab_vac_index[0],
-                    'vac_thickness': slab_vac_index[1],
-                    'slab_index': slab_vac_index[2],
-                    'atoms': vsp_dict['nsites'], 
-                    'area': slab.surface_area, 
-                    'bandgap': vsp_dict['output']['bandgap'],
-                    'slab_energy': vsp_dict['output']['final_energy'],
-                    'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
-                    'time_taken': otc_times['Elapsed time (sec)']})
+            # extract the time data
+            otc_times = otc.run_stats
 
-                if parse_vacuum: 
-                        electrostatic_list.append(
-                            vacuum(path)
-                        )
-                                                
-                if parse_core_energy: 
+            df_list.append(
+                {'hkl_string': ''.join(map(str, hkl)), 
+                'hkl_tuple': hkl, 
+                'slab_thickness': slab_thickness,
+                'vac_thickness': vac_thickness,
+                'slab_index': slab_index,
+                'atoms': vsp_dict['nsites'], 
+                'area': slab.surface_area, 
+                'bandgap': vsp_dict['output']['bandgap'],
+                'slab_energy': vsp_dict['output']['final_energy'],
+                'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
+                'time_taken': otc_times['Elapsed time (sec)']})
 
-                    core_energy_list.append(
-                        core_energy(core_atom, bulk_nn, outcar=otc_path, 
-                        structure=slab, **get_core_energy_kwargs)
-                        ) 
+            if parse_vacuum: 
+                    electrostatic_list.append(
+                        vacuum(path)
+                    )
+                                            
+            if parse_core_energy: 
+                core_energy_list.append(
+                    core_energy(core_atom, bulk_nn, outcar=otc_path, 
+                    structure=slab, **get_core_energy_kwargs)
+                    ) 
 
     df = pd.DataFrame(df_list)
     df['surface_energy'] = (
@@ -147,9 +172,56 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
 
     # Save the csv or return the dataframe
     if save_csv: 
-        df.to_csv('{}_data.csv'.format(hkl_string), header=True, index=False)
+        df.to_csv('{}_data.csv'.format(''.join(map(str, hkl))), 
+        header=True, index=False)
     
     else: 
         return df
 
 
+def _mp_helper(parse_vacuum, parse_core_energy, hkl, path, slab_thickness,
+vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs): 
+    """
+    Helper function for multiprocessing, returns a list of lists of the main 
+    extracted data, electrostatic potential and core energies
+    Same args as for parse_fols, only that path is the path to the folder in 
+    which the vasprun and OUTCAR for the specific slab/vacuum/index slab are. 
+    """
+    df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+
+    # instantiate structure, slab, vasprun and outcar objects
+    vsp_path = '{}/vasprun.xml'.format(path)
+    otc_path = '{}/OUTCAR'.format(path)
+    vsp = Vasprun(vsp_path, parse_potcar_file=False)
+    otc = Outcar(otc_path)
+    slab = slab_from_file(vsp.final_structure, hkl)
+    vsp_dict = vsp.as_dict()
+
+    # extract the time data
+    otc_times = otc.run_stats
+
+    df_list.append(
+        {'hkl_string': ''.join(map(str, hkl)), 
+        'hkl_tuple': hkl, 
+        'slab_thickness': slab_thickness,
+        'vac_thickness': vac_thickness,
+        'slab_index': slab_index,
+        'atoms': vsp_dict['nsites'], 
+        'area': slab.surface_area, 
+        'bandgap': vsp_dict['output']['bandgap'],
+        'slab_energy': vsp_dict['output']['final_energy'],
+        'slab_per_atom': vsp_dict['output']['final_energy_per_atom'],
+        'time_taken': otc_times['Elapsed time (sec)']})
+
+    if parse_vacuum: 
+            electrostatic_list.append(
+                vacuum(path)
+            )
+                                    
+    if parse_core_energy: 
+        core_energy_list.append(
+            core_energy(core_atom, bulk_nn, outcar=otc_path, 
+            structure=slab, **kwargs)
+            ) 
+
+    return [df_list, electrostatic_list, core_energy_list]
