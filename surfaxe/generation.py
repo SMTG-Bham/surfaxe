@@ -155,18 +155,16 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     # Check if multiple cores are available, then iterate through the slab and 
     # vacuum thicknesses and get all non polar symmetric slabs  
     if multiprocessing.cpu_count() > 1:
-        pool = multiprocessing.Pool()
-        nested_provisional = pool.starmap(
+        with multiprocessing.Pool() as pool:
+            nested_provisional = pool.starmap(
                     functools.partial(_mp_single_hkl, struc, hkl, 
                     is_symmetric=is_symmetric, center_slab=center_slab,
                     **mp_kwargs), combos)
 
-        pool.close()
-        pool.join()
         provisional = list(itertools.chain.from_iterable(nested_provisional)) 
 
     else: 
-        # set up kwargs again 
+        # Set up kwargs again 
         SG_kwargs = {k: mp_kwargs[k] for k in ['in_unit_planes', 'primitive' 
         'max_normal_search', 'reorient_lattice', 'lll_reduce']}
         gs_kwargs = {k: mp_kwargs[k] for k in ['ftol', 'tol', 'max_broken_bonds', 
@@ -369,15 +367,12 @@ user_kpoints_settings=None, **kwargs):
     # thicknessses, generate slabs using multiprocessing.pool or just using a
     # single core 
     if multiprocessing.cpu_count() > 1: 
-        pool = multiprocessing.Pool()
+        with multiprocessing.Pool() as pool:
+            nested_provisional = pool.starmap(
+                        functools.partial(_mp_max_index, struc, max_index, 
+                        is_symmetric=is_symmetric, center_slab=center_slab,
+                        **mp_kwargs), combos)    
 
-        nested_provisional = pool.starmap(
-                    functools.partial(_mp_max_index, struc, max_index, 
-                    is_symmetric=is_symmetric, center_slab=center_slab,
-                    **mp_kwargs), combos)    
-
-        pool.close()
-        pool.join()
         provisional = list(itertools.chain.from_iterable(nested_provisional))
 
     else: 
