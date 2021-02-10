@@ -28,14 +28,16 @@ from surfaxe.vasp_data import vacuum, core_energy
 def parse_fols(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
 core_atom=None, bulk_nn=None, parse_vacuum=False, plt_enatom=True, 
 plt_enatom_fname='energy_per_atom.png', plt_surfen=True, 
-plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
+plt_surfen_fname='surface_energy.png', save_csv=True, csv_name=None, 
+verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
     combination. It can optionally parse vacuum and core level energies. 
-    The convergence folders must be the only ones in the folder to 
-    which the ``path`` leads. Folders must contain vasprun.xml and 
-    OUTCAR files. 
+    ``path_to_fols`` specifies the parent directory containing subdirectories that
+    must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there must be a
+    ``001/`` subdirectory present. Each directory within the subdirectory must contain 
+    a vasprun.xml and OUTCAR file. 
 
     Args:
         hkl (`tuple`): Miller index of the slab.
@@ -52,7 +54,7 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
         parse_vacuum (`bool`, optional): if ``True`` the script attempts 
             to parse LOCPOT using analysis.electrostatic_potential to use the 
             maximum value of planar potential as the vacuum energy level. 
-            Defaults to ``True``. 
+            Defaults to ``False``. 
         plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
             ``True``.
         plt_enatom_fname (`str`, optional): The name of the energy per atom plot. 
@@ -62,6 +64,10 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
         plt_surfen_fname (`str`, optional): The name of the surface energy plot.
             Defaults to ``surface_energy.png``
         save_csv (`bool`, optional): Saves the csv. Defaults to ``True``.
+        csv_name (`str`, optional): Name of the csv file to save. Defaults to
+            hkl_data.csv, where hkl are the miller indices.
+        verbose (`bool`, optional): Whether or not to print extra info about the
+            folders being parsed. Defaults to ``False``. 
 
     Returns:
         DataFrame 
@@ -74,23 +80,24 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
 
-    if path_to_fols is None:
-        cwd = os.getcwd()
-    else: 
-        cwd = path_to_fols
+    # Set directory 
+    cwd = os.getcwd() if path_to_fols is None else path_to_fols
 
     # Get all paths to folders in the slab_vac_index 
     list_of_paths=[]
     for root, fols, files in os.walk(cwd):
         for fol in fols:
-            if len(fol.split('_')) == 3:
-                list_of_paths.append([
-                    os.path.join(root, fol),
-                    fol.split('_')[0], 
-                    fol.split('_')[1], 
-                    fol.split('_')[2]
-                 ])
-
+            if root.split('/')[-1] == ''.join(map(str, hkl)):
+                if verbose:
+                    print(root, fol)
+                if len(fol.split('_')) == 3:
+                    list_of_paths.append([
+                        os.path.join(root, fol),
+                        fol.split('_')[0], 
+                        fol.split('_')[1], 
+                        fol.split('_')[2]
+                    ])
+ 
     # Check if multiple cores are available, iterate through paths to folders 
     # and parse folders 
     if multiprocessing.cpu_count() > 1: 
@@ -171,8 +178,9 @@ plt_surfen_fname='surface_energy.png', save_csv=True, **kwargs):
         plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
 
     # Save the csv or return the dataframe
-    if save_csv: 
-        df.to_csv('{}_data.csv'.format(''.join(map(str, hkl))), 
+    if save_csv:
+        csv_name = '{}_data'.format(''.join(map(str, hkl))) if csv_name is None else csv_name 
+        df.to_csv('{}.csv'.format(csv_name), 
         header=True, index=False)
     
     else: 

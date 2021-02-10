@@ -6,7 +6,7 @@ from pymatgen import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.convergence import parse_fols
 
-fols = str(Path(__file__).parents[2].joinpath('example_data/convergence'))
+fols = str(Path(__file__).parents[2].joinpath('example_data/convergence/Y2Ti2S2O5'))
 
 class ParseFolsTestCase(unittest.TestCase): 
 
