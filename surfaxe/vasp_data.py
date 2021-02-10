@@ -10,7 +10,6 @@ import os
 import pandas as pd 
 import numpy as np 
 import warnings 
-warnings.filterwarnings('once')
 
 # surfaxe 
 from surfaxe.generation import oxidation_states
