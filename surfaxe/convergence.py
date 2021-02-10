@@ -87,7 +87,8 @@ verbose=False, **kwargs):
     list_of_paths=[]
     for root, fols, files in os.walk(cwd):
         for fol in fols:
-            if root.split('/')[-1] == ''.join(map(str, hkl)):
+            #if root.split('/')[-1] == ''.join(map(str, hkl)):
+            if ''.join(map(str,hkl)) in root.split('/'):
                 if verbose:
                     print(root, fol)
                 if len(fol.split('_')) == 3:
