@@ -277,7 +277,12 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
         # Read OUTCAR, get the core state energy 
         otc = Outcar(outcar)
         core_energy_dict = otc.read_core_state_eigen()
-        core_energy = core_energy_dict[atom][orbital][-1]
+        try: 
+            core_energy = core_energy_dict[atom][orbital][-1]
+        except IndexError: 
+            core_energy = np.nan
+
+
 
     return core_energy
 
