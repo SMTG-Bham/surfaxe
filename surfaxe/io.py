@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np 
 import os
 import warnings 
-warnings.filterwarnings('once')
 import json
 from pathlib import Path
 
@@ -147,7 +146,8 @@ config_dict, fmt, name, **save_slabs_kwargs):
 
     if make_fols or make_input_files: 
         for slab in list_of_slabs:
-            os.makedirs(os.path.join(os.getcwd(), r'{}/{}_{}_{}'.format(slab['hkl'],
+            os.makedirs(os.path.join(os.getcwd(), r'{}/{}/{}_{}_{}'.format(
+                bulk_name, slab['hkl'],
             slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
 
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
@@ -156,14 +156,14 @@ config_dict, fmt, name, **save_slabs_kwargs):
                 cd = load_config_dict(config_dict)
                 vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                 vis.write_input(
-                    r'{}/{}_{}_{}'.format(slab['hkl'], slab['slab_t'], 
-                        slab['vac_t'],slab['s_index'])
+                    r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
+                    slab['slab_t'], slab['vac_t'],slab['s_index'])
                     )
 
             # Just makes the folders with POSCARs
             else:
                 slab['slab'].to(fmt=fmt,
-                filename=r'{}/{}_{}_{}/{}'.format(slab['hkl'],
+                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
                 slab['slab_t'], slab['vac_t'], slab['s_index'], name))
 
     # Makes POSCAR_hkl_slab_vac_index files in the bulk_name folder

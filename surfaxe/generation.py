@@ -3,7 +3,6 @@ from pymatgen.core.surface import SlabGenerator, generate_all_slabs
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import DictSet
 import warnings
-warnings.filterwarnings('once')
 import os
 import itertools
 import functools
