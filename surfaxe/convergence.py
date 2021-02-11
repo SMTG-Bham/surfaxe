@@ -87,7 +87,7 @@ verbose=False, **kwargs):
     list_of_paths=[]
     for root, fols, files in os.walk(cwd):
         for fol in fols:
-            #if root.split('/')[-1] == ''.join(map(str, hkl)):
+            # Perform a loose check that we are looking in the right place
             if ''.join(map(str,hkl)) in root.split('/'):
                 if verbose:
                     print(root, fol)
@@ -98,7 +98,13 @@ verbose=False, **kwargs):
                         fol.split('_')[1], 
                         fol.split('_')[2]
                     ])
- 
+    
+    if len(list_of_paths) > 20 and parse_core_energy:
+        warnings.warn(('Determining core energies for {} slabs may be slow. ' 
+        'Running on {} cores.').format(len(list_of_paths), 
+                                       multiprocessing.cpu_count()))
+
+
     # Check if multiple cores are available, iterate through paths to folders 
     # and parse folders 
     if multiprocessing.cpu_count() > 1: 
@@ -180,7 +186,8 @@ verbose=False, **kwargs):
 
     # Save the csv or return the dataframe
     if save_csv:
-        csv_name = '{}_data'.format(''.join(map(str, hkl))) if csv_name is None else csv_name 
+        csv_name = '{}_data'.format(
+            ''.join(map(str, hkl))) if csv_name is None else csv_name 
         df.to_csv('{}.csv'.format(csv_name), 
         header=True, index=False)
     
