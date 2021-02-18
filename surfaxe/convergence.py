@@ -27,7 +27,7 @@ from surfaxe.vasp_data import vacuum, core_energy
 def parse_fols(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
 core_atom=None, bulk_nn=None, parse_vacuum=False, plt_enatom=True, 
 plt_enatom_fname='energy_per_atom.png', plt_surfen=True, 
-plt_surfen_fname='surface_energy.png', save_csv=True, csv_name=None, 
+plt_surfen_fname='surface_energy.png', save_csv=True, csv_fname=None, 
 verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
@@ -185,9 +185,9 @@ verbose=False, **kwargs):
 
     # Save the csv or return the dataframe
     if save_csv:
-        csv_name = '{}_data'.format(
-            ''.join(map(str, hkl))) if csv_name is None else csv_name 
-        df.to_csv('{}.csv'.format(csv_name), 
+        csv_fname = '{}_data'.format(
+            ''.join(map(str, hkl))) if csv_fname is None else csv_fname 
+        df.to_csv('{}.csv'.format(csv_fname), 
         header=True, index=False)
     
     else: 
