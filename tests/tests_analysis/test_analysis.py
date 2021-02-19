@@ -66,7 +66,7 @@ class BondAnalysisTestCase(unittest.TestCase):
 
     def test_bond_analysis(self): 
         bonds_data = bond_analysis(structure=self.structure, 
-        bonds = [['Sn', 'O']], save_csv=False, save_plt=False)
+        bond = ['Sn', 'O'], save_csv=False, save_plt=False)
         self.assertEqual(bonds_data.shape, (30,3))
 
 class ElectrostaticPotentialTestCase(unittest.TestCase): 

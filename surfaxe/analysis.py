@@ -83,9 +83,9 @@ txt_fname='cart_displacements.txt'):
     else: 
         return df
 
-def bond_analysis(structure, bonds, nn_method=CrystalNN(), 
-ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
-save_plt=True, plt_fname='bond_analysis.png', dpi=300):
+def bond_analysis(structure, bond, nn_method=CrystalNN(), ox_states=None, 
+save_csv=True, csv_fname='bond_analysis.csv', save_plt=True, 
+plt_fname='bond_analysis.png', **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
     the nearest neighbour method on the bulk structure before using it on slabs.
@@ -93,11 +93,10 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
             formats.
-        bonds (`list` of `lists`): List of bonds to compare in any order
-            e.g. ``[['Y', 'O'], ['Ti', 'S']]``
+        bond (`list`): Bond to analyse e.g. ``['Y', 'O']``
         nn_method (`class`, optional): The coordination number prediction 
             algorithm used. Because the ``nn_method`` is a class, the class 
-            needs to be imported from pymatgen.analysis.local_env before it 
+            needs to be imported from ``pymatgen.analysis.local_env`` before it 
             can be instantiated here. Defaults to ``CrystalNN()``.
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
@@ -121,8 +120,7 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
         save_plt (`bool`, optional): Make and save the bond analysis plot. 
             Defaults to ``True``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'bond_analysis.png'``.
-        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
+            ``'bond_analysis.png'``. 
 
     Returns:
         DataFrame with the c coordinate of the first atom and bond length
@@ -130,31 +128,34 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     struc = Structure.from_file(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
+    if len(bond) > 2: 
+        warnings.warn('Bond with more than two elements supplied. '
+        'Only the first two elements will be treated as a bond.')
+
     # Iterates through the structure, looking for pairs of bonded atoms. If the
     # sites match, the bond distance is calculated and passed to a dataframe
     bonds_info = []
     for n, pos in enumerate(struc):
-        for atom1, atom2 in bonds:
-            if pos.specie.symbol == atom1:
-                nearest_neighbours = nn_method.get_nn_info(struc, n)
-                matched_sites = []
-                for d in nearest_neighbours:
-                    if d.get('site').specie.symbol == atom2:
-                        matched_sites.append(d)
-                bond_distances = [
-                    struc.get_distance(n,x['site_index']) for x in matched_sites
-                ]
-                bonds_info.append({
-                    '{}_index'.format(atom1): n+1,
-                    '{}_c_coord'.format(atom1): pos.c,
-                    '{}-{}_bond_distance'.format(atom1,atom2): np.mean(bond_distances)
-                })
+        if pos.specie.symbol == bond[0]:
+            nearest_neighbours = nn_method.get_nn_info(struc, n)
+            matched_sites = []
+            for d in nearest_neighbours:
+                if d.get('site').specie.symbol == bond[1]:
+                    matched_sites.append(d)
+            bond_distances = [
+                struc.get_distance(n,x['site_index']) for x in matched_sites
+            ]
+            bonds_info.append({
+                '{}_index'.format(bond[0]): n+1,
+                '{}_c_coord'.format(bond[1]): pos.c,
+                '{}-{}_bond_distance'.format(bond[0],bond[1]): np.mean(bond_distances)
+            })
 
     df = pd.DataFrame(bonds_info)
     
     # Save plot and csv, or return the DataFrame 
     if save_plt: 
-        plot_bond_analysis(bonds, df=df, plt_fname=plt_fname, dpi=dpi)
+        plot_bond_analysis(bond, df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
         df.to_csv(csv_fname, header=True, index=False)
     else: 
@@ -163,7 +164,7 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
 
 def electrostatic_potential(lattice_vector, locpot='./LOCPOT', axis=2,
 save_csv=True, csv_fname='potential.csv', save_plt=True, 
-plt_fname='potential.png', dpi=300):
+plt_fname='potential.png', **kwargs):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
     direction. 
@@ -182,7 +183,6 @@ plt_fname='potential.png', dpi=300):
             potential. Defaults to ``True``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'potential.png'``.
-        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
 
     Returns:
         DataFrame
@@ -218,7 +218,7 @@ plt_fname='potential.png', dpi=300):
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
-        plot_electrostatic_potential(df=df, plt_fname=plt_fname, dpi=dpi)
+        plot_electrostatic_potential(df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
         df.to_csv(csv_fname, header=True, index=False)
     else: 
