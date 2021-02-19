@@ -220,7 +220,7 @@ color=None, plt_fname='bond_analysis.png'):
     ax.set_ylabel("Bond distance / Å")
     ax.legend(['{}-{} bond'.format(bond[0], bond[1])])
     plt.xlabel("Fractional coordinate in c")
-    plt.savefig(plt_fname)
+    fig.savefig(plt_fname, facecolor='w')
     
 
 def plot_electrostatic_potential(df=None, filename=None, dpi=300, width=6, 
@@ -265,7 +265,7 @@ height=5, colors=None, plt_fname='potential.png'):
     ax.axes.xaxis.set_visible(False)
     ax.legend()
     plt.ylabel('Potential / eV')
-    plt.savefig(plt_fname)
+    fig.savefig(plt_fname, facecolor='w')
 
 def plot_surfen(df, time_taken=True, plt_fname='surface_energy.png', dpi=300,
 width=6, height=5, heatmap=False, cmap='Wistia'):
@@ -465,7 +465,7 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
             
             plt.tight_layout()
 
-    plt.savefig(plt_fname, bbox_inches='tight')
+    fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
 
 
 def plot_enatom(df, time_taken=True, cmap='Wistia', dpi=300, heatmap=False, 
@@ -668,4 +668,4 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
             
             plt.tight_layout()
 
-    plt.savefig(plt_fname, dpi=dpi, bbox_inches='tight')
+    fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
