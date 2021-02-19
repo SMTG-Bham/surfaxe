@@ -18,16 +18,6 @@ def _oxstates_to_dict(ox):
     ox_states_dict = dict(zip(keys,values))
     return ox_states_dict
 
-def _bonds_to_list(bonds): 
-    bonds_list = []
-    for bond in bonds.split(','): 
-        els = []
-        for el in bond.split('-'): 
-            els.append(el)
-        bonds_list.append(els)
-
-    return bonds_list 
-
 def _get_parser(): 
     parser = ArgumentParser(
         description="""Parses the structure looking for bonds between atoms. 
@@ -38,8 +28,8 @@ def _get_parser():
     parser.add_argument('-s', '--structure', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
           '(default: POSCAR'))
-    parser.add_argument('-b', '--bonds', type=_bonds_to_list, dest='list_of_bonds', 
-    help='List of bonds as lists to compare in any order (e.g. Y-O,Ti-S)')
+    parser.add_argument('-b', '--bond', default=None, nargs='+', type=str,
+    help='List of elements e.g. Ti O')
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
