@@ -13,11 +13,12 @@ the :mod:`--help` or :mod:`-h` flag, e.g.:
 
     $ surfaxe-bonds -h
 
-    > usage: surfaxe-bonds [-h] [-s STRUCTURE] [-b LIST_OF_BONDS]
+    > usage: surfaxe-bonds [-h] [-s STRUCTURE] [-b BOND [BOND ...]]
                      [--oxstates-list OX_STATES_LIST]
                      [--oxstates-dict OX_STATES_DICT] [--no-csv]
                      [--csv-fname CSV_FNAME] [--no-plot]
-                     [--plt-fname PLT_FNAME] [--dpi DPI] [--yaml]
+                     [--plt-fname PLT_FNAME] [-c COLOR] [--width WIDTH]
+                     [--height HEIGHT] [--dpi DPI] [--yaml]
 
     Parses the structure looking for bonds between atoms. Check the validity of
     the nearest neighbour method on the bulk structure before using it on slabs.
@@ -25,23 +26,28 @@ the :mod:`--help` or :mod:`-h` flag, e.g.:
     optional arguments:
     -h, --help            show this help message and exit
     -s STRUCTURE, --structure STRUCTURE
-                            Filename of structure file in any format supported by
-                            pymatgen
-    -b LIST_OF_BONDS, --bonds LIST_OF_BONDS
-                            List of bonds as lists to compare in any order (e.g.
-                            Y-O,Ti-S
+                          Filename of structure file in any format supported by
+                          pymatgen (default: POSCAR
+    -b BOND [BOND ...], --bond BOND [BOND ...]
+                          List of elements e.g. Ti O for a Ti-O bond
     --oxstates-list OX_STATES_LIST
-                            Add oxidation states to the structure as a list.
+                          Add oxidation states to the structure as a list.
     --oxstates-dict OX_STATES_DICT
-                            Add oxidation states to the structure as a dictionary
-                            e.g. "Fe:3,O:-2"
+                          Add oxidation states to the structure as a dictionary
+                          e.g. "Fe:3,O:-2"
     --no-csv              Turns off saving data to csv file
     --csv-fname CSV_FNAME
-                            Filename of the csv file (default: bond_analysis.csv)
+                          Filename of the csv file (default: bond_analysis.csv)
     --no-plot             Turns off plotting the bond lengths
     --plt-fname PLT_FNAME
-                            Filename of the plot
-    --dpi DPI             Dots per inch
+                          Filename of the plot (default: bond_analysis.png)
+    -c COLOR, --color COLOR
+                          Color of the marker in any format supported by mpl
+                          e.g. "#eeefff" hex colours starting with # need to be
+                          surrounded with quotation marks
+    --width WIDTH         Width of the figure in inches (default: 6)
+    --height HEIGHT       Height of the figure in inches (default: 5)
+    --dpi DPI             Dots per inch (default: 300)
     --yaml                Read optional args from surfaxe_config.yaml file.
 
 =======================
@@ -60,12 +66,12 @@ The directory structure produced is:
 
 .. code::
 
-    100/              <-- miller index
+    100/              <-- Miller index
       ├── 20_20_0/    <-- slab-thickness_vacuum-thickness_termination-number
       ├── 20_40_0/   
       ├── 40_20_0/
       └── 40_40_0/
-        ├── POSCAR    <-- vasp files 
+        ├── POSCAR    <-- VASP files 
         ├── INCAR
         ├── POTCAR
         └── KPOINTS
@@ -92,6 +98,9 @@ Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099` saves a csv file of sur
 and energies per atom for each slab-vacuum combination, as well as plots for each. See the 
 Tutorials directory for examples. 
 
+**surfaxe-plot-surfen** and **surfaxe-plot-enatom** can be used to customise the surface 
+energy and energy per atom plots based on the data collated with **surfaxe-parsefols**. 
+
 =================
 Analysis commands
 =================
@@ -99,7 +108,7 @@ Analysis commands
 **surfaxe-potential**: Reads the local electrostatic potential file and plots the planar and macroscopic
 averages normal to the surface (inspired by PlanarAverage.py in  
 `Keith Butler's Macrodensity code <https://www.github.com/WMD-group/macrodensity>`_. Currently
-only the VASP LOCPOT file is supported as iput. 
+only the VASP LOCPOT file is supported as input. 
 
 Example: :mod:`surfaxe-potential -l LOCPOT -v 11.5` produces a plot assuming a lattice vector of 
 11.5 Angstroms and saves the plot data to a csv file. 
@@ -107,9 +116,9 @@ Example: :mod:`surfaxe-potential -l LOCPOT -v 11.5` produces a plot assuming a l
 **surfaxe-bonds**: Analyse bonding in the structure using Pymatgen's local_env module.
 Average bond lengths for each pair of species of interest can be plotted as a function 
 of c lattice vector (normal to the slab surface). This can be useful for checking whether
-the center of the slab has converged, bulk-like bond distances. 
+the center of the slab has converged, where bond distances should be bulk-like. 
 
-Example: :mod:`surfaxe-bonds -s CONTCAR -b Sn-O` plots the average Sn-O bond length from the 
+Example: :mod:`surfaxe-bonds -s CONTCAR -b Sn O` plots the average Sn-O bond length from the 
 VASP output structure file. A csv file of the data plotted is also produced. 
 
 **surfaxe-simplenn** and **surfaxe-complexnn**: Analyse the bonding in the slab, again using Pymatgen 
