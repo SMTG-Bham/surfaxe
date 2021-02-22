@@ -29,7 +29,7 @@ def _get_parser():
     help=('Filename of structure file in any format supported by pymatgen '
           '(default: POSCAR'))
     parser.add_argument('-b', '--bond', default=None, nargs='+', type=str,
-    help='List of elements e.g. Ti O')
+    help='List of elements e.g. Ti O for a Ti-O bond')
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
@@ -43,12 +43,20 @@ def _get_parser():
     parser.add_argument('--no-plot', default=True, action='store_false', 
     dest='save_plt', help='Turns off plotting the bond lengths')
     parser.add_argument('--plt-fname', default='bond_analysis.png',
-    dest='plt_fname', help='Filename of the plot')
-    parser.add_argument('--dpi', default=300, type=int, help='Dots per inch')
+    dest='plt_fname', help='Filename of the plot (default: bond_analysis.png)')
+    parser.add_argument('-c', '--color', default=None, type=str, 
+    help=('Color of the marker in any format supported by mpl e.g. "#eeefff" ' 
+    ' hex colours starting with # need to be surrounded with quotation marks' ))
+    parser.add_argument('--width', default=6, type=float, 
+    help='Width of the figure in inches (default: 6)')
+    parser.add_argument('--height', default=5, type=float, 
+    help='Height of the figure in inches (default: 5)')
+    parser.add_argument('--dpi', default=300, type=int, 
+    help='Dots per inch (default: 300)')
     parser.add_argument('--yaml', default=False, action='store_true', 
     help='Read optional args from surfaxe_config.yaml file.')
 
-    return parser 
+    return parser  
 
 def main(): 
     args = _get_parser().parse_args()
@@ -67,9 +75,10 @@ def main():
     else: 
         ox_states=None 
 
-    bond_analysis(args.structure, args.list_of_bonds, nn_method=CrystalNN(),
+    bond_analysis(args.structure, args.bond, nn_method=CrystalNN(),
     ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname, 
-    save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi)
+    save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi, 
+    color=args.color, width=args.width, height=args.height)
 
 
 if __name__ == "__main__":

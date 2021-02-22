@@ -38,9 +38,9 @@ def _get_parser():
     'a dictionary e.g. "Fe:3,O:-2"'))
     parser.add_argument('-s', '--structure', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
-          '(default: POSCAR'))
+          '(default: ./POSCAR'))
     parser.add_argument('--outcar', default='OUTCAR', 
-    help='Path to OUTCAR file (default: OUTCAR)')
+    help='Path to OUTCAR file (default: ./OUTCAR)')
     parser.add_argument('--yaml', default=False, action='store_true', 
     help='Read optional args from surfaxe_config.yaml file.')
 

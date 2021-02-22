@@ -44,7 +44,7 @@ verbose=False, **kwargs):
             bulk calculation in eV per atom.
         path_to_fols (`str`, optional): Relative path to the convergence folders. 
             Defaults to cwd
-        parse_core_energy (`bool`, optional): If True the scripts attempts to 
+        parse_core_energy (`bool`, optional): If ``True`` the script attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
         core_atom (`str`, optional): The symbol of atom the core state energy 
             level should be parsed from. Defaults to ``None``. 
@@ -63,7 +63,7 @@ verbose=False, **kwargs):
         plt_surfen_fname (`str`, optional): The name of the surface energy plot.
             Defaults to ``surface_energy.png``
         save_csv (`bool`, optional): Saves the csv. Defaults to ``True``.
-        csv_name (`str`, optional): Name of the csv file to save. Defaults to
+        csv_fname (`str`, optional): Name of the csv file to save. Defaults to
             hkl_data.csv, where hkl are the miller indices.
         verbose (`bool`, optional): Whether or not to print extra info about the
             folders being parsed. Defaults to ``False``. 

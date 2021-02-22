@@ -41,9 +41,10 @@ def _get_parser():
     parser.add_argument('--max-size', default=500, dest='max_size', type=int,
     help=('The maximum number of atoms in the slab specified to raise warning ' 
           'about slab size. Even if the warning is raised, it still outputs ' 
-          'the slabs regardless.'))
-    parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
-    action='store_false', help='The position of the slab in the simulation cell')
+          'the slabs regardless. (default: 500)'))
+    parser.add_argument('--no-center-slab', default=True, dest='center_slab',
+    action='store_false', help=('The position of the slab in the simulation cell. ' 
+    'Centers slab by default'))
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
     help='Add oxidation states to the structure as a list.')
     parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
@@ -53,7 +54,8 @@ def _get_parser():
     dest='save_slabs', 
     help='Whether to save the slabs to file (default: True)')
     parser.add_argument('--no-sym', default=True, action='store_false', 
-    dest='sym', help='Whether the slabs cleaved should have inversion symmetry.')
+    dest='sym', help=('Whether the slabs cleaved should have inversion symmetry. '
+        'By default searches for slabs with inversion symmetry'))
     parser.add_argument('--fmt', default='poscar',  
     help='Format of output files (default: poscar)')
     parser.add_argument('--name', default='POSCAR',  

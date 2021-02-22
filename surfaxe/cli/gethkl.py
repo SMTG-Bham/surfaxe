@@ -38,7 +38,7 @@ def _get_parser():
     parser.add_argument('--max-size', default=500, dest='max_size', type=int,
     help=('The maximum number of atoms in the slab specified to raise warning ' 
           'about slab size. Even if the warning is raised, it still outputs ' 
-          'the slabs regardless.'))
+          'the slabs regardless. (default: 500)'))
     parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
     action='store_false', help='The position of the slab in the simulation cell')
     parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
@@ -50,7 +50,8 @@ def _get_parser():
     dest='save_slabs', 
     help='Whether to save the slabs to file (default: True)')
     parser.add_argument('--no-sym', default=True, action='store_false', 
-    dest='sym', help='Whether the slabs cleaved should have inversion symmetry.')
+    dest='sym', help=('Whether the slabs cleaved should have inversion symmetry. '
+    'By default searches for slabs with inversion symmetry'))
     parser.add_argument('--fmt', default='poscar', type=str, 
     help='Format of output files (default: poscar)')
     parser.add_argument('--name', default='POSCAR', type=str, 

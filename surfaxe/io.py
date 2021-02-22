@@ -268,8 +268,8 @@ height=5, colors=None, plt_fname='potential.png'):
     plt.ylabel('Potential / eV')
     fig.savefig(plt_fname, facecolor='w')
 
-def plot_surfen(df, time_taken=True, plt_fname='surface_energy.png', dpi=300,
-width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
+def plot_surfen(df, time_taken=True, colors=None, dpi=300, width=6, height=5, 
+heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
     """
     Plots the surface energy for all terminations. Based on surfaxe.convergence 
     parse_fols. 
@@ -280,8 +280,9 @@ width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
             'surface_energy', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
-        plt_fname (`str`, optional): The name of the plot. Defaults to 
-            ``surface_energy.png``.
+        colors (`list`, optional): A list of colours for plots of different 
+            vacuum thicknesses. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
         dpi (`int`, optional): Dots per inch. Defaults to 300.
         width (`float`, optional): Width of figure in inches. Defaults to ``6``. 
         height (`float`, optional): Height of figure in inches. Defaults to 
@@ -289,9 +290,9 @@ width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
         heatmap (`bool`, optional): If True plots a heatmap of surface energies.
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        colors (`list`, optional): A list of colours for different vacuum 
-            thicknesses potential plots. Defaults to ``None``, which defaults to 
-            surfaxe base style. 
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+            ``surface_energy.png``.
+        
         
     Returns:
         None, saves surface_energy.png to file
@@ -484,8 +485,8 @@ width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
     fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
 
 
-def plot_enatom(df, time_taken=True, plt_fname='energy_per_atom.png', dpi=300, 
-width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
+def plot_enatom(df, time_taken=True, colors=None, dpi=300, width=6, height=5, 
+heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
     """
     Plots the energy per atom for all terminations. Based on surfaxe.convergence 
     parse_fols.
@@ -496,8 +497,9 @@ width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
             'slab_per_atom', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
-        plt_fname (`str`, optional): The name of the plot. Defaults to 
-        ``energy_per_atom.png``. 
+        colors (`list`, optional): A list of colours for plots of different  
+            vacuum thicknesses. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
         dpi (`int`, optional): Dots per inch. Defaults to 300.
         width (`float`, optional): Width of figure in inches. Defaults to ``6``. 
         height (`float`, optional): Height of figure in inches. Defaults to 
@@ -505,9 +507,8 @@ width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
         heatmap (`bool`, optional): If True plots a heatmap of surface energies.
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        colors (`list`, optional): A list of colours for different vacuum 
-            thicknesses potential plots. Defaults to ``None``, which defaults to 
-            surfaxe base style. 
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+            ``energy_per_atom.png``. 
 
     Returns:
         None, saves energy_per_atom.png
