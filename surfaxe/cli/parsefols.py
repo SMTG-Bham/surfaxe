@@ -24,8 +24,8 @@ def _get_parser():
     parser.add_argument('-p', '--path', default=None, type=str, 
     help='Relative path to the convergence folders (default: cwd)')
     parser.add_argument('--parse-core', default=False, action='store_true', 
-    dest='parse_core', help={'Attempts to parse core energies from a supplied '
-    'OUTCAR (default: False)'})
+    dest='parse_core', help=('Attempts to parse core energies from a supplied '
+    'OUTCAR (default: False)'))
     parser.add_argument('--core', default=None, type=str, 
     help='The symbol of atom the core state energy should be parsed from')
     parser.add_argument('--nn', default=None, nargs='+', type=str,
@@ -51,6 +51,7 @@ def _get_parser():
 
 def main(): 
     args = _get_parser().parse_args()
+
     if args.hkl is not None: 
         hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
 
