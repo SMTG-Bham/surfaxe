@@ -200,7 +200,7 @@ color=None, plt_fname='bond_analysis.png'):
             ``'bond_analysis.png'``.
          
     Returns:
-        Plot
+        None, saves plot to bond_analysis.png
     """ 
     
     if filename is not None: 
@@ -246,7 +246,7 @@ height=5, colors=None, plt_fname='potential.png'):
             base style. 
     
     Returns: 
-        potential.png
+        None, saves plot to potential.png
     """
     if df is not None: 
         df = df
