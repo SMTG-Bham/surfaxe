@@ -147,7 +147,7 @@ plt_fname='bond_analysis.png', **kwargs):
             ]
             bonds_info.append({
                 '{}_index'.format(bond[0]): n+1,
-                '{}_c_coord'.format(bond[1]): pos.c,
+                '{}_c_coord'.format(bond[0]): pos.c,
                 '{}-{}_bond_distance'.format(bond[0],bond[1]): np.mean(bond_distances)
             })
 
