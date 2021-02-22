@@ -16,7 +16,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
       name='surfaxe',
-      version='0.1',
+      version='1.0',
       description='Dealing with slabs for first principles calculations of surfaces',
       long_description=open(os.path.join(module_dir, 'README.md')).read(),
       long_description_content_type='text/markdown',
@@ -45,7 +45,9 @@ if __name__ == "__main__":
           'surfaxe-potential = surfaxe.cli.potential:main', 
           'surfaxe-cartdisp = surfaxe.cli.cartdisp:main', 
           'surfaxe-core = surfaxe.cli.core:main', 
-          'surfaxe-vacuum = surfaxe.cli.vacuum:main'
+          'surfaxe-vacuum = surfaxe.cli.vacuum:main', 
+          'surfaxe-plot-surfen = surfaxe.cli.plotsurfen:main', 
+          'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main'
         ]
       }
     )
