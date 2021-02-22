@@ -174,7 +174,7 @@ verbose=False, **kwargs):
 
     # Plot energy per atom and surface energy
     plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
-    'heatmap': False}
+    'heatmap': False, 'colors': None, 'width': 6, 'height': 5}
     plt_kwargs.update((k, kwargs[k]) for k in plt_kwargs.keys() & kwargs.keys())
 
     if plt_enatom: 

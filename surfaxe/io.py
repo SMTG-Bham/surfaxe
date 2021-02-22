@@ -20,6 +20,7 @@ def _custom_formatwarning(message, category, filename, lineno, line=''):
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from cycler import cycler 
 
 def load_config_dict(config_dict, path_to_config_dir=None): 
     """
@@ -268,7 +269,7 @@ height=5, colors=None, plt_fname='potential.png'):
     fig.savefig(plt_fname, facecolor='w')
 
 def plot_surfen(df, time_taken=True, plt_fname='surface_energy.png', dpi=300,
-width=6, height=5, heatmap=False, cmap='Wistia'):
+width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
     """
     Plots the surface energy for all terminations. Based on surfaxe.convergence 
     parse_fols. 
@@ -288,6 +289,9 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
         heatmap (`bool`, optional): If True plots a heatmap of surface energies.
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
+        colors (`list`, optional): A list of colours for different vacuum 
+            thicknesses potential plots. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
         
     Returns:
         None, saves surface_energy.png to file
@@ -386,6 +390,13 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
                                 ha="center", va="top", color="black")
     # Line plots
     else: 
+        # Make the colour cycler with custom colours
+        if colors is None:
+            custom_cycler = (cycler(color=['#FFADB6','#FF596A','#CC4755',
+                '#802D35','#E6505F','#40161A','#CC858C']))
+        else: 
+            custom_cycler = (cycler(color=colors))
+
         # Get the number of subplots 
         nrows = len(indices)
         ncols = 1
@@ -396,7 +407,7 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
         if nrows==1 and ncols==1: 
             fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
-                
+                ax.set_prop_cycle(custom_cycler)
                 ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
@@ -409,7 +420,7 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
         elif nrows==1 and ncols==2: 
             fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
-                
+                ax[0].set_prop_cycle(custom_cycler)
                 ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
@@ -417,6 +428,8 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
                 ax[0].set_ylabel('Surface energy / J m$^{-2}$')
                 ax[0].plot(val, marker='x')
                 ax[0].legend(df.columns, title='Vacuum / Å')
+                
+                ax[1].set_prop_cycle(custom_cycler)
                 ax[1].set_title(index)
                 ax[1].set_xticks(list(range(len(df.index))))
                 ax[1].set_xticklabels(df.index)
@@ -438,6 +451,7 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
                 # it for time_taken True and False
             
                 if time_taken: 
+                    ax[i,0].set_prop_cycle(custom_cycler)
                     ax[i,0].set_xticks(list(range(len(df.index))))
                     ax[i,0].set_xticklabels(df.index)
                     ax[i,0].set_xlabel('Slab thickness / Å')
@@ -445,7 +459,8 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
                     ax[i,0].plot(val, marker='x')
                     ax[i,0].legend(df.columns, title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
-            
+
+                    ax[i,1].set_prop_cycle(custom_cycler)
                     ax[i,1].set_xticks(list(range(len(df.index))))
                     ax[i,1].set_xticklabels(df.index)
                     ax[i,1].set_xlabel('Slab thickness / Å')
@@ -455,6 +470,7 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
                     ax[i,1].set_title('{}'.format(indices[i]))
                 
                 else: 
+                    ax[i].set_prop_cycle(custom_cycler)
                     ax[i].set_xticks(list(range(len(df.index))))
                     ax[i].set_xticklabels(df.index)
                     ax[i].set_xlabel('Slab thickness / Å')
@@ -468,8 +484,8 @@ width=6, height=5, heatmap=False, cmap='Wistia'):
     fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
 
 
-def plot_enatom(df, time_taken=True, cmap='Wistia', dpi=300, heatmap=False, 
-width=6, height=5, plt_fname='energy_per_atom.png'):
+def plot_enatom(df, time_taken=True, plt_fname='energy_per_atom.png', dpi=300, 
+width=6, height=5, heatmap=False, cmap='Wistia', colors=None):
     """
     Plots the energy per atom for all terminations. Based on surfaxe.convergence 
     parse_fols.
@@ -480,15 +496,18 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
             'slab_per_atom', 'time_taken', 'index'. 
         time_taken (bool): Show the time taken for calculation to finish on the
             figure. Defaults to True.
-        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+        ``energy_per_atom.png``. 
         dpi (`int`, optional): Dots per inch. Defaults to 300.
-        heatmap (`bool`, optional): If True plots a heatmap of surface energies.
-            Defaults to False.
         width (`float`, optional): Width of figure in inches. Defaults to ``6``. 
         height (`float`, optional): Height of figure in inches. Defaults to 
             ``5``. 
-        plt_fname (`str`, optional): The name of the plot. Defaults to 
-        ``energy_per_atom.png``. 
+        heatmap (`bool`, optional): If True plots a heatmap of surface energies.
+            Defaults to False.
+        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
+        colors (`list`, optional): A list of colours for different vacuum 
+            thicknesses potential plots. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
 
     Returns:
         None, saves energy_per_atom.png
@@ -598,10 +617,18 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
         if time_taken: 
             ncols = 2
         
+        # Make the colour cycler with custom colours
+        if colors is None:
+            custom_cycler = (cycler(color=['#FFADB6','#FF596A','#CC4755',
+                '#802D35','#E6505F','#40161A','#CC858C']))
+        else: 
+            custom_cycler = (cycler(color=colors))
+        
         # Plot only the energy per atom for the only termination present 
         if nrows==1 and ncols==1: 
             fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
+                ax.set_prop_cycle(custom_cycler)
                 ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
@@ -614,6 +641,7 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
         elif nrows==1 and ncols==2: 
             fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
+                ax[0].set_prop_cycle(custom_cycler)
                 ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
@@ -621,6 +649,8 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
                 ax[0].set_ylabel('Energy per atom / eV')
                 ax[0].plot(val, marker='x')
                 ax[0].legend(df.columns, title='Vacuum / Å')
+                
+                ax[1].set_prop_cycle(custom_cycler)
                 ax[1].set_title(index)
                 ax[1].set_xticks(list(range(len(df.index))))
                 ax[1].set_xticklabels(df.index)
@@ -641,6 +671,7 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
                 # it for time_taken True and False
             
                 if time_taken: 
+                    ax[i,0].set_prop_cycle(custom_cycler)
                     ax[i,0].set_xticks(list(range(len(df.index))))
                     ax[i,0].set_xticklabels(df.index)
                     ax[i,0].set_xlabel('Slab thickness / Å')
@@ -649,6 +680,7 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
                     ax[i,0].legend(df.columns, title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
              
+                    ax[i,1].set_prop_cycle(custom_cycler)
                     ax[i,1].set_xticks(list(range(len(df.index))))
                     ax[i,1].set_xticklabels(df.index)
                     ax[i,1].set_xlabel('Slab thickness/ Å')
@@ -658,6 +690,7 @@ width=6, height=5, plt_fname='energy_per_atom.png'):
                     ax[i,1].set_title('{}'.format(indices[i]))
                 
                 else: 
+                    ax[i].set_prop_cycle(custom_cycler)
                     ax[i].set_xticks(list(range(len(df.index))))
                     ax[i].set_xticklabels(df.index)
                     ax[i].set_xlabel('Slab thickness / Å')
