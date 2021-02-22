@@ -32,7 +32,7 @@ Surfaxe primarily supports VASP, however we would like to add support for other 
 ![Bond analysis example](example_data/figures/bond_analysis_plot.png)
 
 **Surface energy convergence checks with respect to vacuum and slab thickness**
-![Surface energy convergence example](example_data/figures/convergence_example.png)
+![Surface energy convergence example](example_data/figures/110_surface_energy.png)
 
 See the tutorials directory for more examples.
 
