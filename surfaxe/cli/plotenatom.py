@@ -14,7 +14,7 @@ def _get_parser():
     )
     parser.add_argument('-d', '--data', 
     help='Path to the csv file from parsefols with data')
-    parser.add_argument('--no-time-taken', default=True, action='store_false',
+    parser.add_argument('--no-time', default=True, action='store_false',
     dest='time_taken', help=('Do not show time taken for calculations to '
     'complete (default: True)')) 
     parser.add_argument('--plt-fname', default='energy_per_atom.png', type=str,
