@@ -1,13 +1,10 @@
 # Pymatgen
-from pymatgen.core.surface import Slab
-from pymatgen import Structure, Specie, Element
-from pymatgen.core.sites import PeriodicSite
+from pymatgen import Structure
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
 
 # Misc
 import os
-import math
 import numpy as np
 import pandas as pd
 import warnings
@@ -15,13 +12,9 @@ import functools
 import itertools
 import multiprocessing
 
-# Matplotlib
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 # surfaxe
-from surfaxe.io import plot_enatom, plot_surfen, slab_from_file
+from surfaxe.io import plot_enatom, plot_surfen, slab_from_file,\
+ _custom_formatwarning
 from surfaxe.vasp_data import vacuum, core_energy
 
 def parse_fols(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
@@ -33,10 +26,10 @@ verbose=False, **kwargs):
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
     combination. It can optionally parse vacuum and core level energies. 
-    ``path_to_fols`` specifies the parent directory containing subdirectories that
-    must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there must be a
-    ``001/`` subdirectory present. Each directory within the subdirectory must contain 
-    a vasprun.xml and OUTCAR file. 
+    ``path_to_fols`` specifies the parent directory containing subdirectories 
+    that must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there 
+    must be a ``001/`` subdirectory present somewhere on the path. Each 
+    directory within the subdirectory must contain a vasprun.xml and OUTCAR file.  
 
     Args:
         hkl (`tuple`): Miller index of the slab.
@@ -78,18 +71,25 @@ verbose=False, **kwargs):
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
+    get_core=False
+    if parse_core_energy: 
+        if core_atom is not None and bulk_nn is not None:
+            get_core=True 
+        else: 
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn(('Core atom or bulk nearest neighbours were not '
+            'supplied. Core energy will not be parsed.'))
 
     # Set directory 
     cwd = os.getcwd() if path_to_fols is None else path_to_fols
 
-    # Get all paths to folders in the slab_vac_index 
+    # Get all paths to slab_vac_index folders
     list_of_paths=[]
     for root, fols, files in os.walk(cwd):
         for fol in fols:
-            # Perform a loose check that we are looking in the right place
-            if ''.join(map(str,hkl)) in root.split('/'):
-                if verbose:
-                    print(root, fol)
+            # Perform a loose check that we are looking in the right place, 
+            # also avoid .ipynb_checkpoint files 
+            if ''.join(map(str,hkl)) in root.split('/') and '.' not in fol:
                 if len(fol.split('_')) == 3:
                     list_of_paths.append([
                         os.path.join(root, fol),
@@ -97,8 +97,11 @@ verbose=False, **kwargs):
                         fol.split('_')[1], 
                         fol.split('_')[2]
                     ])
+                    if verbose:
+                        print(root, fol)
     
     if len(list_of_paths) > 20 and parse_core_energy:
+        warnings.formatwarning = _custom_formatwarning
         warnings.warn(('Determining core energies for {} slabs may be slow. ' 
         'Running on {} cores.').format(len(list_of_paths), 
                                        multiprocessing.cpu_count()))
@@ -155,7 +158,7 @@ verbose=False, **kwargs):
                         vacuum(path)
                     )
                                             
-            if parse_core_energy: 
+            if get_core: 
                 core_energy_list.append(
                     core_energy(core_atom, bulk_nn, outcar=otc_path, 
                     structure=slab, **get_core_energy_kwargs)
@@ -185,10 +188,12 @@ verbose=False, **kwargs):
 
     # Save the csv or return the dataframe
     if save_csv:
-        csv_fname = '{}_data'.format(
+        csv_fname = '{}_data.csv'.format(
             ''.join(map(str, hkl))) if csv_fname is None else csv_fname 
-        df.to_csv('{}.csv'.format(csv_fname), 
-        header=True, index=False)
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
+
+        df.to_csv(csv_fname, header=True, index=False)
     
     else: 
         return df

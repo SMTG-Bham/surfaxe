@@ -11,7 +11,7 @@ import warnings
 import json
 from pathlib import Path
 
-# Monkeypatching straight from Stackoverflow
+# Monkeypatching for warnings
 def _custom_formatwarning(message, category, filename, lineno, line=''):
     # Ignore everything except the message
     return 'UserWarning: ' + str(message) + '\n'
@@ -124,7 +124,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
               
                     E.g. for a (0,0,1) MgO slab of index 1 with a slab thickness 
                     of 20 Å and vacuum thickness of 30 Å the folder structure 
-                    would be: ``MgO/POSCAR_001_20_30_1``
+                    would be: ``MgO/POSCAR_001_20_30_1.vasp``
  
         make_input_files (`bool`): Makes INCAR, POTCAR and KPOINTS files in each 
             folder. If ``make_input_files`` is ``True`` but ``make_files`` or 
@@ -161,20 +161,23 @@ config_dict, fmt, name, **save_slabs_kwargs):
                     slab['slab_t'], slab['vac_t'],slab['s_index'])
                     )
 
-            # Just makes the folders with POSCARs
+            # Just makes the folders with structure files in them
             else:
                 slab['slab'].to(fmt=fmt,
                 filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
                 slab['slab_t'], slab['vac_t'], slab['s_index'], name))
 
-    # Makes POSCAR_hkl_slab_vac_index files in the bulk_name folder
+    # Makes name_hkl_slab_vac_index files in the bulk_name folder
     else:
+        suffix='vasp'
+        if fmt.lower() != 'poscar': 
+            suffix = fmt.lower()
         os.makedirs(os.path.join(os.getcwd(), r'{}'.format(bulk_name)),
         exist_ok=True)
         for slab in list_of_slabs:
             slab['slab'].to(fmt=fmt,
-            filename=r'{}/{}_{}_{}_{}_{}'.format(bulk_name, name, 
-            slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index']))
+            filename=r'{}/{}_{}_{}_{}_{}.{}'.format(bulk_name, name, 
+            slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'], suffix))
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'): 
@@ -197,7 +200,8 @@ color=None, plt_fname='bond_analysis.png'):
         color (`str`, optional): Color of marker. Defaults to ``None`` which 
             defaults to surfaxe base style
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'bond_analysis.png'``.
+            ``'bond_analysis.png'``. If name with no format suffix is supplied,  
+            the format defaults to png.
          
     Returns:
         None, saves plot to bond_analysis.png
@@ -213,6 +217,9 @@ color=None, plt_fname='bond_analysis.png'):
 
     if color is None:
         color = '#FF596A'
+    
+    if not plt_fname.endswith('.png'):
+        plt_fname += '.png'
 
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
     x = df['{}_c_coord'.format(bond[0])]
@@ -240,7 +247,8 @@ height=5, colors=None, plt_fname='potential.png'):
         height (`float`, optional): Height of figure in inches. Defaults to 
             ``5``.
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'potential.png'``.
+            ``'potential.png'``. If name with no format suffix is supplied,  
+            the format defaults to png.
         colors (`list`, optional): A list of colours for planar and macroscopic 
             potential plots. Defaults to ``None``, which defaults to surfaxe 
             base style. 
@@ -258,6 +266,9 @@ height=5, colors=None, plt_fname='potential.png'):
 
     if colors==None or len(colors)<2: 
         colors = ['#FFADB6', '#FF596A']
+    
+    if not plt_fname.endswith('.png'):
+        plt_fname += '.png'
 
     # Plot both planar and macroscopic, save figure
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
@@ -291,12 +302,15 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
         plt_fname (`str`, optional): The name of the plot. Defaults to 
-            ``surface_energy.png``.
-        
+            ``surface_energy.png``. If name with no format suffix is supplied,  
+            the format defaults to png.
         
     Returns:
         None, saves surface_energy.png to file
     """
+    if not plt_fname.endswith('.png'):
+        plt_fname += '.png'
+    
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 
     # Group the values by termination slab index, create df for time and
@@ -508,11 +522,14 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
         plt_fname (`str`, optional): The name of the plot. Defaults to 
-            ``energy_per_atom.png``. 
+            ``energy_per_atom.png``. If name with no format suffix is supplied,  
+            the format defaults to png.
 
     Returns:
         None, saves energy_per_atom.png
     """
+    if not plt_fname.endswith('.png'):
+        plt_fname += '.png'
 
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 

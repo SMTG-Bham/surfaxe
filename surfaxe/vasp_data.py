@@ -135,6 +135,8 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Save to csv or return DataFrame
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:
         return df
@@ -148,8 +150,8 @@ def vacuum(path=None):
     Args:
         path (`str`, optional): the path to potential.csv or LOCPOT files. 
             Can be the path to a directory in which either file is or you can 
-            specify a path that must end in .csv or LOCPOT. Defaults to looking 
-            for potential.csv or LOCPOT in cwd. 
+            specify a path that must end in .csv or contain LOCPOT. Defaults to 
+            looking for potential.csv or LOCPOT in cwd. 
 
     Returns:
         Maximum value of planar potential
@@ -161,7 +163,7 @@ def vacuum(path=None):
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
     
-    elif type(path)==str and path.endswith('LOCPOT'): 
+    elif type(path)==str and 'LOCPOT' in path: 
         lpt = Locpot.from_file(path)
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
@@ -185,8 +187,8 @@ def vacuum(path=None):
         else: 
             max_potential = np.nan
             warnings.formatwarning = _custom_formatwarning
-            warnings.warn('Vacuum electrostatic potential was not parsed - '
-            'no LOCPOT or potential.csv files were provided.')
+            warnings.warn('Vacuum electrostatic potential was not parsed from {} '
+            'no LOCPOT or potential.csv files were provided.'.format(path))
 
     return max_potential
         

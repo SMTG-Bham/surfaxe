@@ -1,9 +1,9 @@
 # Pymatgen
-from pymatgen import Structure, Element, Specie
+from pymatgen import Structure, Specie, Element
 from pymatgen.core.structure import SiteCollection
 from pymatgen.core.lattice import Lattice
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
-from pymatgen.io.vasp.outputs import Locpot, VolumetricData
+from pymatgen.io.vasp.outputs import Locpot
 
 # Misc 
 import os
@@ -157,6 +157,8 @@ plt_fname='bond_analysis.png', **kwargs):
     if save_plt: 
         plot_bond_analysis(bond, df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
@@ -220,6 +222,8 @@ plt_fname='potential.png', **kwargs):
     if save_plt: 
         plot_electrostatic_potential(df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
@@ -325,6 +329,8 @@ save_csv=True, csv_fname='nn_data.csv'):
 
     # Save the csv file or return as dataframe 
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df
@@ -436,6 +442,8 @@ save_csv=True, csv_fname='nn_data.csv'):
     
     # Save the csv file or return as dataframe 
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df

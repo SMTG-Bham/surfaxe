@@ -1,7 +1,8 @@
-
+# pymatgen
 from pymatgen.core.surface import SlabGenerator, generate_all_slabs
-from pymatgen import Structure
-from pymatgen.io.vasp.sets import DictSet
+from pymatgen import Structure, Specie
+
+# misc
 import warnings
 import os
 import itertools
@@ -546,7 +547,7 @@ center_slab=True, **mp_kwargs):
 
     slabs = []
     slabgen = SlabGenerator(struc, hkl, thickness, vacuum, 
-    **SlabGenerator_kwargs)
+    center_slab=center_slab, **SlabGenerator_kwargs)
     all_slabs = slabgen.get_slabs(**get_slabs_kwargs)
 
     for i, slab in enumerate(all_slabs):
@@ -608,7 +609,7 @@ center_slab=True, **mp_kwargs):
 
     slabs = []
     all_slabs = generate_all_slabs(struc, max_index, thickness, vacuum, 
-    **mp_kwargs)
+    center_slab=center_slab, **mp_kwargs)
     for i, slab in enumerate(all_slabs):
         if is_symmetric == True:
             if not slab.is_polar() and slab.is_symmetric(): 
