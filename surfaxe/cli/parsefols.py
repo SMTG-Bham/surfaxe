@@ -62,6 +62,9 @@ def main():
             (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
         )
 
+    if not args.hkl or not args.bulk_per_atom: 
+        raise ValueError('hkl or bulk energy per atom were not supplied')
+
     path = os.getcwd()
     if args.path is not None: 
         path = args.path

@@ -15,13 +15,14 @@ def _get_parser():
 
     parser.add_argument('-s', '--start', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
-          '(default: POSCAR'))
+          '(default: POSCAR) '))
     parser.add_argument('-e', '--end', default='CONTCAR',
-    help=('Filename of structure file in any format supported by pymatgen.'))
+    help=('Filename of structure file in any format supported by pymatgen. '
+    '(default: CONTCAR)'))
     parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
     help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('--max-disp', type=float, default=0.1, dest='max_disp', 
-    help='The maximum displacement shown (default: 0.1')
+    help='The maximum displacement shown (default: 0.1)')
     parser.add_argument('--no-txt', default=True, action='store_false', 
     dest='save_txt', help='Turns off saving data to a txt file' )
     parser.add_argument('--txt-fname', default='cart_displacament.txt', type=str,

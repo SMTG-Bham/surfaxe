@@ -38,11 +38,11 @@ def _get_parser():
     
     parser.add_argument('-s', '--start', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
-          '(default: POSCAR'))
+          '(default: POSCAR)'))
     parser.add_argument('-a', '--atoms',default=None, nargs='+', type=str,
     help='List of elements in the structure in any order e.g. La Ti O S Ag')
     parser.add_argument('-c', '--cutoffdict', type=_cutoff_to_dict,
-    dest='cut_off_dict', help='Bond lengths e.g. "La-O-2.91,Ag-S-3.09"')
+    dest='cut_off_dict', help='Bond lengths e.g. La-O-2.91,Ag-S-3.09')
     parser.add_argument('-e', '--end', default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
