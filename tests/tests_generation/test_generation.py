@@ -101,7 +101,7 @@ class GetOneTestCase(unittest.TestCase):
         
         # Check the files created 
         self.assertEqual(len(os.listdir('Y4Ti4S4O10')), 8)
-        self.assertIn('POSCAR_001_10_10_15', os.listdir('Y4Ti4S4O10'))
+        self.assertIn('POSCAR_001_10_10_15.vasp', os.listdir('Y4Ti4S4O10'))
 
         # Clean up - get rid of directory created 
         shutil.rmtree('Y4Ti4S4O10')
