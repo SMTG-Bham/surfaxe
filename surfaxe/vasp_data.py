@@ -16,7 +16,7 @@ from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning, slab_from_file
 
 def process_data(bulk_per_atom, parse_hkl=True, path_to_fols=None, hkl_dict=None,
-parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=True, 
+parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=False, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
     Parses the folders to collect all final data on relevant input and output 
