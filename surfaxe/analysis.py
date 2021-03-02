@@ -350,9 +350,9 @@ save_csv=True, csv_fname='nn_data.csv'):
         start (`str`): filename of structure, takes all pymatgen-supported formats.
         elements (`list`): List of elements in the structure in any order \n 
             e.g. ``['Y', 'Ti', 'O', 'S']`` 
-        cut_off_dict (`dict`): Dictionary of bond lengths
-            e.g. ``{('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,``
-            ``('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}``
+        cut_off_dict (`dict`): As the oxidation states are added the bonds 
+            should be specified with the oxidation states\n
+            e.g. ``{('Bi3+', 'O2-'): 2.46, ('V5+', 'O2-'): 1.73}``
         end (`str`, optional): filename of structure to analyse, use if 
             comparing initial and final structures. The structures must have 
             same constituent atoms and number of sites. Defaults to ``None``. 
@@ -368,8 +368,7 @@ save_csv=True, csv_fname='nn_data.csv'):
                     
                     e.g. ``{'Fe': 3, 'O':-2}``
             
-            * if ``None``: No oxidation states are added - different from other
-              functions in ``surfaxe``. 
+            * if ``None``:  The oxidation states are added by guess.  
 
             Defaults to ``None`` 
         save_csv (`bool`, optional): Save to a csv file. Defaults to ``True``.
@@ -392,8 +391,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc.add_site_property('', site_labels)
 
     # Add oxidation states 
-    if ox_states is not None:
-        start_struc = oxidation_states(start_struc, ox_states=ox_states)
+    start_struc = oxidation_states(start_struc, ox_states=ox_states)
 
     # Instantiate the nearest neighbour algorithm and get bonded structure
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
@@ -402,8 +400,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     # Instantiate the end structure if provided
     if end: 
         end_struc = Structure.from_file(end)
-        if ox_states is not None: 
-            end_struc = oxidation_states(end_struc, ox_states=ox_states)
+        end_struc = oxidation_states(end_struc, ox_states=ox_states)
         bonded_end = codnn.get_bonded_structure(end_struc)
 
     # Iterate through structure, evaluate the coordination number and the 

@@ -17,18 +17,6 @@ def _oxstates_to_dict(ox):
     ox_states_dict = dict(zip(keys,values))
     return ox_states_dict
 
-def _cutoff_to_dict(cod): 
-    keys, values = ([] for i in range(2))
-    for i in cod.split(','): 
-        m = i.split('-')
-        if len(m) != 3: 
-            raise IndexError('Incorrect format of cut off dictionary') 
-        values.append(float(m.pop(2)))
-        keys.append(tuple(map(str, m)))
-
-    cutoff_dict = dict(zip(keys, values))
-    return cutoff_dict
-
 def _get_parser(): 
     parser = ArgumentParser(
         description="""Finds the nearest neighbours for more complex structures. 
@@ -41,8 +29,8 @@ def _get_parser():
           '(default: POSCAR)'))
     parser.add_argument('-a', '--atoms',default=None, nargs='+', type=str,
     help='List of elements in the structure in any order e.g. La Ti O S Ag')
-    parser.add_argument('-c', '--cutoffdict', type=_cutoff_to_dict,
-    dest='cut_off_dict', help='Bond lengths e.g. La-O-2.91,Ag-S-3.09')
+    parser.add_argument('-b', '--bonds', nargs='+',
+    dest='cut_off_dict', help='Bond lengths e.g. Bi3+ O2- 2.46 V5+ O2- 1.73')
     parser.add_argument('-e', '--end', default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
@@ -77,11 +65,24 @@ def main():
     else: 
         ox_states=None 
     
+    # convert cut off dict into correct format 
+    cutoff_dict = args.cut_off_dict
+    if type(args.cut_off_dict) == list:
+        cod = args.cut_off_dict 
+        keys, values = ([] for i in range(2))
+
+        for i in [cod[i:i + 3] for i in range(0, len(cod), 3)]: 
+            if len(i)==3: 
+                values.append(float(i.pop(2)))
+            keys.append(tuple(map(str, i)))
+
+        cutoff_dict = dict(zip(keys, values))
+
     if args.save_csv==True: 
-        complex_nn(args.start, args.atoms, args.cut_off_dict, end=args.end, 
+        complex_nn(args.start, args.atoms, cutoff_dict, end=args.end, 
         ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
     else: 
-        nn = complex_nn(args.start, args.atoms, args.cut_off_dict, end=args.end, 
+        nn = complex_nn(args.start, args.atoms, cutoff_dict, end=args.end, 
         ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
         print(nn)
 
