@@ -279,8 +279,8 @@ height=5, colors=None, plt_fname='potential.png'):
     plt.ylabel('Potential / eV')
     fig.savefig(plt_fname, facecolor='w')
 
-def plot_surfen(df, time_taken=True, colors=None, dpi=300, width=6, height=5, 
-heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
+def plot_surfen(df, joules=True, time_taken=True, colors=None, dpi=300, width=6, 
+height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
     """
     Plots the surface energy for all terminations. Based on surfaxe.convergence 
     parse_fols. 
@@ -289,8 +289,10 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
         df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
             Dataframe with headings 'slab_thickness', 'vac_thickness', 
             'surface_energy', 'time_taken', 'index'. 
-        time_taken (bool): Show the time taken for calculation to finish on the
-            figure. Defaults to True.
+        joules (`bool`, optional): Whether to plot energy in J/m^2. 
+            Defaults to True, if False plots energy in eV/Å^2
+        time_taken (bool`, optional): Show the time taken for calculation to 
+            finish on the figure. Defaults to True.
         colors (`list`, optional): A list of colours for plots of different 
             vacuum thicknesses. Defaults to ``None``, which defaults to 
             surfaxe base style. 
@@ -313,11 +315,18 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
     
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 
+    # If plotting 
+    energy = 'surface_energy'
+    unit = 'Surface energy / J m$^{-2}$'
+    if not joules: 
+        energy = 'surface_energy_ev'
+        unit = 'Surface energy / eV Å$^{-2}$'
+
     # Group the values by termination slab index, create df for time and
     # energy values. Converts the energy and time values to np arrays for 
     # plotting
     for group in df.groupby('slab_index'):
-        df2 = group[1].pivot('slab_thickness', 'vac_thickness', 'surface_energy')
+        df2 = group[1].pivot('slab_thickness', 'vac_thickness', energy)
         df3 = group[1].pivot('slab_thickness', 'vac_thickness', 'time_taken')
         indices.append(group[0])
         vals.append(df2.to_numpy())
@@ -342,7 +351,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                 cax = divider.append_axes("right", size="5%", pad=0.2)
                 im = ax.imshow(val, cmap=cmap)
                 cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.set_label('Surface energy / J m$^{-2}$')
+                cbar.set_label(unit)
                 ax.invert_yaxis()
 
             # Add the surface energy value labels to the plot - the for loops 
@@ -383,7 +392,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                 divider = make_axes_locatable(ax[i])
                 cax = divider.append_axes("right", size="5%", pad=0.2)
                 cbar = plt.colorbar(im, cax=cax)
-                cbar.set_label('Surface energy / J m$^{-2}$')
+                cbar.set_label(unit)
                 ax[i].invert_yaxis()
             fig.tight_layout()
 
@@ -427,7 +436,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
                 ax.set_xlabel('Slab thickness / Å')
-                ax.set_ylabel('Surface energy / J m$^{-2}$')
+                ax.set_ylabel(unit)
                 ax.plot(val, marker='x')
                 ax.legend(df.columns, title='Vacuum / Å')
 
@@ -440,7 +449,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
                 ax[0].set_xlabel('Slab thickness / Å')
-                ax[0].set_ylabel('Surface energy / J m$^{-2}$')
+                ax[0].set_ylabel(unit)
                 ax[0].plot(val, marker='x')
                 ax[0].legend(df.columns, title='Vacuum / Å')
                 
@@ -470,7 +479,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                     ax[i,0].set_xticks(list(range(len(df.index))))
                     ax[i,0].set_xticklabels(df.index)
                     ax[i,0].set_xlabel('Slab thickness / Å')
-                    ax[i,0].set_ylabel('Surface energy / J m$^{-2}$')
+                    ax[i,0].set_ylabel(unit)
                     ax[i,0].plot(val, marker='x')
                     ax[i,0].legend(df.columns, title='Vacuum / Å')
                     ax[i,0].set_title('{}'.format(indices[i]))
@@ -489,7 +498,7 @@ heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                     ax[i].set_xticks(list(range(len(df.index))))
                     ax[i].set_xticklabels(df.index)
                     ax[i].set_xlabel('Slab thickness / Å')
-                    ax[i].set_ylabel('Surface energy / J m$^{-2}$')
+                    ax[i].set_ylabel(unit)
                     ax[i].plot(val, marker='x')
                     ax[i].legend(df.columns, title='Vacuum / Å')
                     ax[i].set_title('{}'.format(indices[i]))

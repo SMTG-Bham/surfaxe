@@ -11,6 +11,7 @@ import warnings
 import functools
 import itertools
 import multiprocessing
+import copy
 
 # surfaxe
 from surfaxe.io import plot_enatom, plot_surfen, slab_from_file,\
@@ -25,7 +26,8 @@ verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
-    combination. It can optionally parse vacuum and core level energies. 
+    combination. It can optionally parse vacuum and core level energies.
+
     ``path_to_fols`` specifies the parent directory containing subdirectories 
     that must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there 
     must be a ``001/`` subdirectory present somewhere on the path. Each 
@@ -168,6 +170,10 @@ verbose=False, **kwargs):
     df['surface_energy'] = (
         (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
         ) 
+    
+    df['surface_energy_ev'] = (
+        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area'])
+    )
 
     if electrostatic_list: 
         df['vacuum_potential'] = electrostatic_list
@@ -177,14 +183,17 @@ verbose=False, **kwargs):
 
     # Plot energy per atom and surface energy
     plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
-    'heatmap': False, 'colors': None, 'width': 6, 'height': 5}
+    'heatmap': False, 'colors': None, 'width': 6, 'height': 5, 'joules': True}
     plt_kwargs.update((k, kwargs[k]) for k in plt_kwargs.keys() & kwargs.keys())
 
-    if plt_enatom: 
-        plot_enatom(df, plt_fname=plt_enatom_fname, **plt_kwargs)
-    
     if plt_surfen: 
         plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
+    
+    if plt_enatom: 
+        # redefine kwargs and delete joules kwarg from the copy
+        enatom_kwargs = copy.deepcopy(plt_kwargs) 
+        del enatom_kwargs['joules']
+        plot_enatom(df, plt_fname=plt_enatom_fname, **enatom_kwargs)
 
     # Save the csv or return the dataframe
     if save_csv:
