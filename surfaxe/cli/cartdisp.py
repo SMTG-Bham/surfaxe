@@ -24,12 +24,13 @@ def _get_parser():
     parser.add_argument('--max-disp', type=float, default=0.1, dest='max_disp', 
     help='The maximum displacement shown (default: 0.1)')
     parser.add_argument('--no-txt', default=True, action='store_false', 
-    dest='save_txt', help='Turns off saving data to a txt file' )
+    dest='save_txt', help='Prints data to terminal' )
     parser.add_argument('--txt-fname', default='cart_displacament.txt', type=str,
     dest='txt_fname', help=('Filename of the txt file (default: '
          'cart_displacement.txt)'))
     parser.add_argument('--yaml', default=False, action='store_true', 
-    help='Read optional args from surfaxe_config.yaml file')
+    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    'other flags set '))
 
     return parser 
 
@@ -38,19 +39,19 @@ def main():
 
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
-            yaml_args = yaml.load(y)
-        args.update(
-            (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
-        )
-    
-    if args.save_txt: 
-        cart_displacements(args.start, args.end, args.atoms, 
-        max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
-    
+            yaml_args = yaml.safe_load(y)
+
+        cd = cart_displacements(**yaml_args)
+        if ('save_csv', False) in yaml_args.items(): 
+            print(cd)
+ 
     else: 
-        cart_disp = cart_displacements(args.start, args.end, args.atoms, 
-        max_disp=args.max_disp, save_txt=args.save_txt, txt_fname=args.txt_fname)
-        print(cart_disp)
+        cd = cart_displacements(args.start, args.end, args.atoms, 
+        max_disp=args.max_disp, save_txt=args.save_txt, 
+        txt_fname=args.txt_fname)
+        
+        if args.save_txt: 
+            print(cd)
 
 if __name__ == "__main__":
     main()

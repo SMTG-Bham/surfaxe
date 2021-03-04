@@ -246,12 +246,12 @@ height=5, colors=None, plt_fname='potential.png'):
         width (`float`, optional): Width of figure in inches. Defaults to ``6``. 
         height (`float`, optional): Height of figure in inches. Defaults to 
             ``5``.
-        plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'potential.png'``. If name with no format suffix is supplied,  
-            the format defaults to png.
         colors (`list`, optional): A list of colours for planar and macroscopic 
             potential plots. Defaults to ``None``, which defaults to surfaxe 
             base style. 
+        plt_fname (`str`, optional): Filename of the plot. Defaults to 
+            ``'potential.png'``. If name with no format suffix is supplied,  
+            the format defaults to png.
     
     Returns: 
         None, saves plot to potential.png

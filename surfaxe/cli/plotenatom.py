@@ -10,9 +10,9 @@ from surfaxe.io import plot_enatom
 
 def _get_parser(): 
     parser = ArgumentParser(
-        description="""Plots the surface energy for all terminations."""
+        description="""Plots the energy per atom for all terminations."""
     )
-    parser.add_argument('-d', '--data', 
+    parser.add_argument('-f', '--filename', 
     help='Path to the csv file from parsefols with data')
     parser.add_argument('--no-time', default=True, action='store_false',
     dest='time_taken', help=('Do not show time taken for calculations to '
@@ -34,25 +34,26 @@ def _get_parser():
     parser.add_argument('--cmap', default='Wistia', type=str, 
     help='Matplotlib colourmap for heatmap (default: Wistia)')
     parser.add_argument('--yaml', default=False, action='store_true', 
-    help='Read optional args from surfaxe_config.yaml file.')
+    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    'other flags set '))
 
     return parser
 
 def main(): 
     args = _get_parser().parse_args()
 
-    df = pd.read_csv(args.data)
-
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
-            yaml_args = yaml.load(y)
-        args.update(
-            (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
-        )
+            yaml_args = yaml.safe_load(y)
 
-    plot_enatom(df, time_taken=args.time_taken, colors=args.colors, dpi=args.dpi, 
-    width=args.width, height=args.height, heatmap=args.heatmap, cmap=args.cmap, 
-    plt_fname=args.plt_fname)
+        df = pd.read_csv(yaml_args['filename'])
+        plot_enatom(df=df, **yaml_args)
+
+    else: 
+        df = pd.read_csv(args.filename)
+        plot_enatom(df, time_taken=args.time_taken, colors=args.colors, 
+        dpi=args.dpi, width=args.width, height=args.height, 
+        heatmap=args.heatmap, cmap=args.cmap, plt_fname=args.plt_fname)
 
 if __name__ == "__main__":
     main()

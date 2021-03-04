@@ -20,7 +20,7 @@ def _oxstates_to_dict(ox):
 def _get_parser(): 
     parser = ArgumentParser(
         description="""Generates all unique slabs for a specified Miller index 
-        with minimum slab and vacuum thicknesses."""
+        with minimum slab and vacuum thicknesses. Always saves slabs to file. """
     )
 
     parser.add_argument('-s', '--structure', default=None, type=str,
@@ -41,17 +41,15 @@ def _get_parser():
           'the slabs regardless. (default: 500)'))
     parser.add_argument('-c', '--center-slab', default=True, dest='center_slab',
     action='store_false', help='The position of the slab in the simulation cell')
-    parser.add_argument('--oxstates-list', default=None, dest='ox_states_list', 
-    help='Add oxidation states to the structure as a list.')
-    parser.add_argument('--oxstates-dict', default=None, type=_oxstates_to_dict,
+    parser.add_argument('--oxi-list', default=None, dest='ox_states_list', 
+    nargs='+', type=float, 
+    help='Add oxidation states to the structure as a list e.g. 3 3 -2 -2 -2')
+    parser.add_argument('--oxi-dict', default=None, type=_oxstates_to_dict,
     dest='ox_states_dict', help=('Add oxidation states to the structure as ' 
-    'a dictionary e.g. "Fe:3,O:-2"'))
-    parser.add_argument('--no-save', default=True, action='store_false', 
-    dest='save_slabs', 
-    help='Whether to save the slabs to file (default: True)')
+    'a dictionary e.g. Fe:3,O:-2'))
     parser.add_argument('--no-sym', default=True, action='store_false', 
-    dest='sym', help=('Whether the slabs cleaved should have inversion symmetry. '
-    'By default searches for slabs with inversion symmetry'))
+    dest='is_symmetric', help=('Whether the slabs cleaved should have inversion '
+    'symmetry. By default searches for slabs with inversion symmetry'))
     parser.add_argument('--fmt', default='poscar', type=str, 
     help='Format of output files (default: poscar)')
     parser.add_argument('--name', default='POSCAR', type=str, 
@@ -66,37 +64,40 @@ def _get_parser():
     parser.add_argument('-p', '--potcar', default=None,
     help='Overrides the default POTCAR settings')
     parser.add_argument('--yaml', default=False, action='store_true', 
-    help='Read optional args from surfaxe_config.yaml file.')
+    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    'other flags set'))
 
     return parser
 
 def main(): 
     args = _get_parser().parse_args()
-    
-    if args.hkl: 
-        hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
 
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
-            yaml_args = yaml.load(y)
-        args.update(
-            (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
-        )
+            yaml_args = yaml.safe_load(y)
 
-    if args.ox_states_dict: 
-        ox_states = args.ox_states_dict 
-    elif args.ox_states_list: 
-        ox_states = map(float, args.ox_states_list.strip('[]').split(','))
+        hkl = yaml_args.pop('hkl')
+        hkl = ''.join(hkl.split())
+        hkl = tuple(map(int, hkl.strip('()[] ').split(',')))
+        get_slabs_single_hkl(hkl=hkl, **yaml_args)
+
+
     else: 
-        ox_states=None 
+        hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
 
-    get_slabs_single_hkl(args.structure, hkl, args.thicknesses, args.vacuums, 
-    make_fols=args.fols, make_input_files=args.files, max_size=args.max_size, 
-    center_slab=args.center_slab, ox_states=ox_states, 
-    save_slabs=args.save_slabs, is_symmetric=args.sym, fmt=args.fmt, 
-    name=args.name, config_dict=args.config_dict, 
-    user_incar_settings=args.incar, user_potcar_settings=args.potcar, 
-    user_kpoints_settings=args.kpoints)
+        if args.ox_states_dict: 
+            ox_states = args.ox_states_dict 
+        elif args.ox_states_list: 
+            ox_states = args.ox_states_list
+        else: 
+            ox_states=None
+
+        get_slabs_single_hkl(args.structure, hkl, args.thicknesses, 
+        args.vacuums, make_fols=args.fols, make_input_files=args.files, 
+        max_size=args.max_size, center_slab=args.center_slab, name=args.name, 
+        ox_states=ox_states,is_symmetric=args.is_symmetric, fmt=args.fmt, 
+        config_dict=args.config_dict, user_incar_settings=args.incar, 
+        user_potcar_settings=args.potcar, user_kpoints_settings=args.kpoints)
 
 if __name__ == "__main__":
     main()

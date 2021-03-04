@@ -37,8 +37,8 @@ verbose=False, **kwargs):
         hkl (`tuple`): Miller index of the slab.
         bulk_per_atom (`float`): Bulk energy per atom from a converged 
             bulk calculation in eV per atom.
-        path_to_fols (`str`, optional): Relative path to the convergence folders. 
-            Defaults to cwd
+        path_to_fols (`str`, optional): Path to the convergence folders. 
+            Defaults to None which is cwd
         parse_core_energy (`bool`, optional): If ``True`` the script attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
         core_atom (`str`, optional): The symbol of atom the core state energy 
@@ -190,7 +190,7 @@ verbose=False, **kwargs):
         plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
     
     if plt_enatom: 
-        # redefine kwargs and delete joules kwarg from the copy
+        # Redefine kwargs and delete joules kwarg from the copy
         enatom_kwargs = copy.deepcopy(plt_kwargs) 
         del enatom_kwargs['joules']
         plot_enatom(df, plt_fname=plt_enatom_fname, **enatom_kwargs)

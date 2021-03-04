@@ -3,26 +3,18 @@ from argparse import ArgumentParser
 import yaml
 import os
 import warnings 
+import pandas as pd
 
 # Surfaxe 
-from surfaxe.analysis import electrostatic_potential 
+from surfaxe.io import plot_electrostatic_potential
 
 def _get_parser(): 
     parser = ArgumentParser(
-        description="""Reads LOCPOT to get the planar and macroscopic 
-        potential in specified direction"""
+        description="""Plots the planar and macroscopic electrostatic 
+        potential along one crystallographic direction."""
     )
-
-    parser.add_argument('-v', '--lattice-vector', type=float, 
-    dest='lattice_vector', help='The periodicity of the slab')
-    parser.add_argument('-l', '--locpot', type=str, default='LOCPOT', 
-    help='The path to the LOCPOT file (default: ./LOCPOT)')
-    parser.add_argument('--no-csv', default=True, action='store_false', 
-    dest='save_csv', help='Turns off saving data to csv file' )
-    parser.add_argument('--csv-fname', default='potential.csv', type=str,
-    dest='csv_fname', help='Filename of the csv file (default: potential.csv)')
-    parser.add_argument('--no-plot', default=True, action='store_false', 
-    dest='save_plt', help='Turns off plotting')
+    parser.add_argument('-f', '--filename', default='potential.csv',
+    help='Path to the csv file from bond analysis (default: potential.csv)')
     parser.add_argument('--plt-fname', default='potential.png', type=str,
     dest='plt_fname', help='Filename of the plot (default: potential.png)')
     parser.add_argument('--dpi', default=300, type=int, 
@@ -47,19 +39,13 @@ def main():
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
             yaml_args = yaml.safe_load(y)
-
-        ep = electrostatic_potential(**yaml_args)
-        if ('save_csv', False) in yaml_args.items(): 
-            print(ep)
         
-    else: 
-        ep = electrostatic_potential(args.lattice_vector, locpot=args.locpot, 
-        axis=2, save_csv=args.save_csv, csv_fname=args.csv_fname, 
-        save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi, 
-        colors=args.colors, width=args.width, height=args.height)
+        plot_electrostatic_potential(**yaml_args)
 
-        if not args.save_csv: 
-            print(ep)
+    else: 
+        plot_electrostatic_potential(filename=args.filename, colors=args.colors, 
+        dpi=args.dpi, width=args.width, height=args.height, 
+        plt_fname=args.plt_fname)
 
 if __name__ == "__main__":
     main()

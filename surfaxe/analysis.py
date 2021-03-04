@@ -350,8 +350,8 @@ save_csv=True, csv_fname='nn_data.csv'):
         start (`str`): filename of structure, takes all pymatgen-supported formats.
         elements (`list`): List of elements in the structure in any order \n 
             e.g. ``['Y', 'Ti', 'O', 'S']`` 
-        cut_off_dict (`dict`): As the oxidation states are added the bonds 
-            should be specified with the oxidation states\n
+        cut_off_dict (`dict`): Dictionary of bond lengths. The bonds should be 
+            specified with the oxidation states\n
             e.g. ``{('Bi3+', 'O2-'): 2.46, ('V5+', 'O2-'): 1.73}``
         end (`str`, optional): filename of structure to analyse, use if 
             comparing initial and final structures. The structures must have 

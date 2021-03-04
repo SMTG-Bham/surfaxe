@@ -45,35 +45,35 @@ def _get_parser():
     help=('Whether or not to print extra info about the folders being parsed.'
     ' (default: False)'))
     parser.add_argument('--yaml', default=False, action='store_true', 
-    help='Read optional args from surfaxe_config.yaml file.')
+    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    'other flags set '))
 
     return parser
 
 def main(): 
     args = _get_parser().parse_args()
 
-    if args.hkl is not None: 
-        hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
-
     if args.yaml==True: 
         with open('surfaxe_config.yaml', 'r') as y: 
-            yaml_args = yaml.load(y)
-        args.update(
-            (k, yaml_args[k]) for k in args.keys() and yaml_args.keys()
-        )
+            yaml_args = yaml.safe_load(y)
+        
+        parse_fols(**yaml_args)
 
-    if not args.hkl or not args.bulk_per_atom: 
-        raise ValueError('hkl or bulk energy per atom were not supplied')
+    else: 
+        if not args.hkl or not args.bulk_per_atom: 
+            raise ValueError('hkl or bulk energy per atom were not supplied')
 
-    path = os.getcwd()
-    if args.path is not None: 
-        path = args.path
+        hkl = tuple(map(int, args.hkl.strip('[]()').split(',')))
+        
+        path = os.getcwd()
+        if args.path is not None: 
+            path = args.path
 
-    parse_fols(hkl, args.bulk_per_atom, path_to_fols=path, 
-    parse_core_energy=args.parse_core, core_atom=args.core, bulk_nn=args.nn, 
-    parse_vacuum=args.parse_vacuum, plt_enatom=args.plt_enatom, 
-    plt_surfen=args.plt_surfen, save_csv=True, csv_fname=args.csv_fname, 
-    verbose=args.verbose)
+        parse_fols(hkl, args.bulk_per_atom, path_to_fols=path, 
+        parse_core_energy=args.parse_core, core_atom=args.core, bulk_nn=args.nn, 
+        parse_vacuum=args.parse_vacuum, plt_enatom=args.plt_enatom, 
+        plt_surfen=args.plt_surfen, save_csv=True, csv_fname=args.csv_fname, 
+        verbose=args.verbose)
 
 if __name__ == "__main__":
     main()

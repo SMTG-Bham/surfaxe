@@ -35,11 +35,9 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     Args:
         structure (`str`): Filename of structure file in any format supported by 
             pymatgen. 
-        hkl (`tuple`): Miller index. Defaults to ``None``.
+        hkl (`tuple`): Miller index. 
         thicknesses (`list`): The minimum size of the slab in Angstroms. 
-            Defaults to ``None``. 
-        vacuums (`list`): The minimum size of the vacuum in Angstroms. Defaults 
-            to ``None``. 
+        vacuums (`list`): The minimum size of the vacuum in Angstroms. 
         make_fols (`bool`, optional): Makes folders for each termination 
             and slab/vacuum thickness combinations containing structure files. 
             
@@ -102,13 +100,14 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
-        fmt (`str`, optional): The format of the output files. Options include 
-            'cif', 'poscar', 'cssr', 'json', not case sensitive. 
+        fmt (`str`, optional): The format of the output structure files. Options 
+            include 'cif', 'poscar', 'cssr', 'json', not case sensitive. 
             Defaults to 'poscar'. 
         name (`str`, optional): The name of the surface slab structure file 
             created. Case sensitive. Defaults to 'POSCAR'
         config_dict (`dict` or `str`, optional): Specifies the dictionary used 
-            for the generation of the input files. Defaults to ``PBEsol_config.json`` 
+            for the generation of the input files. Defaults to 
+            ``PBEsol_config.json`` 
         user_incar_settings (`dict`, optional): Overrides the default INCAR 
             parameter settings. Defaults to ``None``.
         user_kpoints_settings (`dict` or Kpoints object, optional): 
@@ -312,8 +311,8 @@ user_kpoints_settings=None, **kwargs):
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
-        fmt (`str`, optional): The format of the output files. Options include 
-            'cif', 'poscar', 'cssr', 'json', not case sensitive. 
+        fmt (`str`, optional): The format of the output structure files. Options 
+            include 'cif', 'poscar', 'cssr', 'json', not case sensitive. 
             Defaults to 'poscar'. 
         name (`str`, optional): The name of the surface slab structure file 
             created. Case sensitive. Defaults to 'POSCAR'
