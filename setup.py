@@ -47,7 +47,9 @@ if __name__ == "__main__":
           'surfaxe-core = surfaxe.cli.core:main', 
           'surfaxe-vacuum = surfaxe.cli.vacuum:main', 
           'surfaxe-plot-surfen = surfaxe.cli.plotsurfen:main', 
-          'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main'
+          'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main', 
+          'surfaxe-plot-bonds = surfaxe.cli.plotbonds:main', 
+          'surfaxe-plot-potential = surfaxe.cli.plotpotential:main', 
         ]
       }
     )
