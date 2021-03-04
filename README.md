@@ -61,7 +61,7 @@ We recommend starting off by looking at the dedicated [tutorials](https://github
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/develop?filepath=tutorials)
 
 ### Command line interface
-The scripts are separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
+The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
 
 Generation:
 
@@ -77,8 +77,14 @@ Analysis:
 * `surfaxe-bonds`: Parses the structure, looking for bonds between specified atoms.
 * `surfaxe-simplenn`: Predicts the coordination environment of atoms for simple structures.
 * `surfaxe-complexnn`: Predcts the coordination environment of atoms in more complex structures where the default prediction algorithm fails.
-* `surfaxe-potential`: Plots the planar and macroscopic potential of the slab along c-axis.
+* `surfaxe-potential`: Calculates and optionally plots the planar and macroscopic potential of the slab along c-axis.
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
+
+Plotting: 
+
+* `surfaxe-plot-surfen` and `surfaxe-plot-enatom`: Plot the surface energy and energy per atom based on data from `surfaxe-parsefols` with individual customisability
+* `surfaxe-plot-bonds`: Plots the bond distance with respect to fractional coordinate, based on `surfaxe-bonds`
+* `surfaxe-plot-potential`: Plots the planar and macroscopic potential based on data already analysed with `surfaxe-potential`
 
 Data:
 
