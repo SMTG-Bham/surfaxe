@@ -33,8 +33,8 @@ def _get_parser():
     help='If True, plots a heatmap of surface energies (default: False)')
     parser.add_argument('--cmap', default='Wistia', type=str, 
     help='Matplotlib colourmap for heatmap (default: Wistia)')
-    parser.add_argument('--yaml', default=False, action='store_true', 
-    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    parser.add_argument('--yaml', default=None, type=str,
+    help=('Read all args from a yaml config file. Completely overrides any '
     'other flags set '))
 
     return parser
@@ -42,8 +42,8 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    if args.yaml==True: 
-        with open('surfaxe_config.yaml', 'r') as y: 
+    if args.yaml is not None: 
+        with open(args.yaml, 'r') as y: 
             yaml_args = yaml.safe_load(y)
         
         df = pd.read_csv(yaml_args['filename'])

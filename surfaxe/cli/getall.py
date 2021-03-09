@@ -22,7 +22,9 @@ def _get_parser():
         description="""Generates all unique slabs with specified maximum 
         Miller index, minimum slab and vacuum thicknesses. It includes all 
         combinations for multiple zero dipole symmetric terminations for the 
-        same Miller index. Always saves slabs to file."""
+        same Miller index. Always saves slabs to file. If no files are produced, 
+        check if system is non-centrosymmetric and use --no-sym flag if 
+        necessary."""
     )
 
     parser.add_argument('-s', '--structure',
@@ -42,7 +44,7 @@ def _get_parser():
     help=('The maximum number of atoms in the slab specified to raise warning ' 
           'about slab size. Even if the warning is raised, it still outputs ' 
           'the slabs regardless. (default: 500)'))
-    parser.add_argument('--no-center-slab', default=True, dest='center_slab',
+    parser.add_argument('--not-centered', default=True, dest='center_slab',
     action='store_false', help=('The position of the slab in the simulation cell. ' 
     'Centers slab by default'))
     parser.add_argument('--oxi-list', default=None, dest='ox_states_list', 
@@ -67,8 +69,8 @@ def _get_parser():
     help='Overrides the default KPOINTS settings.')
     parser.add_argument('-p', '--potcar', default=None,
     help='Overrides the default POTCAR settings')
-    parser.add_argument('--yaml', default=False, action='store_true', 
-    help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
+    parser.add_argument('--yaml', default=None, type=str, 
+    help=('Read all args from a yaml config file. Completely overrides any '
     'other flags set '))
 
     return parser
@@ -76,8 +78,8 @@ def _get_parser():
 def main(): 
     args = _get_parser().parse_args()
 
-    if args.yaml==True: 
-        with open('surfaxe_config.yaml', 'r') as y: 
+    if args.yaml is not None: 
+        with open(args.yaml, 'r') as y: 
             yaml_args = yaml.load(y)
 
         get_slabs_max_index(**yaml_args)
