@@ -1,11 +1,13 @@
 |         | Master | Develop |
 |---------|--------|---------|
 |CI Status| [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=master)](https://travis-ci.com/SMTG-UCL/surfaxe) | [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=develop)](https://travis-ci.com/SMTG-UCL/surfaxe)   |
-| [Docs](https://surfaxe.readthedocs.io/en/latest/) | | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
+| [Docs](https://surfaxe.readthedocs.io/en/latest/) | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable)  | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
 
 # Surfaxe
 
 Surfaxe is a python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations. It relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal structures and interfacing with the [VASP](www.vasp.at) DFT code.
+
+<img src="example_data/figures/surfaxe_workflow.png" alt="drawing" width="600"/>
 
 The main features include:
 
@@ -34,7 +36,7 @@ Surfaxe primarily supports VASP, however we would like to add support for other 
 **Surface energy convergence checks with respect to vacuum and slab thickness**
 ![Surface energy convergence example](example_data/figures/110_surface_energy.png)
 
-See the tutorials directory for more examples.
+See the [tutorials directory](tutorials/) for more examples.
 
 ## Installation
 
@@ -104,7 +106,11 @@ warnings.filterwarnings('ignore')
 
 Please use the Issue Tracker to report bugs or request features in the first instance.
 
-### Code contributions
+```sh
+git clone https://github.com/SMTG-UCL/surfaxe.git
+cd surfaxe
+pip install --user .
+```
 
 Contributions to interface with this package are most welcome. Please use the ["Fork and Pull"](https://guides.github.com/activities/forking/) workflow to make contributions and stick as closely as possible to the following:
 
