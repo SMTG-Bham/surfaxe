@@ -1,0 +1,10 @@
+filename: None # Filename of data file, str 
+joules: True # Whether to plot energy in J/m^2 or eV/Å^2 
+time_taken: True # Plot time taken for calculation to complete 
+colors: None # A list of colours for different vacuum sizes - if using hex codes put '' around them, list
+width: 6 # Width of figure in inches, float
+height: 5 # Height of figure in inches, float
+dpi: 300 # dots per inch, int 
+heatmap: False # Plots a heatmap of surface energies 
+cmap: wistia # Matplotlib colormap 
+plt_fname: syrface_energy.png # Name of the plot, str 

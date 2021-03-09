@@ -1,0 +1,16 @@
+structure: None # Filename of structure file, str 
+max_index: None # maximum Miller index to go up to, int
+thicknesses: None # List of slab thicknesses, list
+vacuums: None # List of vacuum thicknesses, list
+make_fols: False # Makes folders for each termination and slab/vacuum combination
+make_files: False # Makes VASP input files 
+max_size: 500 # Maximum number of atoms to raise warning about slab size 
+center_slab: True # Centers the position of the slab in the simulation cell 
+ox_states: None # Add oxidation states to the bulk structure by guess by default, can also add as dict or list 
+is_symmetric: True # Whether the slabs should have inversion symmetry, must be False for non-centrosymmetric bulk 
+fmt: poscar # Format of the output files, not case sensitve, str
+name: POSCAR # Name of the structure, case sensitive, str
+config_dict: PBEsol_config.json # Dictonary for generation of input files, str or dict
+user_incar_settings: None # Overrides default INCAR settings, dict 
+user_kpoints_settings: None # Overrised default KPOINTS settings, dict 
+user_potcar_settings: None # Overrides default POTCAR settings 

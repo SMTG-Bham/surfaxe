@@ -1,0 +1,7 @@
+lattice_vector: None # Periodicity of the slab, float 
+locpot: LOCPOT # Path to LOCPOT file, str 
+axis: 2 # Direction in which the potential is investigated; a=0, b=1, c=2, int
+save_csv: True # Save csv or print to terminal
+csv_fname: potential.csv # Name of the csv file, str
+save_plt: True # Plots planar and macroscopic potential
+plt_fname: potential.png # Name of the plot, str 

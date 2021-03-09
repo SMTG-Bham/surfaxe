@@ -1,0 +1,13 @@
+hkl: None # Miller index, tuple
+bulk_per_atom: None # Bulk energy per atom in eV/atom, float
+path_to_fols: None # Path to convergence folders, str 
+parse_core_energy: False # If True attempts to parse core energies from OUTCAR 
+bulk_nn: None # List of bulk nearest neighbours for the core atom, list 
+core_atom: None # Core atom for which to parse core energy, str
+parse_vacuum: False # If True attempts to parse LOCPOT to get maximum planar potential as vacuum level 
+plt_enatom: True # Plots energy per atom for all terminations 
+plt_enatom_fname: energy_per_atom.png # Name of the plot, str 
+plt_surfen: True # Plots surface energy for all terminations 
+plt_surfen_fname: surface_energy.png # Name of the plot, str 
+csv_fname: None # Name of the csv file, defaults to hkl_data.csv, str
+verbose: False # Print extra info about folders parsed 

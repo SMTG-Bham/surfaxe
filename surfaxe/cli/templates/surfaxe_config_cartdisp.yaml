@@ -1,0 +1,6 @@
+start: None # Filename of initial structure file, str 
+end: None # Filename of final structure, str
+elements: None # List of atoms in the structure, list 
+max_disp: 0.1 # Maximum displacement shown 
+save_txt: True # Save txt or print to terminal
+txt_fname: cart_displacements.txt # Name of the txt file, str
