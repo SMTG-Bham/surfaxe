@@ -25,11 +25,12 @@ def _get_parser():
 
     parser.add_argument('-s', '--structure', default=None, type=str,
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('--hkl', default=None, help='Miller index')
+    parser.add_argument('--hkl', default=None, 
+    help='Miller index (comma separated) e.g. 1,0,0')
     parser.add_argument('-t', '--thicknesses', default=None, nargs='+', type=int,
-    help='The minimum size of the slab in Angstroms, e.g. 10 20 30.')
+    help='The minimum sizes of the slab in Angstroms, e.g. 10 20 30')
     parser.add_argument('-v', '--vacuums', default=None, nargs='+', type=int,
-    help='The minimum size of the vacuum in Angstroms, e.g. 10 20 30.')
+    help='The minimum sizes of the vacuum in Angstroms, e.g. 10 20 30')
     parser.add_argument('-r', '--fols', default=False, action='store_true', 
     help=('Makes folders for each termination and slab/vacuum thickness ' 
           'combinations containing POSCARs (default: False)'))

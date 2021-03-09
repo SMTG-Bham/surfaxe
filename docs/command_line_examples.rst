@@ -174,7 +174,7 @@ input files are created with specific INCAR tags using the following YAML file:
     center_slab: True 
     ox_states: 
       Sn: 4
-      O: 2-
+      O: -2
     is_symmetric: True 
     fmt: poscar 
     name: POSCAR 
