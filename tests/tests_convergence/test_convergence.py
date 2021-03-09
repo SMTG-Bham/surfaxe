@@ -2,7 +2,7 @@ import unittest
 import warnings
 import os
 from pathlib import Path
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.convergence import parse_fols
 

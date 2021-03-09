@@ -1,6 +1,6 @@
 # pymatgen
 from pymatgen.core.surface import SlabGenerator, generate_all_slabs
-from pymatgen import Structure, Specie
+from pymatgen.core import Structure
 
 # misc
 import warnings

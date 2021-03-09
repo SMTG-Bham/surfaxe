@@ -1,6 +1,6 @@
 # pymatgen
 from pymatgen.io.vasp.sets import DictSet
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 
 # Misc 

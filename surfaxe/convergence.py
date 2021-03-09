@@ -1,5 +1,5 @@
 # Pymatgen
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
 
