@@ -1,6 +1,6 @@
 # Pymatgen  
 from pymatgen.core.surface import Slab
-from pymatgen import Structure, Specie, Element
+from pymatgen.core import Structure, Element
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.io.vasp.outputs import Locpot, Outcar, Vasprun
 from pymatgen.analysis.local_env import CrystalNN
@@ -10,32 +10,56 @@ import os
 import pandas as pd 
 import numpy as np 
 import warnings 
-warnings.filterwarnings('once')
 
 # surfaxe 
 from surfaxe.generation import oxidation_states
 from surfaxe.io import _custom_formatwarning, slab_from_file
 
-def process_data(bulk_per_atom, hkl_dict=None, parse_hkl=True, path_to_fols=None,
-parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=True, 
+def process_data(bulk_per_atom, parse_hkl=True, path_to_fols=None, hkl_dict=None,
+parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=False, 
 save_csv=True, csv_fname='data.csv', **kwargs): 
     """
     Parses the folders to collect all final data on relevant input and output 
-    parameters, and optionally core and vacuum level energies.  
+    parameters, and optionally core and vacuum level energies. 
+
+    If you are processing data for folder structures generated with 
+    `generation` make sure you use `convergence.parse_fols` function. This 
+    function is for parsing full sets of information from the output of 
+    production run calculations. 
+
+    The folder structure for parsing of data is fairly flexible and can be: 
+    1. automatically parsed if `parse_hkl=True` - the function searches for 
+    folders with names three digits long in cwd (default)
+        e.g. it finds folders cwd/100 and cwd/010 that correspond to Miller 
+        indices (1,0,0) and (0,1,0)
+    2. automatically parsed from a specific working directory if `path_to_fols`
+    is specified
+    3. manually specified using `hkl_dict`, where the Miller index is mapped 
+    directly to the path to where the files are. If you are only interested in 
+    the specified folders, do not forget to change `parse_hkl=False`.
+        e.g. hkl_dict = {(0,1,1): 'path/to/001/files/', 
+                         (2,0,1): 'path/to/201/files/'}
+    4. automatically parsed from cwd or a specific working directory in addition 
+    to a defined `hkl_dict`
+
+    Each of the folders must contain POSCAR and vasprun.xml files and optionally 
+    LOCPOT (or potential.csv) and OUTCAR files if vacuum or core energy are 
+    parsed. 
 
     The function returns None by default and saves the DataFrame to a csv file. 
     Optionally, it can return the DataFrame. 
 
     Args:
         bulk_per_atom (`float`): Bulk energy per atom in eV per atom. 
-        hkl_dict (`dict`, optional): dictionary of tuples of Miller indices 
-            and the folders the calculations relating to them are in. Defaults 
-            to ``None``. 
-            E.g. {(1,-1,2): '1-12'}
         parse_hkl (`bool`, optional): If ``True`` the script parses the names   
             of the folders to get the Miller indices. Defaults to ``True``.
-        path_to_fols (`str`, optional): Path to where the hkl folders are. 
-            Defaults to None which searches in cwd. 
+        path_to_fols (`str`, optional): Path to where surfaxe should look for 
+            the hkl folders are. Defaults to None which searches in cwd.     
+        hkl_dict (`dict`, optional): dictionary of tuples of Miller indices 
+            and paths to the folders the relevant outputs. Defaults to ``None``. 
+            E.g. If the outputs of the calculations on the (1,-1,2) slab are in 
+            folder ``path/to/folder/112``, the ``hkl_dict`` would be: 
+            {(1,-1,2): 'path/to/folder/112'}
         parse_core_energy (`bool`, optional): If True the scripts attempts to 
             parse core energies from a supplied OUTCAR. Defaults to ``False``. 
         core_atom (`str`, optional): The symbol of atom the core state energy 
@@ -56,9 +80,9 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     # Check if hkl_dict is correctly set up 
     if hkl_dict: 
         for key, value in hkl_dict.items(): 
-            if isinstance(key, tuple): 
+            if not isinstance(key, tuple): 
                 raise TypeError('The keys supplied to hkl_dict are not tuples.')
-            if isinstance(value, str): 
+            if not isinstance(value, str): 
                 raise TypeError('The values supplied to hkl_dict are not strings.')
     
     cwd = os.getcwd()
@@ -69,10 +93,10 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     if parse_hkl:
         if not hkl_dict: 
             hkl_dict = {}
-        for root, fols, files in os.walk(cwd):
-            for fol in fols: 
-                if fol is not root and len(fol)==3 and fol.isdigit():
-                    hkl_dict[tuple(map(int, fol))] = fol
+        for fol in os.listdir(cwd):
+            if os.path.isdir(os.path.join(cwd, fol)) and len(fol)==3 and\
+                fol.isdigit():
+                hkl_dict[tuple(map(int, fol))] = os.path.join(cwd, fol)
 
     # Set up additional arguments for get_core_energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
@@ -80,53 +104,61 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
+    get_core=False
+    if parse_core_energy: 
+        if core_atom is not None and bulk_nn is not None:
+            get_core=True 
+        else: 
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn(('Core atom or bulk nearest neighbours were not '
+            'supplied. Core energy will not be parsed.'))
 
     # For each miller index, check if the folders specified are there and 
     # parse them for data
     df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
 
-    for hkl_tuple, hkl_string in hkl_dict.items(): 
-        for root, fols, files in os.walk(cwd): 
-            for fol in fols: 
-                if fol == hkl_string:
-                    path = os.path.join(root,fol)
-                    vsp_path = '{}/vasprun.xml'.format(path)
-                    vsp = Vasprun(vsp_path, parse_potcar_file=False)
-                    slab = slab_from_file(vsp.final_structure,hkl_tuple)
-                    vsp_dict = vsp.as_dict()
-                    
-                    df_list.append({
-                        'hkl': hkl_string, 
-                        'hkl_tuple': hkl_tuple,
-                        'area': slab.surface_area, 
-                        'atoms': vsp_dict['nsites'], 
-                        'functional': vsp_dict['run_type'], 
-                        'encut': vsp_dict['input']['incar']['ENCUT'], 
-                        'algo': vsp_dict['input']['incar']['ALGO'],
-                        'ismear': vsp_dict['input']['parameters']['ISMEAR'],
-                        'sigma': vsp_dict['input']['parameters']['SIGMA'],
-                        'kpoints': vsp_dict['input']['kpoints']['kpoints'],
-                        'bandgap': vsp_dict['output']['bandgap'],  
-                        'slab_energy': vsp_dict['output']['final_energy'],
-                        'slab_per_atom': vsp_dict['output']['final_energy_per_atom']
-                    })
+    for hkl_tuple, path in hkl_dict.items(): 
+        vsp_path = '{}/vasprun.xml'.format(path)
+        psc_path = '{}/POSCAR'.format(path)
+        vsp = Vasprun(vsp_path, parse_potcar_file=False)
+        slab = slab_from_file(psc_path,hkl_tuple)
+        vsp_dict = vsp.as_dict()
+        
+        df_list.append({
+            'hkl': ''.join(map(str, hkl_tuple)), 
+            'hkl_tuple': hkl_tuple,
+            'area': slab.surface_area, 
+            'atoms': vsp_dict['nsites'], 
+            'functional': vsp_dict['run_type'], 
+            'encut': vsp_dict['input']['incar']['ENCUT'], 
+            'algo': vsp_dict['input']['incar']['ALGO'],
+            'ismear': vsp_dict['input']['parameters']['ISMEAR'],
+            'sigma': vsp_dict['input']['parameters']['SIGMA'],
+            'kpoints': vsp_dict['input']['kpoints']['kpoints'],
+            'bandgap': vsp_dict['output']['bandgap'],  
+            'slab_energy': vsp_dict['output']['final_energy'],
+            'slab_per_atom': vsp_dict['output']['final_energy_per_atom']
+        })
 
-                    if parse_vacuum: 
-                        electrostatic_list.append(
-                            vacuum(path)
-                        )
-                                                
-                    if parse_core_energy: 
-                        otc_path='{}/OUTCAR'.format(path)
-                        core_energy_list.append(
-                            core_energy(core_atom, bulk_nn, outcar=otc_path, 
-                            structure=slab, **get_core_energy_kwargs)
-                            )      
+        if parse_vacuum: 
+            electrostatic_list.append(
+                vacuum(path)
+            )
+                                    
+        if get_core: 
+            otc_path='{}/OUTCAR'.format(path)
+            core_energy_list.append(
+                core_energy(core_atom, bulk_nn, outcar=otc_path, 
+                structure=psc_path, **get_core_energy_kwargs)
+                )      
                         
     df = pd.DataFrame(df_list)
     df['surface_energy'] = (
         (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
-        ) 
+        )
+    df['surface_energy_ev'] = (
+        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area'])
+    )
 
     if electrostatic_list: 
         df['vacuum_potential'] = electrostatic_list
@@ -136,6 +168,8 @@ save_csv=True, csv_fname='data.csv', **kwargs):
 
     # Save to csv or return DataFrame
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:
         return df
@@ -149,8 +183,8 @@ def vacuum(path=None):
     Args:
         path (`str`, optional): the path to potential.csv or LOCPOT files. 
             Can be the path to a directory in which either file is or you can 
-            specify a path that must end in .csv or LOCPOT. Defaults to looking 
-            for potential.csv or LOCPOT in cwd. 
+            specify a path that must end in .csv or contain LOCPOT. Defaults to 
+            looking for potential.csv or LOCPOT in cwd. 
 
     Returns:
         Maximum value of planar potential
@@ -162,7 +196,7 @@ def vacuum(path=None):
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
     
-    elif type(path)==str and path.endswith('LOCPOT'): 
+    elif type(path)==str and 'LOCPOT' in path: 
         lpt = Locpot.from_file(path)
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
@@ -186,8 +220,8 @@ def vacuum(path=None):
         else: 
             max_potential = np.nan
             warnings.formatwarning = _custom_formatwarning
-            warnings.warn('Vacuum electrostatic potential was not parsed - '
-            'no LOCPOT or potential.csv files were provided.')
+            warnings.warn('Vacuum electrostatic potential was not parsed from {} '
+            'no LOCPOT or potential.csv files were provided.'.format(path))
 
     return max_potential
         
@@ -238,6 +272,7 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     else:
         struc = structure
     struc = oxidation_states(struc, ox_states)
+    bonded_struc = nn_method.get_bonded_structure(struc)
     bulk_nn.sort()
     bulk_nn_str = ' '.join(bulk_nn)
     
@@ -246,10 +281,10 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     list_of_dicts = [] 
     for n, pos in enumerate(struc): 
         if pos.specie.symbol == core_atom: 
-            nn_info = nn_method.get_nn_info(struc, n)
+            nn_info = bonded_struc.get_connected_sites(n)
             slab_nn_list = []
             for d in nn_info: 
-                nn = d.get('site').specie.symbol
+                nn = d.site.specie.symbol
                 slab_nn_list.append(nn)
             slab_nn_list.sort()
             slab_nn = ' '.join(slab_nn_list)
@@ -266,12 +301,22 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     df = pd.DataFrame(list_of_dicts)
     low, high = df['c_coord'].quantile([0.25,0.75])
     df = df.query('@low<c_coord<@high and nn==@bulk_nn_str')
-    atom = df['atom'].quantile(interpolation='nearest')        
+    atom = df['atom'].quantile(interpolation='nearest')  
 
-    # Read OUTCAR, get the core state energy 
-    otc = Outcar(outcar)
-    core_energy_dict = otc.read_core_state_eigen()
-    core_energy = core_energy_dict[atom][orbital][-1]
+    # Check if the df from query isn't empty - if it is it returns
+    # a nan as core energy, otherwise it attempts to extract from OUTCAR 
+    if type(atom) is np.float64: 
+        core_energy = np.nan 
+    else:       
+        # Read OUTCAR, get the core state energy 
+        otc = Outcar(outcar)
+        core_energy_dict = otc.read_core_state_eigen()
+        try: 
+            core_energy = core_energy_dict[atom][orbital][-1]
+        except IndexError: 
+            core_energy = np.nan
+
+
 
     return core_energy
 

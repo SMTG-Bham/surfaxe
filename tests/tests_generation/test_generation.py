@@ -1,8 +1,9 @@
 import unittest
 import warnings
 import os
+import shutil
 from pathlib import Path
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.generation import get_slabs_max_index, get_slabs_single_hkl
 
@@ -93,10 +94,14 @@ class GetOneTestCase(unittest.TestCase):
         self.assertEqual(type(sym_false[0]['slab']), Slab)
     
     def test_save_to_file(self): 
-        ytos_slabs = ytos_slabs = get_slabs_single_hkl(structure=self.ytos, 
+        ytos_slabs = get_slabs_single_hkl(structure=self.ytos, 
         hkl=(0,0,1), thicknesses=[10], vacuums=[10, 20])
         
         self.assertIsNone(ytos_slabs)
+        
+        # Check the files created 
+        self.assertEqual(len(os.listdir('Y4Ti4S4O10')), 8)
+        self.assertIn('POSCAR_001_10_10_15.vasp', os.listdir('Y4Ti4S4O10'))
 
-    # add how to actually check if folders are made, check if fmt and poscar 
-    # agrs work
+        # Clean up - get rid of directory created 
+        shutil.rmtree('Y4Ti4S4O10')

@@ -1,0 +1,6 @@
+structure: None # Filename of structure file, str 
+bond: None # List of atoms in the bond, str
+save_csv: True # Save csv or print to terminal
+csv_fname: bond_analysis.csv # Name of the csv file, str
+save_plt: True # Plots bond legths wrt fractional coords 
+plt_fname: bond_analysis.png # Name of the plot, str 

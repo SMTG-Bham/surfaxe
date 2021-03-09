@@ -1,0 +1,6 @@
+start: None # Filename of initial structure file, str 
+elements: None # List of atoms in the structure, list 
+end: None # Filename of final structure if comparing, str
+ox_states: None # Add oxidation states to the bulk structure by guess by default, can also add as dict or list 
+save_csv: True # Save csv or print to terminal
+csv_fname: nn_data.csv # Name of the csv file, str

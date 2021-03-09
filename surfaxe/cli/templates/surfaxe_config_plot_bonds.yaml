@@ -1,0 +1,7 @@
+bond: None # List of atoms in the bond, str
+filename: None # Filename of data file, str 
+width: 6 # Width of figure in inches, float
+height: 5 # Height of figure in inches, float
+dpi: 300 # dots per inch, int 
+color: None # color of the marker - if using hex make sure to put '' around it, str
+plt_fname: bond_analysis.png # Name of the plot, str 

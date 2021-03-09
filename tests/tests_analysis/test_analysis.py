@@ -2,7 +2,7 @@ import unittest
 import warnings
 import os
 from pathlib import Path
-from pymatgen import Structure
+from pymatgen.core import Structure
 from surfaxe.analysis import simple_nn, complex_nn, cart_displacements, \
 bond_analysis, electrostatic_potential
 
@@ -30,17 +30,17 @@ class NNTestCase(unittest.TestCase):
     def test_complex_nn(self):
         coord_data = complex_nn(start=self.lta, 
            elements=['La', 'Ag', 'Ti', 'O', 'S'], 
-           cut_off_dict={('Ag','S'): 3.09, ('La','O'): 2.91,
-                          ('La','S'): 3.559, ('Ti','O'): 2.35,
-                          ('Ti','S'): 2.91,}, save_csv=False)
+           cut_off_dict={('Ag+','S2-'): 3.09, ('La3+','O2-'): 2.91,
+                          ('La3+','S2-'): 3.559, ('Ti4+','O2-'): 2.35,
+                          ('Ti4+','S2-'): 2.91,}, save_csv=False)
         self.assertEqual(coord_data.shape, (240,4))
         self.assertEqual(coord_data['nn_start'][52], 'O O S S S')
 
         end_data = complex_nn(start=self.lta, 
            elements=['La', 'Ag', 'Ti', 'O', 'S'], 
-           cut_off_dict={('Ag','S'): 3.09, ('La','O'): 2.91,
-                          ('La','S'): 3.559, ('Ti','O'): 2.35,
-                          ('Ti','S'): 2.91,}, 
+           cut_off_dict={('Ag+','S2-'): 3.09, ('La3+','O2-'): 2.91,
+                          ('La3+','S2-'): 3.559, ('Ti4+','O2-'): 2.35,
+                          ('Ti4+','S2-'): 2.91,}, 
            save_csv=False, end=self.lta_end)
         self.assertEqual(end_data.shape, (240, 6))
         self.assertNotEqual(end_data['nn_start'][101], end_data['nn_end'][101])
@@ -66,7 +66,7 @@ class BondAnalysisTestCase(unittest.TestCase):
 
     def test_bond_analysis(self): 
         bonds_data = bond_analysis(structure=self.structure, 
-        bonds = [['Sn', 'O']], save_csv=False, save_plt=False)
+        bond = ['Sn', 'O'], save_csv=False, save_plt=False)
         self.assertEqual(bonds_data.shape, (30,3))
 
 class ElectrostaticPotentialTestCase(unittest.TestCase): 

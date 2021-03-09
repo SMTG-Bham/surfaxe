@@ -1,9 +1,8 @@
 # Pymatgen
-from pymatgen import Structure, Element, Specie
+from pymatgen.core import Structure, Element, Lattice
 from pymatgen.core.structure import SiteCollection
-from pymatgen.core.lattice import Lattice
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
-from pymatgen.io.vasp.outputs import Locpot, VolumetricData
+from pymatgen.io.vasp.outputs import Locpot
 
 # Misc 
 import os
@@ -11,7 +10,6 @@ import math
 import numpy as np
 import pandas as pd
 import warnings
-warnings.filterwarnings('once')
 
 # Matplotlib
 import matplotlib as mpl
@@ -84,9 +82,9 @@ txt_fname='cart_displacements.txt'):
     else: 
         return df
 
-def bond_analysis(structure, bonds, nn_method=CrystalNN(), 
-ox_states=None, save_csv=True, csv_fname='bond_analysis.csv', 
-save_plt=True, plt_fname='bond_analysis.png', dpi=300):
+def bond_analysis(structure, bond, nn_method=CrystalNN(), ox_states=None, 
+save_csv=True, csv_fname='bond_analysis.csv', save_plt=True, 
+plt_fname='bond_analysis.png', **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
     the nearest neighbour method on the bulk structure before using it on slabs.
@@ -94,11 +92,10 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
             formats.
-        bonds (`list` of `lists`): List of bonds to compare in any order
-            e.g. ``[['Y', 'O'], ['Ti', 'S']]``
+        bond (`list`): Bond to analyse e.g. ``['Y', 'O']``
         nn_method (`class`, optional): The coordination number prediction 
             algorithm used. Because the ``nn_method`` is a class, the class 
-            needs to be imported from pymatgen.analysis.local_env before it 
+            needs to be imported from ``pymatgen.analysis.local_env`` before it 
             can be instantiated here. Defaults to ``CrystalNN()``.
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
@@ -122,8 +119,7 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
         save_plt (`bool`, optional): Make and save the bond analysis plot. 
             Defaults to ``True``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'bond_analysis.png'``.
-        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
+            ``'bond_analysis.png'``. 
 
     Returns:
         DataFrame with the c coordinate of the first atom and bond length
@@ -131,32 +127,37 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
     struc = Structure.from_file(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
+    if len(bond) > 2: 
+        warnings.warn('Bond with more than two elements supplied. '
+        'Only the first two elements will be treated as a bond.')
+
     # Iterates through the structure, looking for pairs of bonded atoms. If the
     # sites match, the bond distance is calculated and passed to a dataframe
     bonds_info = []
     for n, pos in enumerate(struc):
-        for atom1, atom2 in bonds:
-            if pos.specie.symbol == atom1:
-                nearest_neighbours = nn_method.get_nn_info(struc, n)
-                matched_sites = []
-                for d in nearest_neighbours:
-                    if d.get('site').specie.symbol == atom2:
-                        matched_sites.append(d)
-                bond_distances = [
-                    struc.get_distance(n,x['site_index']) for x in matched_sites
-                ]
-                bonds_info.append({
-                    '{}_index'.format(atom1): n+1,
-                    '{}_c_coord'.format(atom1): pos.c,
-                    '{}-{}_bond_distance'.format(atom1,atom2): np.mean(bond_distances)
-                })
+        if pos.specie.symbol == bond[0]:
+            nearest_neighbours = nn_method.get_nn_info(struc, n)
+            matched_sites = []
+            for d in nearest_neighbours:
+                if d.get('site').specie.symbol == bond[1]:
+                    matched_sites.append(d)
+            bond_distances = [
+                struc.get_distance(n,x['site_index']) for x in matched_sites
+            ]
+            bonds_info.append({
+                '{}_index'.format(bond[0]): n+1,
+                '{}_c_coord'.format(bond[0]): pos.c,
+                '{}-{}_bond_distance'.format(bond[0],bond[1]): np.mean(bond_distances)
+            })
 
     df = pd.DataFrame(bonds_info)
     
     # Save plot and csv, or return the DataFrame 
     if save_plt: 
-        plot_bond_analysis(bonds, df=df, plt_fname=plt_fname, dpi=dpi)
+        plot_bond_analysis(bond, df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
@@ -164,7 +165,7 @@ save_plt=True, plt_fname='bond_analysis.png', dpi=300):
 
 def electrostatic_potential(lattice_vector, locpot='./LOCPOT', axis=2,
 save_csv=True, csv_fname='potential.csv', save_plt=True, 
-plt_fname='potential.png', dpi=300):
+plt_fname='potential.png', **kwargs):
     """
     Reads LOCPOT to get the planar and macroscopic potential in specified 
     direction. 
@@ -183,7 +184,6 @@ plt_fname='potential.png', dpi=300):
             potential. Defaults to ``True``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'potential.png'``.
-        dpi (`int`, optional): Dots per inch. Defaults to ``300``. 
 
     Returns:
         DataFrame
@@ -219,8 +219,10 @@ plt_fname='potential.png', dpi=300):
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
-        plot_electrostatic_potential(df=df, plt_fname=plt_fname, dpi=dpi)
+        plot_electrostatic_potential(df=df, plt_fname=plt_fname, **kwargs)
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
@@ -282,24 +284,24 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc.add_site_property('', site_labels)
     
     # Add oxidation states and get bonded structure
-    start_struc = oxidation_states(start_struc)
+    start_struc = oxidation_states(start_struc, ox_states)
     bonded_start = nn_method.get_bonded_structure(start_struc)
 
     if end: 
         end_struc = Structure.from_file(end)
-        end_struc = oxidation_states(end_struc)
+        end_struc = oxidation_states(end_struc, ox_states)
         bonded_end = nn_method.get_bonded_structure(end_struc)
     
     # Iterate through structure, evaluate the coordination number and the 
-    # nearest neighbours species for start and end structures, collects the
+    # nearest neighbours specie for start and end structures, collects the
     # symbol and index of the site (atom) evaluated and its nearest neighbours 
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
-        coord_start = nn_method.get_nn_info(start_struc, n)
+        coord_start = bonded_start.get_connected_sites(n)
         specie_list = []
         for d in coord_start: 
-            spc = d.get('site').specie.symbol 
+            spc = d.site.specie.symbol 
             specie_list.append(spc)
         specie_list.sort()
         site_nn_start = ' '.join(specie_list)
@@ -307,10 +309,10 @@ save_csv=True, csv_fname='nn_data.csv'):
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
-            coord_end = nn_method.get_nn_info(end_struc, n)
+            coord_end = bonded_end.get_connected_sites(n)
             specie_list = []
             for d in coord_end: 
-                spc = d.get('site').specie.symbol 
+                spc = d.site.specie.symbol 
                 specie_list.append(spc)
             specie_list.sort()
             site_nn_end = ' '.join(specie_list)
@@ -326,6 +328,8 @@ save_csv=True, csv_fname='nn_data.csv'):
 
     # Save the csv file or return as dataframe 
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df
@@ -345,9 +349,9 @@ save_csv=True, csv_fname='nn_data.csv'):
         start (`str`): filename of structure, takes all pymatgen-supported formats.
         elements (`list`): List of elements in the structure in any order \n 
             e.g. ``['Y', 'Ti', 'O', 'S']`` 
-        cut_off_dict (`dict`): Dictionary of bond lengths
-            e.g. ``{('Ag','S'): 3.09, ('La', 'O'): 2.91, ('La', 'S'): 3.36,``
-            ``('Ti', 'O'): 2.35, ('Ti', 'S'): 2.75, ('Cu', 'S'): 2.76}``
+        cut_off_dict (`dict`): Dictionary of bond lengths. The bonds should be 
+            specified with the oxidation states\n
+            e.g. ``{('Bi3+', 'O2-'): 2.46, ('V5+', 'O2-'): 1.73}``
         end (`str`, optional): filename of structure to analyse, use if 
             comparing initial and final structures. The structures must have 
             same constituent atoms and number of sites. Defaults to ``None``. 
@@ -363,8 +367,7 @@ save_csv=True, csv_fname='nn_data.csv'):
                     
                     e.g. ``{'Fe': 3, 'O':-2}``
             
-            * if ``None``: No oxidation states are added - different from other
-              functions in ``surfaxe``. 
+            * if ``None``:  The oxidation states are added by guess.  
 
             Defaults to ``None`` 
         save_csv (`bool`, optional): Save to a csv file. Defaults to ``True``.
@@ -387,8 +390,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc.add_site_property('', site_labels)
 
     # Add oxidation states 
-    if ox_states is not None:
-        start_struc = oxidation_states(start_struc, ox_states=ox_states)
+    start_struc = oxidation_states(start_struc, ox_states=ox_states)
 
     # Instantiate the nearest neighbour algorithm and get bonded structure
     codnn = CutOffDictNN(cut_off_dict=cut_off_dict)
@@ -397,20 +399,19 @@ save_csv=True, csv_fname='nn_data.csv'):
     # Instantiate the end structure if provided
     if end: 
         end_struc = Structure.from_file(end)
-        if ox_states is not None: 
-            end_struc = oxidation_states(end_struc, ox_states=ox_states)
+        end_struc = oxidation_states(end_struc, ox_states=ox_states)
         bonded_end = codnn.get_bonded_structure(end_struc)
 
     # Iterate through structure, evaluate the coordination number and the 
-    # nearest neighbours species for start and end structures, collects the
+    # nearest neighbours specie for start and end structures, collects the
     # symbol and index of the site (atom) evaluated and its nearest neighbours 
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
-        coord_start = codnn.get_nn_info(start_struc, n)
+        coord_start = bonded_start.get_connected_sites(n)
         specie_list = []
         for d in coord_start: 
-            spc = d.get('site').specie.symbol 
+            spc = d.site.specie.symbol 
             specie_list.append(spc)
         specie_list.sort()
         site_nn_start = ' '.join(specie_list)
@@ -418,10 +419,10 @@ save_csv=True, csv_fname='nn_data.csv'):
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
-            coord_end = codnn.get_nn_info(end_struc, n)
+            coord_end = bonded_end.get_connected_sites(n)
             specie_list = []
             for d in coord_end: 
-                spc = d.get('site').specie.symbol 
+                spc = d.site.specie.symbol 
                 specie_list.append(spc)
             specie_list.sort()
             site_nn_end = ' '.join(specie_list)
@@ -437,6 +438,8 @@ save_csv=True, csv_fname='nn_data.csv'):
     
     # Save the csv file or return as dataframe 
     if save_csv: 
+        if not csv_fname.endswith('.csv'):
+            csv_fname += '.csv'
         df.to_csv(csv_fname, header=True, index=False)
     else:    
         return df
