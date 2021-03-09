@@ -53,7 +53,7 @@ txt_fname='cart_displacements.txt'):
     site_labels = []
 
     for site in start_struc:
-        symbol = site.species.symbol
+        symbol = site.specie.symbol
         site_labels.append((symbol,el_dict[symbol]))
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
@@ -135,11 +135,11 @@ plt_fname='bond_analysis.png', **kwargs):
     # sites match, the bond distance is calculated and passed to a dataframe
     bonds_info = []
     for n, pos in enumerate(struc):
-        if pos.species.symbol == bond[0]:
+        if pos.specie.symbol == bond[0]:
             nearest_neighbours = nn_method.get_nn_info(struc, n)
             matched_sites = []
             for d in nearest_neighbours:
-                if d.get('site').species.symbol == bond[1]:
+                if d.get('site').specie.symbol == bond[1]:
                     matched_sites.append(d)
             bond_distances = [
                 struc.get_distance(n,x['site_index']) for x in matched_sites
@@ -278,7 +278,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     el_dict = {i : 1 for i in elements}
     site_labels = []
     for site in start_struc:
-        symbol = site.species.symbol
+        symbol = site.specie.symbol
         site_labels.append((symbol,el_dict[symbol]))
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
@@ -293,29 +293,29 @@ save_csv=True, csv_fname='nn_data.csv'):
         bonded_end = nn_method.get_bonded_structure(end_struc)
     
     # Iterate through structure, evaluate the coordination number and the 
-    # nearest neighbours species for start and end structures, collects the
+    # nearest neighbours specie for start and end structures, collects the
     # symbol and index of the site (atom) evaluated and its nearest neighbours 
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
         coord_start = bonded_start.get_connected_sites(n)
-        species_list = []
+        specie_list = []
         for d in coord_start: 
-            spc = d.site.species.symbol 
-            species_list.append(spc)
-        species_list.sort()
-        site_nn_start = ' '.join(species_list)
+            spc = d.site.specie.symbol 
+            specie_list.append(spc)
+        specie_list.sort()
+        site_nn_start = ' '.join(specie_list)
         label = site_labels[n]
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
             coord_end = bonded_end.get_connected_sites(n)
-            species_list = []
+            specie_list = []
             for d in coord_end: 
-                spc = d.site.species.symbol 
-                species_list.append(spc)
-            species_list.sort()
-            site_nn_end = ' '.join(species_list)
+                spc = d.site.specie.symbol 
+                specie_list.append(spc)
+            specie_list.sort()
+            site_nn_end = ' '.join(specie_list)
             df_list.append({'site': n+1, 'atom': label, 'cn_start': cn_start,
             'nn_start': site_nn_start, 'cn_end': cn_end, 'nn_end': site_nn_end})
 
@@ -384,7 +384,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     el_dict = {i : 1 for i in elements}
     site_labels = []
     for site in start_struc:
-        symbol = site.species.symbol
+        symbol = site.specie.symbol
         site_labels.append((symbol,el_dict[symbol]))
         el_dict[symbol] +=1
     start_struc.add_site_property('', site_labels)
@@ -403,29 +403,29 @@ save_csv=True, csv_fname='nn_data.csv'):
         bonded_end = codnn.get_bonded_structure(end_struc)
 
     # Iterate through structure, evaluate the coordination number and the 
-    # nearest neighbours species for start and end structures, collects the
+    # nearest neighbours specie for start and end structures, collects the
     # symbol and index of the site (atom) evaluated and its nearest neighbours 
     df_list = []
     for n, site in enumerate(start_struc):
         cn_start = bonded_start.get_coordination_of_site(n)
         coord_start = bonded_start.get_connected_sites(n)
-        species_list = []
+        specie_list = []
         for d in coord_start: 
-            spc = d.site.species.symbol 
-            species_list.append(spc)
-        species_list.sort()
-        site_nn_start = ' '.join(species_list)
+            spc = d.site.specie.symbol 
+            specie_list.append(spc)
+        specie_list.sort()
+        site_nn_start = ' '.join(specie_list)
         label = site_labels[n]
 
         if end: 
             cn_end = bonded_end.get_coordination_of_site(n)
             coord_end = bonded_end.get_connected_sites(n)
-            species_list = []
+            specie_list = []
             for d in coord_end: 
-                spc = d.site.species.symbol 
-                species_list.append(spc)
-            species_list.sort()
-            site_nn_end = ' '.join(species_list)
+                spc = d.site.specie.symbol 
+                specie_list.append(spc)
+            specie_list.sort()
+            site_nn_end = ' '.join(specie_list)
             df_list.append({'site': n+1, 'atom': label, 'cn start': cn_start,
             'nn_start': site_nn_start, 'cn_end': cn_end, 'nn_end': site_nn_end})
 
