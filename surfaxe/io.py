@@ -200,8 +200,7 @@ color=None, plt_fname='bond_analysis.png'):
         color (`str`, optional): Color of marker. Defaults to ``None`` which 
             defaults to surfaxe base style
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'bond_analysis.png'``. If name with no format suffix is supplied,  
-            the format defaults to png.
+            ``'bond_analysis.png'``. 
          
     Returns:
         None, saves plot to bond_analysis.png
@@ -216,10 +215,7 @@ color=None, plt_fname='bond_analysis.png'):
         warnings.warn('Data not supplied')
 
     if color is None:
-        color = '#FF596A'
-    
-    if not plt_fname.endswith('.png'):
-        plt_fname += '.png'
+        color = '#F95F6E'
 
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
     x = df['{}_c_coord'.format(bond[0])]
@@ -250,8 +246,7 @@ height=5, colors=None, plt_fname='potential.png'):
             potential plots. Defaults to ``None``, which defaults to surfaxe 
             base style. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
-            ``'potential.png'``. If name with no format suffix is supplied,  
-            the format defaults to png.
+            ``'potential.png'``.
     
     Returns: 
         None, saves plot to potential.png
@@ -265,10 +260,7 @@ height=5, colors=None, plt_fname='potential.png'):
         warnings.warn('Data not supplied')
 
     if colors==None or len(colors)<2: 
-        colors = ['#FFADB6', '#FF596A']
-    
-    if not plt_fname.endswith('.png'):
-        plt_fname += '.png'
+        colors = ['#FE8995', '#E6505F']
 
     # Plot both planar and macroscopic, save figure
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
@@ -304,14 +296,11 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
         plt_fname (`str`, optional): The name of the plot. Defaults to 
-            ``surface_energy.png``. If name with no format suffix is supplied,  
-            the format defaults to png.
+            ``surface_energy.png``.
         
     Returns:
         None, saves surface_energy.png to file
     """
-    if not plt_fname.endswith('.png'):
-        plt_fname += '.png'
     
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 
@@ -416,8 +405,8 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
     else: 
         # Make the colour cycler with custom colours
         if colors is None:
-            custom_cycler = (cycler(color=['#FFADB6','#FF596A','#CC4755',
-                '#802D35','#E6505F','#40161A','#CC858C']))
+            custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
+                '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
         else: 
             custom_cycler = (cycler(color=colors))
 
@@ -531,15 +520,11 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
             Defaults to False.
         cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
         plt_fname (`str`, optional): The name of the plot. Defaults to 
-            ``energy_per_atom.png``. If name with no format suffix is supplied,  
-            the format defaults to png.
+            ``energy_per_atom.png``. 
 
     Returns:
         None, saves energy_per_atom.png
     """
-    if not plt_fname.endswith('.png'):
-        plt_fname += '.png'
-
     indices, vals, times, dfs, dfs_times = ([] for i in range(5))
 
     # Group the values by termination slab index, create df for time and
@@ -646,8 +631,8 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
         
         # Make the colour cycler with custom colours
         if colors is None:
-            custom_cycler = (cycler(color=['#FFADB6','#FF596A','#CC4755',
-                '#802D35','#E6505F','#40161A','#CC858C']))
+            custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
+                '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
         else: 
             custom_cycler = (cycler(color=colors))
         
