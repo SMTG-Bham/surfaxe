@@ -22,9 +22,7 @@ def _get_parser():
         description="""Generates all unique slabs with specified maximum 
         Miller index, minimum slab and vacuum thicknesses. It includes all 
         combinations for multiple zero dipole symmetric terminations for the 
-        same Miller index. Always saves slabs to file. If no files are produced, 
-        check if system is non-centrosymmetric and use --no-sym flag if 
-        necessary."""
+        same Miller index. Always saves slabs to file."""
     )
 
     parser.add_argument('-s', '--structure',
