@@ -19,8 +19,6 @@ def _get_parser():
     parser.add_argument('-e', '--end', default='CONTCAR',
     help=('Filename of structure file in any format supported by pymatgen. '
     '(default: CONTCAR)'))
-    parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
-    help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('--max-disp', type=float, default=0.1, dest='max_disp', 
     help='The maximum displacement shown (default: 0.1)')
     parser.add_argument('--no-txt', default=True, action='store_false', 
@@ -46,9 +44,8 @@ def main():
             print(cd)
  
     else: 
-        cd = cart_displacements(args.start, args.end, args.atoms, 
-        max_disp=args.max_disp, save_txt=args.save_txt, 
-        txt_fname=args.txt_fname)
+        cd = cart_displacements(args.start, args.end, max_disp=args.max_disp, 
+        save_txt=args.save_txt, txt_fname=args.txt_fname)
         
         if args.save_txt: 
             print(cd)
