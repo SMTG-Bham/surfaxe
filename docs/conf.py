@@ -73,6 +73,7 @@ MOCK_MODULES = [
   'numpy',
   'pandas',
   'pymatgen',
+  'pymatgen.core',
   'pymatgen.core.surface',
   'pymatgen.io.vasp.sets',
   'matplotlib',
