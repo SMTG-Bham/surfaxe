@@ -331,7 +331,6 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
 
             for (index, val, time, df) in zip(indices, vals, times, dfs):
                 ax.set_yticks(list(range(len(df.index))))
-                ax.set_yticklabels(df.index)
                 ax.set_ylabel('Slab thickness / Å')
                 ax.set_xticks(list(range(len(df.columns))))
                 ax.set_xticklabels(df.columns)
@@ -421,7 +420,6 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
             fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
                 ax.set_prop_cycle(custom_cycler)
-                ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
                 ax.set_xlabel('Slab thickness / Å')
@@ -434,7 +432,6 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
             fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
                 ax[0].set_prop_cycle(custom_cycler)
-                ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
                 ax[0].set_xlabel('Slab thickness / Å')
@@ -443,7 +440,6 @@ height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
                 ax[0].legend(df.columns, title='Vacuum / Å')
                 
                 ax[1].set_prop_cycle(custom_cycler)
-                ax[1].set_title(index)
                 ax[1].set_xticks(list(range(len(df.index))))
                 ax[1].set_xticklabels(df.index)
                 ax[1].set_xlabel('Slab thickness / Å')
@@ -548,7 +544,6 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
             # separate ax, add the colourbar to each ax
             for index, val, time, df in zip(indices, vals, times, dfs):
                 ax.set_yticks(list(range(len(df.index))))
-                ax.set_yticklabels(df.index)
                 ax.set_ylabel('Slab thickness / Å')
                 ax.set_xticks(list(range(len(df.columns))))
                 ax.set_xticklabels(df.columns)
@@ -641,7 +636,6 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
             fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
                 ax.set_prop_cycle(custom_cycler)
-                ax.set_title(index)
                 ax.set_xticks(list(range(len(df.index))))
                 ax.set_xticklabels(df.index)
                 ax.set_xlabel('Slab thickness / Å')
@@ -654,7 +648,6 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
             fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
             for index, val, time, df in zip(indices, vals, times, dfs):
                 ax[0].set_prop_cycle(custom_cycler)
-                ax[0].set_title(index)
                 ax[0].set_xticks(list(range(len(df.index))))
                 ax[0].set_xticklabels(df.index)
                 ax[0].set_xlabel('Slab thickness / Å')
@@ -663,7 +656,6 @@ heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
                 ax[0].legend(df.columns, title='Vacuum / Å')
                 
                 ax[1].set_prop_cycle(custom_cycler)
-                ax[1].set_title(index)
                 ax[1].set_xticks(list(range(len(df.index))))
                 ax[1].set_xticklabels(df.index)
                 ax[1].set_xlabel('Slab thickness / Å')
