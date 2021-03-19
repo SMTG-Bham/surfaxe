@@ -1,9 +1,7 @@
-|         | Master | Develop |
-|---------|--------|---------|
-|CI Status| [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=master)](https://travis-ci.com/SMTG-UCL/surfaxe) | [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=develop)](https://travis-ci.com/SMTG-UCL/surfaxe)   |
-| [Docs](https://surfaxe.readthedocs.io/en/latest/) | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable)  | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
+[![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=master)](https://travis-ci.com/SMTG-UCL/surfaxe)  [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable) 
+ 
+<img src='example_data/figures/surfaxe_header_v2.png' alt='surfaxe logo header' width='600'/>
 
-# Surfaxe
 Calculating the surface properties of crystals from first principles typically introduces several extra parameters including slab thickness, vacuum size, Miller index, surface termination and more. 
 These factors all influence key properties of interest, making it a challenge to carry out simulations repeatably and draw reliable conclusions.
 Surfaxe is a Python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations. 
