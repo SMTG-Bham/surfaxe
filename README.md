@@ -4,8 +4,11 @@
 | [Docs](https://surfaxe.readthedocs.io/en/latest/) | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable)  | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
 
 # Surfaxe
+Calculating the surface properties of crystals from first principles typically introduces several extra parameters including slab thickness, vacuum size, Miller index, surface termination and more. 
+These factors all influence key properties of interest, making it a challenge to carry out simulations repeatably and draw reliable conclusions.
+Surfaxe is a Python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations. 
 
-Surfaxe is a python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations.
+The code is organised according to the best-practice workflow below:
 
 <img src="example_data/figures/surfaxe_workflow.png" alt="drawing" width="600"/>
 
@@ -40,7 +43,7 @@ See the [tutorials directory](tutorials/) for more examples.
 
 ## Installation
 
-Surfaxe is a Python 3 package and requires pymatgen and other standard scientific python packages.
+Surfaxe is a Python 3 package and requires pymatgen and other standard scientific Python packages.
 
 Recommended installation is to git clone and install with `pip`:
 
@@ -56,14 +59,14 @@ pip install --user .
 
 ### Quick start
 
-Surfaxe can be used via the command line and via python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
+Surfaxe can be used via the command line and via Python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
 
 We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package. 
 
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/develop?filepath=tutorials)
 
 ### Command line interface
-The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
+The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the Python API allows for more flexibility.
 
 Generation:
 
@@ -133,7 +136,7 @@ Surfaxe relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal st
 
 ## Detailed requirements
 
-Surfaxe is compatible with python 3.6+ and requires the following packages:
+Surfaxe is compatible with Python 3.6+ and requires the following packages:
 
 * [Pymatgen](https://pymatgen.org/)
 * [Pandas](https://pandas.pydata.org/)
