@@ -8,7 +8,7 @@ Surfaxe is a Python package for automating and simplifying density functional th
 
 The code is organised according to the best-practice workflow below:
 
-<img src="example_data/figures/surfaxe_workflow.png" alt="drawing" width="600"/>
+<img src="example_data/figures/surfaxe_workflow_v4.png" alt="drawing" width="600"/>
 
 The main features include:
 
