@@ -2,7 +2,7 @@
 Command Line Interface (CLI)
 ============================
 
-While :mod:`surfaxe` has a full python API (see our tutorials for example usage) it also has an
+While :mod:`surfaxe` has a full python API (see our tutorials page for example usage) it also has an
 intuitive command line interface (CLI). Below are some simple examples of what you can do with
 :mod:`surfaxe` at the command line. 
 
@@ -49,8 +49,11 @@ the :mod:`--help` or :mod:`-h` flag, e.g.:
     --width WIDTH         Width of the figure in inches (default: 6)
     --height HEIGHT       Height of the figure in inches (default: 5)
     --dpi DPI             Dots per inch (default: 300)
-    --yaml                Read all args from surfaxe_config.yaml file.
-                          Completely overrides any other flags set
+    --yaml YAML           Read all args from a yaml config file. Completely 
+                          overrides any other flags set
+
+The behaviour of default parameters of the functions is extensively documented in 
+the :mod:`surfaxe` python package section of the docs. 
 
 =======================
 Pre-processing commands
@@ -59,11 +62,11 @@ Pre-processing commands
 **surfaxe-gethkl**: Generates all unique slabs with a specific Miller index for a set of 
 slab and vacuum thicknesses. 
 
-Example: :mod:`surfaxe-gethkl -s bulk_structure.cif --hkl 1,0,0 -t 20 40 -v 20 40 -f` generates
-all slabs for the (1,0,0) direction for minimum slab and vacuum thicnesses of 20 and 40. 
+Example: :mod:`surfaxe-gethkl -s bulk_structure.cif --hkl 1,1,0 -t 20 40 -v 20 40 -f` generates
+all slabs for the (1,1,0) direction for minimum slab and vacuum thicknesses of 20 Å and 40 Å. 
 The :mod:`-f` option organises these into subdirectories with all required VASP input 
 files required to run singleshot calculations uisng default settings. It includes all combinations 
-for zero-dipole, symmetric terminations.
+for zero-dipole terminations with inversion symmetry. 
 The directory structure produced is:
 
 .. code::
@@ -81,12 +84,15 @@ The directory structure produced is:
 *Note: The hkl flag must be comma-separated with no spaces and the list of thicknesses and 
 vacuums must be space-separated.*
 
-**surfaxe-getall**: Similar to above but considers multiple Miller indices. A maximum hkl value must be 
-supplied as an integer.
+*Note: To use the :mod:`-f` option you must first set up the 
+`pymatgen POTCAR environment <https://pymatgen.org/installation.html#potcar-setup>`_.* 
 
-Example: :mod:`surfaxe-getall -s SnO2.cif --hkl 1 -t 20 40 -v 30` generates all slabs with Miller indices 
-up to a maximum value of 1, with minimum slab thicknesses of 20 and of 40, and minimum vacuum 
-thickness of 30. 
+**surfaxe-getall**: Similar to above but considers multiple Miller indices. A maximum hkl 
+value must be supplied as an integer.
+
+Example: :mod:`surfaxe-getall -s SnO2.cif --hkl 1 -t 20 40 -v 30` generates all slabs with Miller 
+indices up to a maximum value of 1, with minimum slab thicknesses of 20 Å and of 40 Å, and 
+minimum vacuum thickness of 30 Å. 
 
 ========================
 Post-processing commands
@@ -107,10 +113,9 @@ with **surfaxe-parsefols**.
 Analysis commands
 =================
 
-**surfaxe-potential**: Reads the local electrostatic potential file and plots the planar and macroscopic
-averages normal to the surface (inspired by PlanarAverage.py in  
-`Keith Butler's Macrodensity code <https://www.github.com/WMD-group/macrodensity>`_. Currently
-only the VASP LOCPOT file is supported as input. 
+**surfaxe-potential**: Reads the local electrostatic potential file and plots the planar 
+and macroscopic averages normal to the surface. Currently only the VASP LOCPOT 
+file is supported as input. 
 
 Example: :mod:`surfaxe-potential -l LOCPOT -v 11.5` produces a plot assuming a lattice vector of 
 11.5 Angstroms and saves the plot data to a csv file. 
@@ -133,6 +138,9 @@ functions. *simplenn* is faster, but less reliable for systems with more complex
 *complexnn* is more robust but requires a dictionary of cutoff bond lengths to be supplied
 for each pair of species. See the analysis tutorial for further explanation. 
 
+Example: :mod:`surfaxe-complexnn -s CONTCAR_bivo4 -b Bi3+ O2- 2.46 V5+ O2- 1.73` will 
+analyse the coordination of atoms in this BiVO4 slab and save them to a csv file. 
+
 =============
 Data commands
 =============
@@ -152,20 +160,21 @@ YAML input files
 ================
 
 Most CLI commands allow use of YAML input files containing all the arguments which cannot be 
-used in conjunction with other command line arguments. This is done by specifying 
+used in conjunction with other command line argument flags. This is done by specifying 
 the :mod:`--yaml` flag which overrides any other flags set in command line by loading the 
 :mod:`surfaxe_config.yaml` file.
 
-Sample YAML input files for each of the functions, with defaults and comments are in XX folder. 
+Sample YAML input files for each of the functions, with defaults and comments are in 
+the :mod:`surfaxe/cli/templates` folder. 
 All :mod:`**kwargs` of the main function can be passed in the YAML file.  
 
-Example: the above surfaxe-gethkl example could be easily customised further so that all VASP 
-input files are created with specific INCAR tags using the following YAML file: 
+Example: Generation of (1,0,1) CdTe slabs could easily customised so that all VASP 
+input files are created with specific INCAR tags using the following config.yaml file: 
 
 .. code-block:: yaml 
 
-    structure: bulk_structure.cif 
-    hkl: (0,0,1) 
+    structure: CdTe.cif 
+    hkl: (1,0,1) 
     thicknesses: [20, 40] 
     vacuums: [20, 40] 
     make_fols: True 
@@ -173,17 +182,16 @@ input files are created with specific INCAR tags using the following YAML file:
     max_size: 500 
     center_slab: True 
     ox_states: 
-      Sn: 4
-      O: -2
-    is_symmetric: True 
+      Cd: 2
+      Te: -2
     fmt: poscar 
     name: POSCAR 
     config_dict: PBE_config.json 
     user_incar_settings: 
-      ENCUT: 450
+      ENCUT: 460
       KPAR: 3
       LVHAR: True
     user_kpoints_settings: 
       reciprocal_density: 35
-    user_potcar_settings: 
-      Sn: Sn_d
+
+The slabs would then be generated using :mod:`surfaxe-gethkl --yaml config.yaml`
