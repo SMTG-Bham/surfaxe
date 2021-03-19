@@ -27,8 +27,6 @@ def _get_parser():
     parser.add_argument('-s', '--start', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
           '(default: POSCAR)'))
-    parser.add_argument('-a', '--atoms',default=None, nargs='+', type=str,
-    help='List of elements in the structure in any order e.g. La Ti O S Ag')
     parser.add_argument('-b', '--bonds', nargs='+',
     dest='cut_off_dict', help='Bond lengths e.g. Bi3+ O2- 2.46 V5+ O2- 1.73')
     parser.add_argument('-e', '--end', default=None,
@@ -81,7 +79,7 @@ def main():
 
             cutoff_dict = dict(zip(keys, values))
 
-        nn = complex_nn(args.start, args.atoms, cutoff_dict, end=args.end, 
+        nn = complex_nn(args.start, cutoff_dict, end=args.end, 
         ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname)
         
         if not args.save_csv: 

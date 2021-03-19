@@ -16,28 +16,26 @@ class NNTestCase(unittest.TestCase):
         self.lta_end = os.path.join(data_dir, 'CONTCAR_LTA_010')
 
     def test_simple_nn(self):
-        coord_data = simple_nn(start=self.SnO2, elements=['Sn','O'], 
+        coord_data = simple_nn(start=self.SnO2, 
         save_csv=False)
         self.assertEqual(coord_data.shape, (90,4))
         self.assertEqual(len(coord_data.loc[coord_data['cn_start'] == 3]), 58)
 
-        end_data = simple_nn(start=self.SnO2, elements=['Sn','O'], 
+        end_data = simple_nn(start=self.SnO2, 
         end=self.SnO2, save_csv=False)
 
         self.assertEqual(end_data.shape, (90, 6))
         self.assertEqual(end_data['nn_start'][4], end_data['nn_end'][4])
 
     def test_complex_nn(self):
-        coord_data = complex_nn(start=self.lta, 
-           elements=['La', 'Ag', 'Ti', 'O', 'S'], 
+        coord_data = complex_nn(start=self.lta,
            cut_off_dict={('Ag+','S2-'): 3.09, ('La3+','O2-'): 2.91,
                           ('La3+','S2-'): 3.559, ('Ti4+','O2-'): 2.35,
                           ('Ti4+','S2-'): 2.91,}, save_csv=False)
         self.assertEqual(coord_data.shape, (240,4))
         self.assertEqual(coord_data['nn_start'][52], 'O O S S S')
 
-        end_data = complex_nn(start=self.lta, 
-           elements=['La', 'Ag', 'Ti', 'O', 'S'], 
+        end_data = complex_nn(start=self.lta,
            cut_off_dict={('Ag+','S2-'): 3.09, ('La3+','O2-'): 2.91,
                           ('La3+','S2-'): 3.559, ('Ti4+','O2-'): 2.35,
                           ('Ti4+','S2-'): 2.91,}, 
@@ -54,8 +52,7 @@ class CartDisplacementsTestCase(unittest.TestCase):
     
     def test_cart_displacements(self): 
         cart_data = cart_displacements(start=self.start, 
-            end=self.end, elements=['La', 'Ti', 'Ag', 'S', 'O'],
-            save_txt=False)
+            end=self.end, save_txt=False)
         self.assertIsNotNone(cart_data)
         self.assertEqual(len(cart_data['site']), 192)
 

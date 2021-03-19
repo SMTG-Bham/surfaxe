@@ -34,11 +34,13 @@ class GetAllTestCase(unittest.TestCase):
     def test_non_centrosymmetric(self): 
         sym_true = get_slabs_max_index(structure=self.cdte, max_index=1, 
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
+        self.assertWarnsRegex(UserWarning, 'Inversion symmetry was not found '
+        'in the bulk structure, slabs produced will be non-centrosymmetric')
+
         sym_false = get_slabs_max_index(structure=self.cdte, max_index=1, 
         thicknesses=[10], vacuums=[10,20], save_slabs=False, is_symmetric=False)
-
-        self.assertEqual(len(sym_true), 0)
         self.assertEqual(len(sym_false), 2) 
+        self.assertEqual(len(sym_true), 2) 
     
     def test_no_structure(self): 
         self.assertRaises(FileNotFoundError, get_slabs_max_index, structure='waa', 
@@ -77,7 +79,9 @@ class GetOneTestCase(unittest.TestCase):
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
         self.assertEqual(ytos_no_slab, [])
-    
+        self.assertWarnsRegex(UserWarning, 'No zero dipole slabs found for '
+        'specified Miller index')
+
     def test_no_structure(self):
        
         self.assertRaises(FileNotFoundError, get_slabs_single_hkl, structure='waa', 
@@ -86,10 +90,13 @@ class GetOneTestCase(unittest.TestCase):
     def test_non_centrosymmetric(self): 
         sym_true = get_slabs_single_hkl(structure=self.cdte, hkl=(1,1,0),
         thicknesses=[10], vacuums=[10,20], save_slabs=False)
+        self.assertWarnsRegex(UserWarning, 'Inversion symmetry was not found '
+        'in the bulk structure, slabs produced will be non-centrosymmetric')
+        
         sym_false = get_slabs_single_hkl(structure=self.cdte, hkl=(1,1,0),
         thicknesses=[10], vacuums=[10,20], save_slabs=False, is_symmetric=False)
 
-        self.assertEqual(len(sym_true), 0)
+        self.assertEqual(len(sym_true), 2)
         self.assertEqual(len(sym_false), 2)
         self.assertEqual(type(sym_false[0]['slab']), Slab)
     

@@ -28,8 +28,6 @@ def _get_parser():
     parser.add_argument('-s', '--start', default='POSCAR',
     help=('Filename of structure file in any format supported by pymatgen '
           '(default: POSCAR'))
-    parser.add_argument('-a', '--atoms', default=None, nargs='+', type=str,
-    help='List of elements in the structure in any order e.g. Y Ti O S')
     parser.add_argument('-e', '--end', default=None,
     help=('Filename of structure file in any format supported by pymatgen. ' 
           'Use if comparing initial and final structures.'))
@@ -68,7 +66,7 @@ def main():
         else: 
             ox_states=None
 
-        nn = simple_nn(args.start, args.atoms, end=args.end, ox_states=ox_states, 
+        nn = simple_nn(args.start, end=args.end, ox_states=ox_states, 
         nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
     
         if args.save_csv==True: 

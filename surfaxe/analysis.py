@@ -20,7 +20,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from surfaxe.generation import oxidation_states
 from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
 
-def cart_displacements(start, end, elements, max_disp=0.1, save_txt=True,
+def cart_displacements(start, end, max_disp=0.1, save_txt=True,
 txt_fname='cart_displacements.txt'):
     """
     Produces a text file with all the magnitude of displacements of atoms
@@ -31,8 +31,6 @@ txt_fname='cart_displacements.txt'):
             supported by pymatgen.
         end (`str`): Filename of final structure file in any format supported
             by pymatgen.
-        elements (`list`): List of elements in the structure in any order 
-            e.g. ``['Y', 'Ti', 'O', 'S']`` 
         max_disp (`float`, optional): The maximum displacement shown. Defaults 
             to 0.1 Å.
         save_txt (`bool`, optional): Save the displacements to file. Defaults to 
@@ -49,7 +47,8 @@ txt_fname='cart_displacements.txt'):
     end_struc = Structure.from_file(end)
 
     # Add the site labels to the structure
-    el_dict = {i : 1 for i in elements}
+    els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
+    el_dict = {i : 1 for i in els}
     site_labels = []
 
     for site in start_struc:
@@ -227,7 +226,7 @@ plt_fname='potential.png', **kwargs):
     else: 
         return df
 
-def simple_nn(start, elements, end=None, ox_states=None, nn_method=CrystalNN(), 
+def simple_nn(start, end=None, ox_states=None, nn_method=CrystalNN(), 
 save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for simple structures. Before using on slabs
@@ -239,8 +238,6 @@ save_csv=True, csv_fname='nn_data.csv'):
     Args:
         start (`str`): Filename of structure file in any format supported by 
             pymatgen
-        elements (`list`): List of elements in the structure in any order 
-            e.g. ``['Y', 'Ti', 'O', 'S']`` 
         end (`str`, optional): Filename of structure file in any format 
             supported by pymatgen. Use if comparing initial and final structures. 
             The structures must have same constituent atoms and number of sites. 
@@ -275,7 +272,8 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc = Structure.from_file(start)
 
     # Add atom site labels to the structure
-    el_dict = {i : 1 for i in elements}
+    els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
+    el_dict = {i : 1 for i in els}
     site_labels = []
     for site in start_struc:
         symbol = site.specie.symbol
@@ -335,7 +333,7 @@ save_csv=True, csv_fname='nn_data.csv'):
         return df
 
 
-def complex_nn(start, elements, cut_off_dict, end=None, ox_states=None, 
+def complex_nn(start,  cut_off_dict, end=None, ox_states=None, 
 save_csv=True, csv_fname='nn_data.csv'):
     """
     Finds the nearest neighbours for more complex structures. Uses CutOffDictNN()
@@ -347,8 +345,6 @@ save_csv=True, csv_fname='nn_data.csv'):
 
     Args:
         start (`str`): filename of structure, takes all pymatgen-supported formats.
-        elements (`list`): List of elements in the structure in any order \n 
-            e.g. ``['Y', 'Ti', 'O', 'S']`` 
         cut_off_dict (`dict`): Dictionary of bond lengths. The bonds should be 
             specified with the oxidation states\n
             e.g. ``{('Bi3+', 'O2-'): 2.46, ('V5+', 'O2-'): 1.73}``
@@ -381,7 +377,8 @@ save_csv=True, csv_fname='nn_data.csv'):
     start_struc = Structure.from_file(start)
 
     # Add atom site labels to the structure
-    el_dict = {i : 1 for i in elements}
+    els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
+    el_dict = {i : 1 for i in els}
     site_labels = []
     for site in start_struc:
         symbol = site.specie.symbol

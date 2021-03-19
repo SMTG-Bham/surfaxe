@@ -1,6 +1,7 @@
 # pymatgen
 from pymatgen.core.surface import SlabGenerator, generate_all_slabs
 from pymatgen.core import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # misc
 import warnings
@@ -150,6 +151,16 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     struc = Structure.from_file(structure)
     struc = oxidation_states(struc, ox_states=ox_states)
     combos = itertools.product(thicknesses, vacuums)
+
+    # Check if bulk structure is noncentrosymmetric if is_symmetric=True, 
+    # change to False if not to make sure slabs are produced, issues warning 
+    if is_symmetric: 
+        sg = SpacegroupAnalyzer(struc)
+        if not sg.is_laue(): 
+            is_symmetric = False
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn(('Inversion symmetry was not found in the bulk '
+            'structure, slabs produced will be non-centrosymmetric'))
     
     # Check if multiple cores are available, then iterate through the slab and 
     # vacuum thicknesses and get all non polar symmetric slabs  
@@ -200,7 +211,7 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
-    # Warnings for large and repeated slabs
+    # Warnings for large, repeated and no slabs
     if repeat:
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
@@ -211,6 +222,10 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+    
+    if len(unique_list_of_dicts) == 0: 
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('No zero dipole slabs found for specified Miller index')
 
     # Save the slabs to file or return the list of dicts 
     if save_slabs: 
@@ -361,6 +376,16 @@ user_kpoints_settings=None, **kwargs):
     struc = Structure.from_file(structure)
     struc = oxidation_states(struc, ox_states=ox_states)
     combos = itertools.product(thicknesses, vacuums)
+
+    # Check if bulk structure is noncentrosymmetric if is_symmetric=True, 
+    # change to False if not to make sure slabs are produced, issues warning 
+    if is_symmetric: 
+        sg = SpacegroupAnalyzer(struc)
+        if not sg.is_laue(): 
+            is_symmetric = False
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn(('Inversion symmetry was not found in the bulk '
+            'structure, slabs produced will be non-centrosymmetric'))
    
     # Check if multiple cores are available. Iterate through vacuums and 
     # thicknessses, generate slabs using multiprocessing.pool or just using a

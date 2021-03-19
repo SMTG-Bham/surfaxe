@@ -11,6 +11,7 @@ Contents:
    introduction
    command_line_examples
    surfaxe
+   tutorials
 
 
 

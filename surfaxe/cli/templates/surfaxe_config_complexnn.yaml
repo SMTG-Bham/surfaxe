@@ -1,5 +1,4 @@
 start: None # Filename of initial structure file, str 
-elements: None # List of atoms in the structure, list 
 cut_off_dict: None # Dictionary of bond lenghts, should include the ox states, dict 
 end: None # Filename of final structure if comparing, str
 ox_states: None # Add oxidation states to the bulk structure by guess by default, can also add as dict or list 

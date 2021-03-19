@@ -3,7 +3,7 @@
 surfaxe Python package
 ======================
 
-The core module of :mod:`surfaxe` contains not much.
+Please peruse the submodules at your leisure
 
  .. automodule:: surfaxe
      :members:

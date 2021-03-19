@@ -21,9 +21,8 @@ def _get_parser():
     parser = ArgumentParser(
         description="""Generates all unique slabs for a specified Miller index 
         with minimum slab and vacuum thicknesses. Always saves slabs to file. 
-        If no slabs are produced, check if the system is non-centrosymmetric and  
-        use the --no-sym flag if necessary. Also, check if the Miller index 
-        requested has a zero-dipole termination"""
+        If no slabs are produced, check if the Miller index requested has a 
+        zero-dipole termination"""
     )
 
     parser.add_argument('-s', '--structure', default=None, type=str,
