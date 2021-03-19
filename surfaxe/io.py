@@ -224,7 +224,7 @@ color=None, plt_fname='bond_analysis.png'):
     ax.set_ylabel("Bond distance / Å")
     ax.legend(['{}-{} bond'.format(bond[0], bond[1])])
     plt.xlabel("Fractional coordinate in c")
-    fig.savefig(plt_fname, facecolor='w')
+    fig.savefig(plt_fname, facecolor='w', bbox_inches='tight')
 
 
 def plot_electrostatic_potential(df=None, filename=None, dpi=300, width=6,
@@ -268,7 +268,7 @@ height=5, colors=None, plt_fname='potential.png'):
     ax.axes.xaxis.set_visible(False)
     ax.legend()
     plt.ylabel('Potential / eV')
-    fig.savefig(plt_fname, facecolor='w')
+    fig.savefig(plt_fname, facecolor='w', bbox_inches='tight')
 
 def plot_surfen(df, joules=True, time_taken=True, colors=None, dpi=300, width=6,
 height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
