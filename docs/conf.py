@@ -83,6 +83,7 @@ MOCK_MODULES = [
   'pymatgen.core.sites',
   'pymatgen.core.structure',
   'pymatgen.core.lattice',
+  'pymatgen.symmetry.analyzer',
   'pymatgen.analysis.local_env'
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
