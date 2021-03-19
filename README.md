@@ -19,9 +19,10 @@ The main features include:
   * All unique zero-dipole symmetric terminations of slabs are cleaved from a bulk structure.
   * Slabs can be organised into separate folders, optionally with all the required input files to run each calculation.
 
-2. **Raw data parsing:** Extracting data from convergence tests.
+2. **Raw data processing:** Extracting data from convergence tests.
 
   * Parsing the convergence testing folders created using the slab generation scripts.
+  * Producing dataframes and csv files of summary data.
   * Plotting scripts visualising convergence with respect to slab and vacuum thickness.
 
 3. **Analysis:** Various scripts for surface and bulk calculations.
