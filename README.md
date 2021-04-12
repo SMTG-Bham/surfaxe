@@ -137,7 +137,7 @@ Surfaxe relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal st
 
 ## Detailed requirements
 
-Surfaxe is compatible with Python 3.6+ and requires the following packages:
+Surfaxe is compatible with Python 3.7+ and requires the following packages:
 
 * [Pymatgen](https://pymatgen.org/)
 * [Pandas](https://pandas.pydata.org/)
@@ -154,5 +154,5 @@ List of contributors:
 
 Acknowledgements:
 
-- Surfaxe has benefited from useful discussions with Seán Kavanagh (@kavanase), Graeme Watson (@wantsong), Luisa Herring-Rodriguez (@zccalgh), Christopher Savory (@cnsavory), Bonan Zhu (@zhubonan) and Maud Einhorn (@maudeinhorn). 
+- Surfaxe has benefited from useful discussions with Adam Jackson (@ajjackson), Seán Kavanagh (@kavanase), Graeme Watson (@wantsong), Luisa Herring-Rodriguez (@zccalgh), Christopher Savory (@cnsavory), Bonan Zhu (@zhubonan) and Maud Einhorn (@maudeinhorn). 
 - Thanks to Keith Butler (@keeeto) for providing a starting point and validation examples for calculating the planar average electrostatic potential via the [macrodensity](https://github.com/WMD-group/MacroDensity) package.  
