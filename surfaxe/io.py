@@ -148,8 +148,8 @@ config_dict, fmt, name, **save_slabs_kwargs):
     if make_fols or make_input_files: 
         for slab in list_of_slabs:
             os.makedirs(os.path.join(os.getcwd(), r'{}/{}/{}_{}_{}'.format(
-                bulk_name, slab['hkl'],
-            slab['slab_t'], slab['vac_t'], slab['s_index'])), exist_ok=True)
+                bulk_name, slab['hkl'], slab['slab_thickness'], 
+                slab['vac_thickness'], slab['slab_index'])), exist_ok=True)
 
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
@@ -158,14 +158,16 @@ config_dict, fmt, name, **save_slabs_kwargs):
                 vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                 vis.write_input(
                     r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
-                    slab['slab_t'], slab['vac_t'],slab['s_index'])
+                    slab['slab_thickness'], slab['vac_thickness'],
+                    slab['slab_index'])
                     )
 
             # Just makes the folders with structure files in them
             else:
                 slab['slab'].to(fmt=fmt,
                 filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
-                slab['slab_t'], slab['vac_t'], slab['s_index'], name))
+                slab['slab_thickness'], slab['vac_thickness'], 
+                slab['slab_index'], name))
 
     # Makes name_hkl_slab_vac_index files in the bulk_name folder
     else:
@@ -177,7 +179,8 @@ config_dict, fmt, name, **save_slabs_kwargs):
         for slab in list_of_slabs:
             slab['slab'].to(fmt=fmt,
             filename=r'{}/{}_{}_{}_{}_{}.{}'.format(bulk_name, name, 
-            slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'], suffix))
+            slab['hkl'], slab['slab_thickness'], slab['vac_thickness'], 
+            slab['slab_index'], suffix))
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'): 

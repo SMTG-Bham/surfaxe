@@ -1,6 +1,7 @@
 # pymatgen
 from pymatgen.core.surface import SlabGenerator, generate_all_slabs
 from pymatgen.core import Structure
+from pymatgen.core.structure import SiteCollection
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # misc
@@ -9,13 +10,15 @@ import os
 import itertools
 import functools
 import multiprocessing
+import math
+import numpy as np 
 
 # surfaxe
 from surfaxe.io import slabs_to_file, _custom_formatwarning
 
 def get_slabs_single_hkl(structure, hkl, thicknesses, vacuums, make_fols=False, 
 make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
-save_slabs=True, is_symmetric=True, fmt='poscar', name='POSCAR',
+save_slabs=True, is_symmetric=True, layers_to_relax = None, fmt='poscar', name='POSCAR', 
 config_dict='PBEsol_config.json', user_incar_settings=None, 
 user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     """
@@ -193,9 +196,9 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
                     if slab.is_symmetric() and not slab.is_polar():
                         provisional.append({
                             'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
+                            'slab_thickness': thickness,
+                            'vac_thickness': vacuum,
+                            'slab_index': i,
                             'slab': slab})
                 
                 # Get all the zero-dipole slabs wihtout inversion symmetry
@@ -203,15 +206,20 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
                     if not slab.is_polar():
                         provisional.append({
                             'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
+                            'slab_thickness': thickness,
+                            'vac_thickness': vacuum,
+                            'slab_index': i,
                             'slab': slab})
                   
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
-    # Warnings for large, repeated and no slabs
+    if layers_to_relax is not None: 
+        unique_list_of_dicts, small = _get_selective_dynamics_single_hkl(
+            struc, unique_list_of_dicts, layers_to_relax
+        )
+
+    # Warnings for too large, too small, repeated and no slabs
     if repeat:
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
@@ -222,6 +230,12 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
+    
+    if small: 
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('Some slabs were too thin to fix the centre of the slab.'
+        ' Slabs with no selective dynamics applied are: ' + 
+        ', '.join(map(str, small)))
     
     if len(unique_list_of_dicts) == 0: 
         warnings.formatwarning = _custom_formatwarning
@@ -412,9 +426,9 @@ user_kpoints_settings=None, **kwargs):
                     if slab.is_symmetric() and not slab.is_polar():
                         provisional.append({
                             'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
+                            'slab_thickness': thickness,
+                            'vac_thickness': vacuum,
+                            'slab_index': i,
                             'slab': slab})
                 
                 # Get all the zero-dipole slabs wihtout inversion symmetry 
@@ -422,9 +436,9 @@ user_kpoints_settings=None, **kwargs):
                     if not slab.is_polar():
                         provisional.append({
                             'hkl': ''.join(map(str, slab.miller_index)),
-                            'slab_t': thickness,
-                            'vac_t': vacuum,
-                            's_index': i,
+                            'slab_thickness': thickness,
+                            'vac_thickness': vacuum,
+                            'slab_index': i,
                             'slab': slab
                         })
     
@@ -510,13 +524,13 @@ def _filter_slabs(provisional, max_size):
             # For large slab size warning
             atoms = len(slab['slab'].atomic_numbers)
             if atoms > max_size:
-                large.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
-                             slab['vac_t'], slab['s_index']))
+                large.append('{}_{}_{}_{}'.format(slab['hkl'], 
+                slab['slab_thickness'], slab['vac_thickness'], slab['slab_index']))
 
         # For repeat slabs warning
         else:
-            repeat.append('{}_{}_{}_{}'.format(slab['hkl'], slab['slab_t'],
-                          slab['vac_t'], slab['s_index']))
+            repeat.append('{}_{}_{}_{}'.format(slab['hkl'], 
+            slab['slab_thickness'], slab['vac_thickness'], slab['slab_index']))
 
     return unique_list_of_dicts, repeat, large    
 
@@ -574,23 +588,32 @@ center_slab=True, **mp_kwargs):
     center_slab=center_slab, **SlabGenerator_kwargs)
     all_slabs = slabgen.get_slabs(**get_slabs_kwargs)
 
+    h = slabgen._proj_height
+    p = round(h/slabgen.parent.lattice.d_hkl(slabgen.miller_index), 8)
+    if slabgen.in_unit_planes:
+        nlayers_slab = int(math.ceil(slabgen.min_slab_size / p))
+    else: 
+        nlayers_slab = int(math.ceil(slabgen.min_slab_size / h))
+
     for i, slab in enumerate(all_slabs):
         if is_symmetric == True:
             if not slab.is_polar() and slab.is_symmetric(): 
                 slabs.append({
                 'hkl': ''.join(map(str, slab.miller_index)),
-                'slab_t': thickness,
-                'vac_t': vacuum,
-                's_index': i,
+                'slab_thickness': thickness,
+                'slab_layers': nlayers_slab,
+                'vac_thickness': vacuum,
+                'slab_index': i,
                 'slab': slab})
                 
         else: 
             if not slab.is_polar(): 
                 slabs.append({
                 'hkl': ''.join(map(str, slab.miller_index)),
-                'slab_t': thickness,
-                'vac_t': vacuum,
-                's_index': i,
+                'slab_thickness': thickness,
+                'slab_layers': nlayers_slab,
+                'vac_thickness': vacuum,
+                'slab_index': i,
                 'slab': slab})
     
     return slabs 
@@ -639,18 +662,69 @@ center_slab=True, **mp_kwargs):
             if not slab.is_polar() and slab.is_symmetric(): 
                 slabs.append({
                 'hkl': ''.join(map(str, slab.miller_index)),
-                'slab_t': thickness,
-                'vac_t': vacuum,
-                's_index': i,
+                'slab_thickness': thickness,
+                'vac_thickness': vacuum,
+                'slab_index': i,
                 'slab': slab})
                 
         else: 
             if not slab.is_polar(): 
                 slabs.append({
                 'hkl': ''.join(map(str, slab.miller_index)),
-                'slab_t': thickness,
-                'vac_t': vacuum,
-                's_index': i,
+                'slab_thickness': thickness,
+                'vac_thickness': vacuum,
+                'slab_index': i,
                 'slab': slab})
     
     return slabs 
+
+def _get_selective_dynamics_single_hkl(structure, slabs, layers_to_relax=None): 
+
+    # get formula and number of atoms in each primitive unit
+    formula = structure.get_primitive_structure().formula 
+    primitive_els = ''.join([i for i in formula if not i.isdigit()]).split(' ') 
+    primitive_els_num = [int(i) for i in formula if i.isdigit()]
+    primitive_atoms = dict(zip(primitive_els, primitive_els_num))
+    
+    small = []
+    for slab in slabs: 
+        # Use a temporary slab to make sure the structure is ordered in the same 
+        # way as the primitive bulk 
+        temp_slab = slab['slab'].get_sorted_structure()
+        atoms_per_layer_num = int(len(temp_slab) / slab['slab_layers'])
+        # get the multiplier - we can have multiple primitive units in one layer 
+        # so we want to make sure the right number of atoms are allowed to relax
+        prim_in_layer = atoms_per_layer_num/sum(primitive_els_num)
+
+        # Make sure slab has enough layers to constrain the required layers - 
+        # at least one layer should be fixed in the middle, otherwise all layers
+        # are allowed to relax and no selective dynamics is applied
+        if slab['slab_layers'] <= 2*layers_to_relax:
+            small.append('{}_{}_{}_{}'.format(slab['hkl'], 
+            slab['slab_thickness'], slab['vac_thickness'], slab['slab_index']))
+            slab['slab'] = temp_slab
+
+        else: 
+            # get list of lists of atoms in the structure, grouped by the atom 
+            grouped_atoms_list = []
+            for i in primitive_els: 
+                atoms = []
+                for site in temp_slab: 
+                    if i == site.specie.symbol: 
+                        atoms.append([i])
+                grouped_atoms_list.append(atoms)
+
+            sd = [] 
+            for i, lst in zip(primitive_els, grouped_atoms_list): 
+                arr = np.zeros((len(lst), 3))
+                allowed_relax = int(primitive_atoms[i]*prim_in_layer*layers_to_relax)
+                arr[0:allowed_relax,] = [1,1,1]
+                arr[-allowed_relax:len(lst),] = [1,1,1]
+                sd.append(arr.tolist())
+            sd = [item for sublist in sd for item in sublist]
+            
+            temp_slab.add_site_property('selective_dynamics', sd)
+
+            slab['slab'] = temp_slab
+
+    return slabs, small  
