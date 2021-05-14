@@ -59,10 +59,10 @@ the :mod:`surfaxe` python package section of the docs.
 Pre-processing commands
 =======================
 
-**surfaxe-gethkl**: Generates all unique slabs with a specific Miller index for a set of 
-slab and vacuum thicknesses. 
+**surfaxe-generate-slabs**: Generates all unique slabs with specific Miller indices or 
+up to a maximum Miller index for a set of slab and vacuum thicknesses. 
 
-Example: :mod:`surfaxe-gethkl -s bulk_structure.cif --hkl 1,1,0 -t 20 40 -v 20 40 -f` generates
+Example: :mod:`surfaxe-generate -s bulk_structure.cif --hkl 1,1,0 -t 20 40 -v 20 40 -f` generates
 all slabs for the (1,1,0) direction for minimum slab and vacuum thicknesses of 20 Å and 40 Å. 
 The :mod:`-f` option organises these into subdirectories with all required VASP input 
 files required to run singleshot calculations uisng default settings. It includes all combinations 
@@ -87,11 +87,18 @@ vacuums must be space-separated.*
 *Note: To use the :mod:`-f` option you must first set up the 
 `pymatgen POTCAR environment <https://pymatgen.org/installation.html#potcar-setup>`_.* 
 
-**surfaxe-getall**: Similar to above but considers multiple Miller indices. A maximum hkl 
-value must be supplied as an integer.
+Similarly, to above the script can be modified to consider multiple Miller indices. 
 
-Example: :mod:`surfaxe-getall -s SnO2.cif --hkl 1 -t 20 40 -v 30` generates all slabs with Miller 
-indices up to a maximum value of 1, with minimum slab thicknesses of 20 Å and of 40 Å, and 
+Example: :mod:`surfaxe-generate -s bulk_structure.cif --hkl 1,1,0 1,1,1 -t 20 40 -v 20 40 -f` 
+generates all (1,1,0) and (1,1,1) slabs with minimum slab and vacuum thicknesses of 20 Å and 40 Å. 
+
+*Note: h,k,l are comma-separated with no spaces, while the two (or more) Miller indices are space-separated.*
+
+Lastly, a maximum hkl value can be supplied as an integer so that the script finds all 
+zero-dipole slabs up to that maximum Miller index. 
+
+Example: :mod:`surfaxe-generate -s SnO2.cif --hkl 2 -t 20 40 -v 30` generates all slabs with Miller 
+indices up to a maximum value of 2, with minimum slab thicknesses of 20 Å and of 40 Å, and 
 minimum vacuum thickness of 30 Å. 
 
 ========================
@@ -190,7 +197,6 @@ input files are created with specific INCAR tags using the following config.yaml
     user_incar_settings: 
       ENCUT: 460
       KPAR: 3
-      LVHAR: True
     user_kpoints_settings: 
       reciprocal_density: 35
 

@@ -43,13 +43,13 @@ def _get_parser():
 
     parser.add_argument('-s', '--structure', default=None, type=str,
     help='Filename of structure file in any format supported by pymatgen')
-    parser.add_argument('--hkl', default=None, nargs='+', type=_hkl,
+    parser.add_argument('--hkl', default=None, nargs='+',
     help='Maximum Miller index (e.g. 1), a specific Miller index (e.g. 0,0,1) '
     'or several Miller indices (e.g. 0,0,1 1,1,1)')
     parser.add_argument('-t', '--thicknesses', default=None, nargs='+', type=int,
-    help='The minimum sizes of the slab in Angstroms, e.g. 10 20 30')
+    help='The minimum sizes of the slab in Angstroms, e.g. 10 20')
     parser.add_argument('-v', '--vacuums', default=None, nargs='+', type=int,
-    help='The minimum sizes of the vacuum in Angstroms, e.g. 10 20 30')
+    help='The minimum sizes of the vacuum in Angstroms, e.g. 10 20')
     parser.add_argument('-r', '--fols', default=False, action='store_true', 
     help=('Makes folders for each termination and slab/vacuum thickness ' 
           'combinations containing POSCARs (default: False)'))
@@ -111,7 +111,9 @@ def main():
         else: 
             ox_states=None
 
-        generate_slabs(args.structure, args.hkl, args.thicknesses, 
+        miller = _hkl(args.hkl)
+
+        generate_slabs(args.structure, miller, args.thicknesses, 
         args.vacuums, make_fols=args.fols, make_input_files=args.files, 
         max_size=args.max_size, center_slab=args.center_slab, name=args.name, 
         ox_states=ox_states,is_symmetric=args.is_symmetric, fmt=args.fmt, 

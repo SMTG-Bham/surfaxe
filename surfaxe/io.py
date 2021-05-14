@@ -9,6 +9,7 @@ import numpy as np
 import os
 import warnings 
 import json
+import yaml
 from pathlib import Path
 
 # Monkeypatching for warnings
@@ -17,61 +18,11 @@ def _custom_formatwarning(message, category, filename, lineno, line=''):
     return 'UserWarning: ' + str(message) + '\n'
 
 # Matplotlib
-import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from cycler import cycler 
 
-def load_config_dict(config_dict, path_to_config_dir=None): 
-    """
-    Loads the config dictionary for writing VASP input files. 
-
-    Args: 
-        config_dict (``None``, `dict` or `str`): The config dict containing info  
-            on INCAR, POTCAR and KPOINTS settings. Can be supplied as: 
-
-            * ``dict``: All settings for the calculations provided as a 
-              dictionary of dictionaries 
-
-                    e.g. {'INCAR': {'ENCUT': 500, 'ISYM': 2, 'GGA': 'PE'}, 
-                    'KPOINTS': {'reciprocal_density': 20}, 
-                    'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}
-
-            * ``str``: Filename of the config dictionary in the 
-              ``_config_directories`` folder. If the filename does not exist,  
-              the function defaults to the ``PBEsol_config.json`` file.            
-
-            * ``None``: The default option, makes a PBEsol config dictionary for
-              a single shot calculation from the ``PBEsol_config.json`` file. 
-        path_to_config_dir (`str`, optional). The path to the directory in which 
-            the json config files are. Defaults to 
-            ``surfaxe/surfaxe/_config_dictionaries``. 
-    Returns: 
-        Dictionary
-    
-    """
-
-    
-    if type(path_to_config_dir) is str: 
-        conf_dir = path_to_config_dir
-    else: 
-        conf_dir = str(Path(__file__).parent.joinpath('_config_dictionaries'))
-
-    if type(config_dict) is dict: 
-        cd = config_dict 
-    elif type(config_dict) is str: 
-        if os.path.isfile(os.path.join(conf_dir, config_dict)): 
-            with open(os.path.join(conf_dir, config_dict), 'r') as f:
-                cd = json.load(f)
-        else: 
-            with open(os.path.join(conf_dir, 'PBEsol_config.json'), 'r') as f:
-                cd = json.load(f)
-    else: 
-        with open(os.path.join(conf_dir, 'PBEsol_config.json'), 'r') as f:
-            cd = json.load(f)
-
-    return cd 
-
+   
 def slab_from_file(structure, hkl):
     """
     Reads in structure from the file and returns slab object.
@@ -154,7 +105,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
             if make_input_files:
-                cd = load_config_dict(config_dict)
+                cd = _load_config_dict(config_dict)
                 vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                 vis.write_input(
                     r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
@@ -181,6 +132,84 @@ config_dict, fmt, name, **save_slabs_kwargs):
             filename=r'{}/{}_{}_{}_{}_{}.{}'.format(bulk_name, name, 
             slab['hkl'], slab['slab_thickness'], slab['vac_thickness'], 
             slab['slab_index'], suffix))
+
+def _load_config_dict(config_dict=None): 
+    """
+    Loads the config dictionary for writing VASP input files. 
+
+    Args: 
+        config_dict (``None``, `dict` or `str`): The config dict containing info  
+            on INCAR, POTCAR and KPOINTS settings. Can be supplied as: 
+
+            * ``dict``: All settings for the calculations provided as a 
+              dictionary of dictionaries 
+
+                    e.g. {'INCAR': {'ENCUT': 500, 'ISYM': 2, 'GGA': 'PE'}, 
+                    'KPOINTS': {'reciprocal_density': 20}, 
+                    'POTCAR': {'Sn': 'Sn_d', 'O': 'O'}}
+
+            * ``str``: Filename of the config dictionary. Can be a json or a
+              yaml file or one of the surfaxe-supplied dictionaries from the
+              ``_config_dictionaries`` folder.        
+
+            * ``None``: The default option, makes a PBEsol config dictionary for
+              a single shot calculation from the ``PBEsol.json`` file. 
+
+    Returns: 
+        Dictionary
+    """
+
+    path_to_conf = str(Path(__file__).parent.joinpath('_config_dictionaries'))
+
+    if type(config_dict) == dict: 
+        cd = config_dict
+
+    elif config_dict is not None: 
+        if config_dict.endswith('.json'): 
+            with open(config_dict, 'r') as f:
+                cd = json.load(f)
+        
+        elif config_dict.endswith('.yaml'): 
+            with open(config_dict, 'r') as y:
+                cd = yaml.safe_load(y)
+        
+        elif 'pe_relax' in config_dict.lower(): 
+            with open(os.path.join(path_to_conf, 'PBE_relax.json'), 'r') as f: 
+                cd = json.load(f)
+        
+        elif 'ps_relax' in config_dict.lower(): 
+            with open(os.path.join(path_to_conf, 'PBEsol_relax.json'), 'r') as f: 
+                cd = json.load(f) 
+        
+        elif 'pe' in config_dict.lower(): 
+            with open(os.path.join(path_to_conf, 'PBE.json'), 'r') as f: 
+                cd = json.load(f)
+        
+        elif 'ps' in config_dict.lower(): 
+            with open(os.path.join(path_to_conf, 'PBEsol.json'), 'r') as f: 
+                cd = json.load(f)
+
+        elif 'hse' in config_dict.lower(): 
+            with open(os.path.join(path_to_conf, 'HSE06.json'), 'r') as f: 
+                cd = json.load(f)
+        
+        else: 
+            with open(os.path.join(path_to_conf, 'PBEsol.json'), 'r') as f: 
+                cd = json.load(f)
+            
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn('No valid config dict supplied, reverting to '
+            'surfaxe PBEsol.json config dict')
+    
+    else: 
+        with open(os.path.join(path_to_conf, 'PBEsol.json'), 'r') as f: 
+            cd = json.load(f)
+            
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('No config dict supplied, reverting to surfaxe '
+        'PBEsol.json config dict')
+
+    return cd 
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'): 
