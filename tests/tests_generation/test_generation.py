@@ -52,8 +52,6 @@ class GetAllTestCase(unittest.TestCase):
         
         self.assertIsNone(ytos_slabs)
          
-        # add how to actually check if folders are made, check if fmt and poscar 
-        # agrs work 
 
 class GetOneTestCase(unittest.TestCase): 
 
@@ -66,7 +64,7 @@ class GetOneTestCase(unittest.TestCase):
         thicknesses=[10,20], vacuums=[10,20], save_slabs=False, max_size=20)
 
         self.assertEqual(len(ytos_slab), 1)
-        self.assertEqual(ytos_slab[0]['s_index'], 4)
+        self.assertEqual(ytos_slab[0]['slab_index'], 4)
         self.assertWarnsRegex(UserWarning, ('Some generated slabs exceed the '
         'max size specified. Slabs that exceed the max size are: 001_10_10_4'))
         self.assertWarnsRegex(UserWarning, ('Not all combinations of hkl or '
@@ -124,12 +122,21 @@ class GenerateSlabsTestCase(unittest.TestCase):
         thicknesses=[10,20], vacuums=[10,20], save_slabs=False, max_size=20)
 
         self.assertEqual(len(ytos_slab), 1)
-        self.assertEqual(ytos_slab[0]['s_index'], 4)
+        self.assertEqual(ytos_slab[0]['slab_index'], 4)
         self.assertWarnsRegex(UserWarning, ('Some generated slabs exceed the '
         'max size specified. Slabs that exceed the max size are: 001_10_10_4'))
         self.assertWarnsRegex(UserWarning, ('Not all combinations of hkl or '
         'slab/vac thicknesses were generated because of repeat structures. '
         'The repeat slabs are: 001_20_10_4, 001_10_20_4, 001_20_20_4'))
+
+    def test_list_hkl(self): 
+        ytos_slab = generate_slabs(structure=self.ytos, hkl=[(0,0,1), (1,0,1)], 
+        thicknesses=[10,20], vacuums=[10,20], save_slabs=False, max_size=20)
+
+        self.assertEqual(len(ytos_slab), 5)
+        self.assertWarnsRegex(UserWarning, 'Not all combinations of hkl or '
+        'slab/vac thicknesses were generated because of repeat structures. The '
+        'repeat slabs are: 001_10_20_4, 001_20_10_4, 001_20_20_4')
     
     def test_get_max_index(self): 
         ytos_slabs = generate_slabs(structure=self.ytos, 
@@ -183,3 +190,15 @@ class GenerateSlabsTestCase(unittest.TestCase):
 
         # Clean up - get rid of directory created 
         shutil.rmtree('Y4Ti4S4O10')
+    
+    def test_selective_dynamics(self): 
+        ytos_slabs = generate_slabs(structure=self.ytos, 
+        hkl=(0,0,1), thicknesses=[30,50], vacuums=[20])
+
+        self.assertEqual(ytos_slabs[1]['slab'][28].properties['selective_dynamics'], 
+        [0.0, 0.0, 0.0])
+        self.assertEqual(ytos_slabs[1]['slab'][0].properties['selective_dynamics'], 
+        [1.0, 1.0, 1.0])
+        self.assertWarnsRegex(UserWarning, 'Some slabs were too thin to fix the '
+        'centre of the slab. Slabs with no selective dynamics applied '
+        'are: 001_30_20_4')

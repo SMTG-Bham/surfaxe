@@ -21,7 +21,7 @@ save_slabs=True, is_symmetric=True, layers_to_relax = None, fmt='poscar', name='
 config_dict='PBEsol_config.json', user_incar_settings=None, 
 user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwargs): 
     """
-    Generates all unique slabs for a specified Miller index or up to a maximum 
+    Generates all unique slabs for a specified Miller indices or up to a maximum 
     Miller index with minimum slab and vacuum thicknesses. It includes all 
     combinations for multiple zero dipole symmetric terminations for 
     the same Miller index. 
@@ -104,6 +104,9 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
             slabs as it looks for inversion symmetry. Take care checking the 
             slabs for mirror plane symmetry before just using them. Defaults to 
             ``True``. 
+        layers_to_relax (`int`, optional): Specifies the number of layers at the 
+            top and bottom of the slab that should be relaxed, keeps the centre
+            constrained using selective dynamics. NB only works for VASP files 
         fmt (`str`, optional): The format of the output structure files. Options 
             include 'cif', 'poscar', 'cssr', 'json', not case sensitive. 
             Defaults to 'poscar'. 
@@ -239,10 +242,9 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
     # Iterate though provisional slabs to extract the unique slabs
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
-    if layers_to_relax is not None: 
-        unique_list_of_dicts, small = _get_selective_dynamics_single_hkl(
-            struc, unique_list_of_dicts, layers_to_relax
-        )
+    if layers_to_relax is not None and fmt.lower() == 'poscar': 
+        unique_list_of_dicts, small = _get_selective_dynamics(struc, 
+        unique_list_of_dicts, layers_to_relax)        
 
         if small: 
             warnings.formatwarning = _custom_formatwarning
@@ -250,7 +252,8 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
             ' Slabs with no selective dynamics applied are: ' + 
             ', '.join(map(str, small)))
 
-    # Warnings for too large, too small, repeated and no slabs
+    # Warnings for too large, too small, repeated and no slabs; small needs to 
+    # be within the layers to relax if 
     if repeat:
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
@@ -474,11 +477,17 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
     unique_list_of_dicts, repeat, large = _filter_slabs(provisional, max_size)
 
     if layers_to_relax is not None: 
-        unique_list_of_dicts, small = _get_selective_dynamics_single_hkl(
-            struc, unique_list_of_dicts, layers_to_relax
-        )
+        unique_list_of_dicts, small = _get_selective_dynamics(struc, 
+        unique_list_of_dicts, layers_to_relax)
+   
+        if small: 
+            warnings.formatwarning = _custom_formatwarning
+            warnings.warn('Some slabs were too thin to fix the centre of the slab.'
+            ' Slabs with no selective dynamics applied are: ' + 
+            ', '.join(map(str, small)))
 
-    # Warnings for too large, too small, repeated and no slabs
+    # Warnings for too large, too small, repeated and no slabs; small needs to 
+    # be within the layers to relax if 
     if repeat:
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
@@ -489,12 +498,6 @@ user_kpoints_settings=None, user_potcar_settings=None, **kwargs):
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Some generated slabs exceed the max size specified.'
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
-    
-    if small: 
-        warnings.formatwarning = _custom_formatwarning
-        warnings.warn('Some slabs were too thin to fix the centre of the slab.'
-        ' Slabs with no selective dynamics applied are: ' + 
-        ', '.join(map(str, small)))
     
     if len(unique_list_of_dicts) == 0: 
         warnings.formatwarning = _custom_formatwarning
@@ -937,7 +940,7 @@ center_slab=True, **mp_kwargs):
     
     return slabs 
 
-def _get_selective_dynamics_single_hkl(structure, slabs, layers_to_relax=None): 
+def _get_selective_dynamics(structure, slabs, layers_to_relax=None): 
 
     # get formula and number of atoms in each primitive unit
     formula = structure.get_primitive_structure().formula 

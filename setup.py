@@ -50,6 +50,7 @@ if __name__ == "__main__":
           'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main', 
           'surfaxe-plot-bonds = surfaxe.cli.plotbonds:main', 
           'surfaxe-plot-potential = surfaxe.cli.plotpotential:main', 
+          'surfaxe-generate-slabs = surfaxe.cli.generateslabs:main'
         ]
       }
     )
