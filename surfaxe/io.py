@@ -9,7 +9,7 @@ import numpy as np
 import os
 import warnings 
 import json
-import yaml
+import ruamel.yaml as yaml
 from pathlib import Path
 
 # Monkeypatching for warnings
