@@ -9,7 +9,7 @@ import numpy as np
 import os
 import warnings 
 import json
-import ruamel.yaml as yaml
+from ruamel.yaml import YAML
 from pathlib import Path
 
 # Monkeypatching for warnings
@@ -164,14 +164,15 @@ def _load_config_dict(config_dict=None):
     if type(config_dict) == dict: 
         cd = config_dict
 
-    elif config_dict is not None: 
+    elif config_dict is not None and type(config_dict)==str: 
         if config_dict.endswith('.json'): 
             with open(config_dict, 'r') as f:
                 cd = json.load(f)
         
         elif config_dict.endswith('.yaml'): 
             with open(config_dict, 'r') as y:
-                cd = yaml.safe_load(y)
+                yaml = YAML(typ='safe', pure=True)
+                cd = yaml.load(y)
         
         elif 'pe_relax' in config_dict.lower(): 
             with open(os.path.join(path_to_conf, 'PBE_relax.json'), 'r') as f: 

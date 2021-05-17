@@ -83,14 +83,15 @@ class GenerateSlabsTestCase(unittest.TestCase):
         
         # Check the files created 
         self.assertEqual(len(os.listdir('Y4Ti4S4O10')), 1)
-        self.assertIn('POSCAR_001_10_10_15.vasp', os.listdir('Y4Ti4S4O10'))
+        self.assertIn('POSCAR_001_10_10_4.vasp', os.listdir('Y4Ti4S4O10'))
 
         # Clean up - get rid of directory created 
         shutil.rmtree('Y4Ti4S4O10')
     
     def test_selective_dynamics(self): 
         ytos_slabs = generate_slabs(structure=self.ytos, 
-        hkl=(0,0,1), thicknesses=[30,50], vacuums=[20], layers_to_relax=1)
+        hkl=(0,0,1), thicknesses=[30,50], vacuums=[20], layers_to_relax=1, 
+        save_slabs=False)
 
         self.assertEqual(ytos_slabs[1]['slab'][28].properties['selective_dynamics'], 
         [0.0, 0.0, 0.0])
