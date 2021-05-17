@@ -1,8 +1,6 @@
 import unittest
-import warnings
 import os
 from pathlib import Path
-from pymatgen.core import Structure
 from surfaxe.analysis import simple_nn, complex_nn, cart_displacements, \
 bond_analysis, electrostatic_potential
 

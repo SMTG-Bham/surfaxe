@@ -1,7 +1,5 @@
 # Pymatgen  
-from pymatgen.core.surface import Slab
-from pymatgen.core import Structure, Element
-from pymatgen.core.sites import PeriodicSite
+from pymatgen.core import Structure
 from pymatgen.io.vasp.outputs import Locpot, Outcar, Vasprun
 from pymatgen.analysis.local_env import CrystalNN
 

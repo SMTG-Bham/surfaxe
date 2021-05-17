@@ -1,11 +1,9 @@
 # Pymatgen
-from pymatgen.core import Structure
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
 
 # Misc
 import os
-import numpy as np
 import pandas as pd
 import warnings
 import functools
