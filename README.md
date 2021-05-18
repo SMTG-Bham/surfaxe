@@ -56,21 +56,21 @@ pip install --user .
 
 Surfaxe can be used via the command line and via python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
 
-We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package. 
+We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package.
 
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/develop?filepath=tutorials)
 
 ### Command line interface
+
 The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
 
 Generation:
 
-* `surfaxe-getall`: Generates all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified in any format supported by pymatgen. Optionally provides all VASP input files.
-* `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index in any format supported by pymatgen. Optionally provides all VASP input files.
+* `surfaxe-generate`: Generates all unique symmetric zero-dipole surface slabs for one or more specified Miller indices or up to a maximum Miller index specified, in any format supported by pymatgen. Optionally provides all VASP input files.
 
 Convergence:
 
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-getall` or `surfaxe-gethkl` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-generate` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
 
 Analysis:
 
@@ -80,7 +80,7 @@ Analysis:
 * `surfaxe-potential`: Calculates and optionally plots the planar and macroscopic potential of the slab along c-axis.
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
 
-Plotting: 
+Plotting:
 
 * `surfaxe-plot-surfen` and `surfaxe-plot-enatom`: Plot the surface energy and energy per atom based on data from `surfaxe-parsefols` with individual customisability
 * `surfaxe-plot-bonds`: Plots the bond distance with respect to fractional coordinate, based on `surfaxe-bonds`
@@ -123,7 +123,7 @@ Surfaxe is free to use under the MIT License. Please cite [add link] if you use 
 
 ## Detailed requirements
 
-Surfaxe is compatible with python 3.6+ and requires the following packages:
+Surfaxe is compatible with python 3.7+ and requires the following packages:
 
 * [Pymatgen](https://pymatgen.org/)
 * [Pandas](https://pandas.pydata.org/)

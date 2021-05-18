@@ -106,7 +106,7 @@ Post-processing commands
 ========================
 
 **surfaxe-parsefols**: Parses data produced by electronic structure codes once calculations
-have been run in then directory structures produced by one of the pre-processing commands. 
+have been run in then directory structures produced by the pre-processing commands. 
 
 Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099` saves a csv file of surface energies
 and energies per atom for each slab-vacuum combination, as well as plots for each. See the 

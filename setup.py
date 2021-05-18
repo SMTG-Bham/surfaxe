@@ -9,7 +9,6 @@ __date__ = "July 12 2020"
 
 from setuptools import setup, Extension
 import os
-import unittest
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,6 +26,7 @@ if __name__ == "__main__":
       packages=['surfaxe'],
       zip_safe=False,
       install_requires=['scipy', 'numpy', 'spglib', 'pymatgen','pandas'],
+      python_requires='>=3.7',
       classifiers=[
         'Programming Language :: Python',
         'Development Status :: Development',
