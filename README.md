@@ -1,3 +1,5 @@
+
+![Build status](https://github.com/smtg-ucl/surfaxe/actions/workflows/tests.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable) 
  
 <img src='example_data/figures/surfaxe_header_v2.png' alt='surfaxe logo header' width='600'/>
@@ -125,7 +127,7 @@ is also helpful, including a good model for docstrings.
 
 Unit tests are in the `tests` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate.
 
-We also use CI testing on [travis](https://travis-ci.com/github/SMTG-UCL/surfaxe). 
+We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-UCL/surfaxe/actions). 
 
 ## License and how to cite
 
