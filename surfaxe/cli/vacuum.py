@@ -1,7 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
 import os
-import warnings 
 
 # Surfaxe 
 from surfaxe.vasp_data import vacuum

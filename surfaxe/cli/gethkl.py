@@ -1,8 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
-import yaml
-import os
-import warnings 
+from ruamel.yaml.main import YAML
 
 # Surfaxe 
 from surfaxe.generation import get_slabs_single_hkl
@@ -77,7 +75,8 @@ def main():
 
     if args.yaml is not None: 
         with open(args.yaml, 'r') as y:
-            yaml_args = yaml.safe_load(y)
+            yaml = YAML(typ='safe', pure=True)
+            yaml_args = yaml.load(y)
 
         hkl = yaml_args.pop('hkl')
         hkl = ''.join(hkl.split())

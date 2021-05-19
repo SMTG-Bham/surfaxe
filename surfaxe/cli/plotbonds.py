@@ -1,9 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
-import yaml
-import os
-import warnings 
-import pandas as pd
+from ruamel.yaml import YAML
 
 # Surfaxe 
 from surfaxe.io import plot_bond_analysis
@@ -39,7 +36,8 @@ def main():
 
     if args.yaml is not None: 
         with open(args.yaml, 'r') as y:
-            yaml_args = yaml.safe_load(y)
+            yaml = YAML(typ='safe', pure=True)
+            yaml_args = yaml.load(y)
         
         plot_bond_analysis(**yaml_args)
 

@@ -1,8 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
-import yaml
-import os
-import warnings 
+from ruamel.yaml import YAML
 
 # Surfaxe 
 from surfaxe.analysis import bond_analysis
@@ -63,8 +61,9 @@ def main():
     args = _get_parser().parse_args()
 
     if args.yaml is not None: 
-        with open(args.yaml, 'r') as y: 
-            yaml_args = yaml.safe_load(y)
+        with open(args.yaml, 'r') as y:
+            yaml = YAML(typ='safe', pure=True) 
+            yaml_args = yaml.load(y)
                 
         ba = bond_analysis(**yaml_args)
         if ('save_csv', False) in yaml_args.items(): 
