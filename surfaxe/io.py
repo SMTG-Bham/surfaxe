@@ -1,6 +1,6 @@
 # pymatgen
 from pymatgen.io.vasp.sets import DictSet
-from pymatgen.core import Structure
+from pymatgen.core import SETTINGS, Structure
 from pymatgen.core.surface import Slab
 
 # Misc 
@@ -17,7 +17,6 @@ def _custom_formatwarning(message, category, filename, lineno, line=''):
     return 'UserWarning: ' + str(message) + '\n'
 
 # Matplotlib
-import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from cycler import cycler 
@@ -154,12 +153,22 @@ config_dict, fmt, name, **save_slabs_kwargs):
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
             if make_input_files:
-                cd = load_config_dict(config_dict)
-                vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
-                vis.write_input(
-                    r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
-                    slab['slab_t'], slab['vac_t'],slab['s_index'])
-                    )
+                # soft check if potcar directory is set 
+                if 'PMG_VASP_PSP_DIR' in SETTINGS:
+                    cd = load_config_dict(config_dict)
+                    vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
+                    vis.write_input(
+                        r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
+                        slab['slab_t'], slab['vac_t'],slab['s_index'])
+                        )
+                # only make the folders with structure files in them
+                else: 
+                    slab['slab'].to(fmt=fmt,
+                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
+                slab['slab_t'], slab['vac_t'], slab['s_index'], name))
+                warnings.formatwarning = _custom_formatwarning
+                warnings.warn('POTCAR directory not set up in pymatgen, only ' 
+                'POSCARs were generated ')
 
             # Just makes the folders with structure files in them
             else:

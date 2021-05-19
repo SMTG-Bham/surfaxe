@@ -43,12 +43,14 @@ Surfaxe is a Python 3 package and requires pymatgen and other standard scientifi
 Recommended installation is to git clone and install with `pip`:
 
 ```sh
-git clone https://github.com/brlec/surfaxe.git
+git clone https://github.com/SMTG-UCL/surfaxe.git
 cd surfaxe
 pip install --user .
 ```
 
- For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
+For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
+
+For the code to generate VASP input files along with the surface slabs, POTCARs need to be [set up with pymatgen](https://pymatgen.org/installation.html#potcar-setup).
 
 ## Usage
 
@@ -56,7 +58,7 @@ pip install --user .
 
 Surfaxe can be used via the command line and via python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
 
-We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package. 
+We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package.
 
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/develop?filepath=tutorials)
 
@@ -80,7 +82,7 @@ Analysis:
 * `surfaxe-potential`: Calculates and optionally plots the planar and macroscopic potential of the slab along c-axis.
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
 
-Plotting: 
+Plotting:
 
 * `surfaxe-plot-surfen` and `surfaxe-plot-enatom`: Plot the surface energy and energy per atom based on data from `surfaxe-parsefols` with individual customisability
 * `surfaxe-plot-bonds`: Plots the bond distance with respect to fractional coordinate, based on `surfaxe-bonds`
