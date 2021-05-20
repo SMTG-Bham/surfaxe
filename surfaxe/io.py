@@ -1,6 +1,6 @@
 # pymatgen
 from pymatgen.io.vasp.sets import DictSet
-from pymatgen.core import SETTINGS, Structure
+from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 
 # Misc 
@@ -154,7 +154,8 @@ config_dict, fmt, name, **save_slabs_kwargs):
             # dictionary
             if make_input_files:
                 # soft check if potcar directory is set 
-                if 'PMG_VASP_PSP_DIR' in SETTINGS:
+                potcars = _check_psp_dir()
+                if potcars:
                     cd = load_config_dict(config_dict)
                     vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                     vis.write_input(
@@ -187,6 +188,27 @@ config_dict, fmt, name, **save_slabs_kwargs):
             slab['slab'].to(fmt=fmt,
             filename=r'{}/{}_{}_{}_{}_{}.{}'.format(bulk_name, name, 
             slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'], suffix))
+
+def _check_psp_dir(): 
+    """
+    Helper function to check if potcars are set up correctly for use with 
+    pymatgen
+    """
+    potcar = False
+    try: 
+        import pymatgen.settings 
+        if 'PMG_VASP_PSP_DIR' in pymatgen.settings.SETTINGS:
+            potcar = True 
+    except ModuleNotFoundError:
+        try: 
+            import pymatgen 
+            if 'PMG_VASP_PSP_DIR' in pymatgen.SETTINGS: 
+                potcar = True
+        except AttributeError: 
+            from pymatgen.core import SETTINGS 
+            if 'PMG_VASP_PSP_DIR' in SETTINGS: 
+                potcar = True
+    return potcar
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'): 
