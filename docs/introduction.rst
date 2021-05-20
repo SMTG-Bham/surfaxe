@@ -28,6 +28,9 @@ and install the latest stable version:
 
 The :mod:`-e` is optional and will install the project in developer (editable) mode.
 
+For the code to generate VASP input files along with the surface slabs, 
+`pymatgen POTCAR environment <https://pymatgen.org/installation.html#potcar-setup>`
+must be set up correctly. 
 
 =====
 Usage

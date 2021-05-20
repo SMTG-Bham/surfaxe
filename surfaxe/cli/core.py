@@ -1,7 +1,6 @@
 # Misc 
 from argparse import ArgumentParser
-import os
-import yaml
+from ruamel.yaml.main import YAML
 from pymatgen.analysis.local_env import CrystalNN
 
 # Surfaxe 
@@ -53,7 +52,8 @@ def main():
     
     if args.yaml is not None: 
         with open(args.yaml, 'r') as y:  
-            yaml_args = yaml.safe_load(y)
+            yaml = YAML(typ='safe', pure=True)
+            yaml_args = yaml.load(y)
         
         core = core_energy(**yaml_args)
         print(core)

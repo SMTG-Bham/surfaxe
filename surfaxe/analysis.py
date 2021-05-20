@@ -1,20 +1,13 @@
 # Pymatgen
-from pymatgen.core import Structure, Element, Lattice
-from pymatgen.core.structure import SiteCollection
+from pymatgen.core import Structure
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
 from pymatgen.io.vasp.outputs import Locpot
 
 # Misc 
-import os
 import math
 import numpy as np
 import pandas as pd
 import warnings
-
-# Matplotlib
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # surfaxe
 from surfaxe.generation import oxidation_states

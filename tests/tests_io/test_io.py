@@ -1,11 +1,7 @@
 import unittest
-import warnings
-import os
 from pathlib import Path
-from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.io import load_config_dict, slab_from_file
-import surfaxe.io 
 
 class LoadTestCase(unittest.TestCase): 
     def setUp(self): 

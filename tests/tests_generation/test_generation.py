@@ -1,9 +1,7 @@
 import unittest
-import warnings
 import os
 import shutil
 from pathlib import Path
-from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 from surfaxe.generation import get_slabs_max_index, get_slabs_single_hkl
 

@@ -17,7 +17,6 @@ def _custom_formatwarning(message, category, filename, lineno, line=''):
     return 'UserWarning: ' + str(message) + '\n'
 
 # Matplotlib
-import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from cycler import cycler
@@ -154,12 +153,23 @@ config_dict, fmt, name, **save_slabs_kwargs):
             # Makes all input files (KPOINTS, POTCAR, INCAR) based on the config
             # dictionary
             if make_input_files:
-                cd = load_config_dict(config_dict)
-                vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
-                vis.write_input(
-                    r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'],
-                    slab['slab_t'], slab['vac_t'],slab['s_index'])
-                    )
+                # soft check if potcar directory is set 
+                potcars = _check_psp_dir()
+                if potcars:
+                    cd = load_config_dict(config_dict)
+                    vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
+                    vis.write_input(
+                        r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
+                        slab['slab_t'], slab['vac_t'],slab['s_index'])
+                        )
+                # only make the folders with structure files in them
+                else: 
+                    slab['slab'].to(fmt=fmt,
+                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
+                slab['slab_t'], slab['vac_t'], slab['s_index'], name))
+                warnings.formatwarning = _custom_formatwarning
+                warnings.warn('POTCAR directory not set up in pymatgen, only ' 
+                'POSCARs were generated ')
 
             # Just makes the folders with structure files in them
             else:
@@ -178,6 +188,27 @@ config_dict, fmt, name, **save_slabs_kwargs):
             slab['slab'].to(fmt=fmt,
             filename=r'{}/{}_{}_{}_{}_{}.{}'.format(bulk_name, name,
             slab['hkl'], slab['slab_t'], slab['vac_t'], slab['s_index'], suffix))
+
+def _check_psp_dir(): 
+    """
+    Helper function to check if potcars are set up correctly for use with 
+    pymatgen
+    """
+    potcar = False
+    try: 
+        import pymatgen.settings 
+        if 'PMG_VASP_PSP_DIR' in pymatgen.settings.SETTINGS:
+            potcar = True 
+    except ModuleNotFoundError:
+        try: 
+            import pymatgen 
+            if 'PMG_VASP_PSP_DIR' in pymatgen.SETTINGS: 
+                potcar = True
+        except AttributeError: 
+            from pymatgen.core import SETTINGS 
+            if 'PMG_VASP_PSP_DIR' in SETTINGS: 
+                potcar = True
+    return potcar
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'):

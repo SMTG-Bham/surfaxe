@@ -5,7 +5,6 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # misc
 import warnings
-import os
 import itertools
 import functools
 import multiprocessing

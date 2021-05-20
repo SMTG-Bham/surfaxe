@@ -4,9 +4,9 @@
  
 <img src='example_data/figures/surfaxe_header_v2.png' alt='surfaxe logo header' width='600'/>
 
-Calculating the surface properties of crystals from first principles typically introduces several extra parameters including slab thickness, vacuum size, Miller index, surface termination and more. 
+Calculating the surface properties of crystals from first principles typically introduces several extra parameters including slab thickness, vacuum size, Miller index, surface termination and more.
 These factors all influence key properties of interest, making it a challenge to carry out simulations repeatably and draw reliable conclusions.
-Surfaxe is a Python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations. 
+Surfaxe is a Python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations.
 
 The code is organised according to the best-practice workflow below:
 
@@ -54,7 +54,9 @@ cd surfaxe
 pip install --user .
 ```
 
- For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
+For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
+
+For the code to generate VASP input files along with the surface slabs, POTCARs need to be [set up with pymatgen](https://pymatgen.org/installation.html#potcar-setup).
 
 ## Usage
 
@@ -62,7 +64,7 @@ pip install --user .
 
 Surfaxe can be used via the command line and via Python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
 
-We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package. 
+We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package.
 
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/HEAD?filepath=tutorials)
 
@@ -86,7 +88,7 @@ Analysis:
 * `surfaxe-potential`: Calculates and optionally plots the planar and macroscopic potential of the slab along c-axis.
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
 
-Plotting: 
+Plotting:
 
 * `surfaxe-plot-surfen` and `surfaxe-plot-enatom`: Plot the surface energy and energy per atom based on data from `surfaxe-parsefols` with individual customisability
 * `surfaxe-plot-bonds`: Plots the bond distance with respect to fractional coordinate, based on `surfaxe-bonds`
@@ -127,7 +129,7 @@ is also helpful, including a good model for docstrings.
 
 Unit tests are in the `tests` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate.
 
-We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-UCL/surfaxe/actions). 
+We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-UCL/surfaxe/actions).
 
 ## License and how to cite
 
@@ -139,7 +141,7 @@ Surfaxe relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal st
 
 ## Detailed requirements
 
-Surfaxe is compatible with Python 3.7+ and requires the following packages:
+Surfaxe is compatible with python 3.7+ and requires the following packages:
 
 * [Pymatgen](https://pymatgen.org/)
 * [Pandas](https://pandas.pydata.org/)
@@ -150,11 +152,12 @@ Surfaxe is compatible with Python 3.7+ and requires the following packages:
 
 List of contributors:
 
-- Katarina Brlec (@brlec)
-- Daniel Davies (@dandavies99)
-- David Scanlon (@scanlond)
+* Katarina Brlec (@brlec)
+* Daniel Davies (@dandavies99)
+* David Scanlon (@scanlond)
 
 Acknowledgements:
 
-- Surfaxe has benefited from useful discussions with Adam Jackson (@ajjackson), Seán Kavanagh (@kavanase), Graeme Watson (@wantsong), Luisa Herring-Rodriguez (@zccalgh), Christopher Savory (@cnsavory), Bonan Zhu (@zhubonan) and Maud Einhorn (@maudeinhorn). 
-- Thanks to Keith Butler (@keeeto) for providing a starting point and validation examples for calculating the planar average electrostatic potential via the [macrodensity](https://github.com/WMD-group/MacroDensity) package.  
+* Surfaxe has benefited from useful discussions with Adam Jackson (@ajjackson), Seán Kavanagh (@kavanase), Graeme Watson (@wantsong), Luisa Herring-Rodriguez (@zccalgh), Christopher Savory (@cnsavory), Bonan Zhu (@zhubonan) and Maud Einhorn (@maudeinhorn).
+* Thanks to Keith Butler (@keeeto) for providing a starting point and validation examples for calculating the planar average electrostatic potential via the [macrodensity](https://github.com/WMD-group/MacroDensity) package.
+* We thank @eihernan, @pzarabadip and @danielskatz for taking the time to review the code and offering valuable suggestions for improvements.
