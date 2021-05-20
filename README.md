@@ -125,9 +125,23 @@ Surfaxe is free to use under the MIT License. Please cite [add link] if you use 
 
 ## Detailed requirements
 
-Surfaxe is compatible with python 3.6+ and requires the following packages:
+Surfaxe is compatible with python 3.7+ and requires the following packages:
 
 * [Pymatgen](https://pymatgen.org/)
 * [Pandas](https://pandas.pydata.org/)
 * [Matplotlib](https://matplotlib.org/)
 * [Numpy](https://numpy.org/)
+
+## Contributors
+
+List of contributors:
+
+* Katarina Brlec (@brlec)
+* Daniel Davies (@dandavies99)
+* David Scanlon (@scanlond)
+
+Acknowledgements:
+
+* Surfaxe has benefited from useful discussions with Adam Jackson (@ajjackson), Seán Kavanagh (@kavanase), Graeme Watson (@wantsong), Luisa Herring-Rodriguez (@zccalgh), Christopher Savory (@cnsavory), Bonan Zhu (@zhubonan) and Maud Einhorn (@maudeinhorn).
+* Thanks to Keith Butler (@keeeto) for providing a starting point and validation examples for calculating the planar average electrostatic potential via the [macrodensity](https://github.com/WMD-group/MacroDensity) package.
+* We thank @eihernan, @pzarabadip and @danielskatz for taking the time to review the code and offering valuable suggestions for improvements.
