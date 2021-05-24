@@ -1,6 +1,7 @@
 
 [![Build status](https://github.com/smtg-ucl/surfaxe/actions/workflows/tests.yml/badge.svg)](https://github.com/SMTG-UCL/surfaxe/actions)
 [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable) 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.03171/status.svg)](https://doi.org/10.21105/joss.03171)
  
 <img src='example_data/figures/surfaxe_header_v2.png' alt='surfaxe logo header' width='600'/>
 
