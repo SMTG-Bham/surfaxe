@@ -10,8 +10,8 @@ class LoadTestCase(unittest.TestCase):
 
     def test_load_cd(self): 
         cd1 = _load_config_dict('HSE', path=self.path)
-        cd2 = _load_config_dict('waa')
-        cd3 = _load_config_dict((0,1,2))
+        cd2 = _load_config_dict('waa', path=self.path)
+        cd3 = _load_config_dict((0,1,2), path=self.path)
 
         self.assertEqual(cd1['INCAR']['AEXX'], 0.25)
         self.assertEqual(cd1['INCAR']['ALGO'], 'All')
