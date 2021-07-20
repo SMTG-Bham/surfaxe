@@ -3,6 +3,7 @@ import os
 import shutil
 from pathlib import Path
 from pymatgen.core.surface import Slab
+from pymatgen.core import Structure
 from surfaxe.generation import generate_slabs
 
 ytos = str(Path(__file__).parents[2].joinpath('example_data/generation/CONTCAR_conventional'))
@@ -13,6 +14,7 @@ class GenerateSlabsTestCase(unittest.TestCase):
     def setUp(self): 
         self.ytos = ytos 
         self.cdte = cdte
+        self.ytos_pmg = Structure.from_file(ytos)
     
     def test_get_single_hkl(self): 
         ytos_slab = generate_slabs(structure=self.ytos, hkl=(0,0,1), 
@@ -61,6 +63,18 @@ class GenerateSlabsTestCase(unittest.TestCase):
     def test_no_structure(self):
         self.assertRaises(FileNotFoundError, generate_slabs, structure='waa', 
         hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False)
+
+        self.assertRaises(TypeError, generate_slabs, structure=1, 
+        hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False)
+
+
+    def test_pmg_structure(self): 
+        pmg_struc = generate_slabs(structure=self.ytos_pmg, 
+        hkl=1, thicknesses=[10], vacuums=[10, 20], 
+        save_slabs=False)
+
+        self.assertIsNotNone(pmg_struc)
+        self.assertEqual(len(pmg_struc), 7)
     
     def test_non_centrosymmetric(self): 
         sym_true = generate_slabs(structure=self.cdte, hkl=(1,1,0),

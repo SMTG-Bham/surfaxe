@@ -1,7 +1,6 @@
 # pymatgen
 from pymatgen.core.surface import SlabGenerator, get_symmetrically_distinct_miller_indices
 from pymatgen.core import Structure
-from pymatgen.core.structure import SiteCollection
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # misc
@@ -35,8 +34,8 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
     Or if `save_slabs=False` a list of dicts of all unique slabs is returned. 
     
     Args:
-        structure (`str`): Filename of structure file in any format supported by 
-            pymatgen. 
+        structure (`str` or pmg Structure obj): Filename of structure file in 
+            any format supported by pymatgen or pymatgen structure object. 
         hkl (`tuple`, `list` or `int`): Miller index as tuple, a list of Miller 
             indices or a maximum index up to which the search should be 
             performed. E.g. if searching for slabs up to (2,2,2) ``hkl=2``
@@ -159,8 +158,19 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
 
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
-    struc = Structure.from_file(structure)
-    struc = oxidation_states(struc, ox_states=ox_states)
+    if type(structure) == str:
+        struc = Structure.from_file(structure)
+    elif type(structure) == Structure: 
+        struc = structure
+    else: 
+        raise TypeError('structure should either be a file (string) or '
+            'pmg object')
+    
+    # Check if oxidation states were added to the bulk already 
+    try: 
+        struc.species[0].oxi_state 
+    except AttributeError: 
+        struc = oxidation_states(struc, ox_states=ox_states)
     
     # Check if hkl provided as tuple or int, find all available hkl if
     # provided as int; make into a list to iterate over
