@@ -63,16 +63,16 @@ We recommend starting off by looking at the dedicated [tutorials](https://github
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/develop?filepath=tutorials)
 
 ### Command line interface
+
 The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
 
 Generation:
 
-* `surfaxe-getall`: Generates all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified in any format supported by pymatgen. Optionally provides all VASP input files.
-* `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index in any format supported by pymatgen. Optionally provides all VASP input files.
+* `surfaxe-generate`: Generates all unique symmetric zero-dipole surface slabs for one or more specified Miller indices or up to a maximum Miller index specified, in any format supported by pymatgen. Optionally provides all VASP input files.
 
 Convergence:
 
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-getall` or `surfaxe-gethkl` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-generate` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
 
 Analysis:
 
