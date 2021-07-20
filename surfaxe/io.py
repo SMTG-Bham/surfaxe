@@ -143,7 +143,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
             slab['hkl'], slab['slab_thickness'], slab['vac_thickness'], 
             slab['slab_index'], suffix))
 
-def _load_config_dict(config_dict=None): 
+def _load_config_dict(config_dict=None, path=None): 
     """
     Loads the config dictionary for writing VASP input files. 
 
@@ -164,12 +164,18 @@ def _load_config_dict(config_dict=None):
 
             * ``None``: The default option, makes a PBEsol config dictionary for
               a single shot calculation from the ``PBEsol.json`` file. 
+        
+        path (``None`` or `str`): The path to where ``_config_dictionaries` are. 
+            Needed for CI implementation. 
 
     Returns: 
         Dictionary
     """
 
-    path_to_conf = str(Path(__file__).parent.joinpath('_config_dictionaries'))
+    if path is not None: 
+        path_to_conf = path
+    else:     
+        path_to_conf = str(Path(__file__).parent.joinpath('_config_dictionaries'))
 
     if type(config_dict) == dict: 
         cd = config_dict

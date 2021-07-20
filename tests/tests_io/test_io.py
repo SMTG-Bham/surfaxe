@@ -4,8 +4,12 @@ from pymatgen.core.surface import Slab
 from surfaxe.io import _load_config_dict, slab_from_file
 
 class LoadTestCase(unittest.TestCase): 
+
+    def setUp(self): 
+        self.path = str(Path(__file__).parents[2].joinpath('surfaxe/_config_dictionaries'))
+
     def test_load_cd(self): 
-        cd1 = _load_config_dict('HSE')
+        cd1 = _load_config_dict('HSE', path=self.path)
         cd2 = _load_config_dict('waa')
         cd3 = _load_config_dict((0,1,2))
 
