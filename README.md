@@ -1,8 +1,3 @@
-|         | Master | Develop |
-|---------|--------|---------|
-|CI Status| [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=master)](https://travis-ci.com/SMTG-UCL/surfaxe) | [![Build Status](https://travis-ci.com/SMTG-UCL/surfaxe.svg?branch=develop)](https://travis-ci.com/SMTG-UCL/surfaxe)   |
-| [Docs](https://surfaxe.readthedocs.io/en/latest/) | | [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=latest) |
-
 # Surfaxe
 
 Surfaxe is a python package for automating and simplifying density functional theory (DFT) calculations of surface properties, as well as providing analytical tools for bulk and surface calculations. It relies primarily on [Pymatgen](pymatgen.org) for manipulating crystal structures and interfacing with the [VASP](www.vasp.at) DFT code.
@@ -121,7 +116,8 @@ Unit tests are in the `tests` directory and can be run from the top directory us
 
 ## License and how to cite
 
-Surfaxe is free to use under the MIT License. Please cite [add link] if you use it in your research.
+Surfaxe is free to use under the MIT License. If you use it in your research, please cite
+> K. Brlec, D. W. Davies and D. O. Scanlon, *Surfaxe: Systematic surface calculations.* Journal of Open Source Software, 6(61), 3171, (2021) [DOI: 10.21105/joss.03171](https://joss.theoj.org/papers/10.21105/joss.03171)
 
 ## Detailed requirements
 
