@@ -9,7 +9,6 @@ __date__ = "July 12 2020"
 
 from setuptools import setup, Extension
 import os
-import unittest
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,20 +36,19 @@ if __name__ == "__main__":
       ],
       entry_points={
         'console_scripts': [
-          'surfaxe-getall = surfaxe.cli.getall:main',
-          'surfaxe-gethkl = surfaxe.cli.gethkl:main',
-          'surfaxe-parsefols = surfaxe.cli.parsefols:main',
-          'surfaxe-bonds = surfaxe.cli.bonds:main',
-          'surfaxe-simplenn = surfaxe.cli.simplenn:main',
-          'surfaxe-complexnn = surfaxe.cli.complexnn:main',
-          'surfaxe-potential = surfaxe.cli.potential:main',
-          'surfaxe-cartdisp = surfaxe.cli.cartdisp:main',
-          'surfaxe-core = surfaxe.cli.core:main',
-          'surfaxe-vacuum = surfaxe.cli.vacuum:main',
-          'surfaxe-plot-surfen = surfaxe.cli.plotsurfen:main',
-          'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main',
-          'surfaxe-plot-bonds = surfaxe.cli.plotbonds:main',
-          'surfaxe-plot-potential = surfaxe.cli.plotpotential:main',
+          'surfaxe-parsefols = surfaxe.cli.parsefols:main', 
+          'surfaxe-bonds = surfaxe.cli.bonds:main', 
+          'surfaxe-simplenn = surfaxe.cli.simplenn:main', 
+          'surfaxe-complexnn = surfaxe.cli.complexnn:main', 
+          'surfaxe-potential = surfaxe.cli.potential:main', 
+          'surfaxe-cartdisp = surfaxe.cli.cartdisp:main', 
+          'surfaxe-core = surfaxe.cli.core:main', 
+          'surfaxe-vacuum = surfaxe.cli.vacuum:main', 
+          'surfaxe-plot-surfen = surfaxe.cli.plotsurfen:main', 
+          'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main', 
+          'surfaxe-plot-bonds = surfaxe.cli.plotbonds:main', 
+          'surfaxe-plot-potential = surfaxe.cli.plotpotential:main', 
+          'surfaxe-generate = surfaxe.cli.generateslabs:main'
         ]
       }
     )

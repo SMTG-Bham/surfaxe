@@ -1,8 +1,7 @@
-
 [![Build status](https://github.com/smtg-ucl/surfaxe/actions/workflows/tests.yml/badge.svg)](https://github.com/SMTG-UCL/surfaxe/actions)
 [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable) 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.03171/status.svg)](https://doi.org/10.21105/joss.03171)
- 
+
 <img src='example_data/figures/surfaxe_header_v2.png' alt='surfaxe logo header' width='600'/>
 
 Calculating the surface properties of crystals from first principles typically introduces several extra parameters including slab thickness, vacuum size, Miller index, surface termination and more.
@@ -70,16 +69,16 @@ We recommend starting off by looking at the dedicated [tutorials](https://github
 The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/HEAD?filepath=tutorials)
 
 ### Command line interface
-The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the Python API allows for more flexibility.
+
+The scripts can be separated into four modules that follow a typical surfaces workflow; these are generation, convergence, analysis and data, with added plotting functionality. The vast majority of `surfaxe` functionality is available via the command line interface, but the python API allows for more flexibility.
 
 Generation:
 
-* `surfaxe-getall`: Generates all unique symmetric zero-dipole surface slabs up to a maximum Miller index specified in any format supported by pymatgen. Optionally provides all DFT calculation input files.
-* `surfaxe-gethkl`: Generates all unique symmetric zero-dipole surface slabs for one specified Miller index in any format supported by pymatgen. Optionally provides all DFT calculation input files.
+* `surfaxe-generate`: Generates all unique symmetric zero-dipole surface slabs for one or more specified Miller indices or up to a maximum Miller index specified, in any format supported by pymatgen. Optionally provides all VASP input files.
 
 Convergence:
 
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-getall` or `surfaxe-gethkl` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-generate` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
 
 Analysis:
 
@@ -134,7 +133,8 @@ We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-
 
 ## License and how to cite
 
-Surfaxe is free to use under the MIT License. Please cite [add link] if you use it in your research.
+Surfaxe is free to use under the MIT License. If you use it in your research, please cite
+> K. Brlec, D. W. Davies and D. O. Scanlon, *Surfaxe: Systematic surface calculations.* Journal of Open Source Software, 6(61), 3171, (2021) [DOI: 10.21105/joss.03171](https://joss.theoj.org/papers/10.21105/joss.03171)
 
 ## Dependencies
 

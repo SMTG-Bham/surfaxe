@@ -1,16 +1,17 @@
 import unittest
 from pathlib import Path
 from pymatgen.core.surface import Slab
-from surfaxe.io import load_config_dict, slab_from_file
+from surfaxe.io import _load_config_dict, slab_from_file
 
 class LoadTestCase(unittest.TestCase): 
+
     def setUp(self): 
         self.path = str(Path(__file__).parents[2].joinpath('surfaxe/_config_dictionaries'))
 
     def test_load_cd(self): 
-        cd1 = load_config_dict('HSE06_config.json', path_to_config_dir=self.path)
-        cd2 = load_config_dict('waa', path_to_config_dir=self.path)
-        cd3 = load_config_dict((0,1,2), path_to_config_dir=self.path)
+        cd1 = _load_config_dict('HSE', path=self.path)
+        cd2 = _load_config_dict('waa', path=self.path)
+        cd3 = _load_config_dict((0,1,2), path=self.path)
 
         self.assertEqual(cd1['INCAR']['AEXX'], 0.25)
         self.assertEqual(cd1['INCAR']['ALGO'], 'All')
@@ -18,6 +19,7 @@ class LoadTestCase(unittest.TestCase):
         self.assertNotEqual(cd1, cd2)
         self.assertEqual(cd2['INCAR']['GGA'], 'PS')
         self.assertEqual(cd3['INCAR']['ALGO'], 'Normal')
+        self.assertRaises(FileNotFoundError, _load_config_dict, 'HSE06.json')
 
 class SlabFromFileTestCase(unittest.TestCase): 
     def setUp(self): 
