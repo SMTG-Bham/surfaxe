@@ -28,7 +28,7 @@ The main features include:
 3. **Analysis:** Various scripts for surface and bulk calculations.
 
   * Calculation of planar and macroscopic average of the electrostatic potential through the slab to determine absolute electron energies (ionisation potential, electron affinity).
-  * Nearest neighbour atom determination and bond distance analysis (useful for geometry relaxation convergence checks). 
+  * Nearest neighbour atom determination and bond distance analysis (useful for geometry relaxation convergence checks).
 
 Surfaxe primarily supports the [VASP](https://www.vasp.at/) DFT code, however most of the `generation` module is code-agnostic. In the future we would like to add support for more periodic codes in the other modules.
 
@@ -46,15 +46,15 @@ See the [tutorials directory](tutorials/) for more examples.
 
 Surfaxe is a Python 3 package and requires pymatgen and other standard scientific Python packages.
 
-Recommended installation is to git clone and install with `pip`:
+Recommended installation is to git clone and install with `pip` in a stable virtual environment:
 
 ```sh
 git clone https://github.com/SMTG-UCL/surfaxe.git
 cd surfaxe
-pip install --user .
+pip install -e .
 ```
 
-For development work, `--user` can be replaced with `-e`, which creates links to the source folder so any changes to the code are reflected on the path.
+The `-e` option creates links to the source folder so any changes to the code are reflected on the path.
 
 For the code to generate VASP input files along with the surface slabs, POTCARs need to be [set up with pymatgen](https://pymatgen.org/installation.html#potcar-setup).
 
@@ -111,12 +111,6 @@ warnings.filterwarnings('ignore')
 ### Bugs, features and questions
 
 Please use the Issue Tracker to report bugs or request features in the first instance.
-
-```sh
-git clone https://github.com/SMTG-UCL/surfaxe.git
-cd surfaxe
-pip install --user .
-```
 
 Contributions to interface with this package are most welcome. Please use the ["Fork and Pull"](https://guides.github.com/activities/forking/) workflow to make contributions and stick as closely as possible to the following:
 
