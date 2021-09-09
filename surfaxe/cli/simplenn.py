@@ -68,7 +68,7 @@ def main():
         nn = simple_nn(args.start, end=args.end, ox_states=ox_states, 
         nn_method=CrystalNN(), save_csv=args.save_csv, csv_fname=args.csv_fname)
     
-        if args.save_csv==True: 
+        if args.save_csv==False: 
             print(nn)
 
 if __name__ == "__main__":

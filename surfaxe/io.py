@@ -119,13 +119,14 @@ config_dict, fmt, name, **save_slabs_kwargs):
                 # only make the folders with structure files in them
                 else: 
                     slab['slab'].to(fmt=fmt,
-                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
-                slab['slab_thickness'], 
-                slab['vac_thickness'], 
-                slab['slab_index'], name))
-                warnings.formatwarning = _custom_formatwarning
-                warnings.warn('POTCAR directory not set up in pymatgen, only ' 
-                'POSCARs were generated ')
+                        filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, 
+                        slab['hkl'],
+                        slab['slab_thickness'], 
+                        slab['vac_thickness'], 
+                        slab['slab_index'], name))
+                    warnings.formatwarning = _custom_formatwarning
+                    warnings.warn('POTCAR directory not set up in pymatgen, only ' 
+                    'POSCARs were generated ')
 
             # Just makes the folders with structure files in them
             else:
