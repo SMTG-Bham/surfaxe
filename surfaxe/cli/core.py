@@ -20,12 +20,12 @@ def _get_parser():
     parser = ArgumentParser(
         description="""Parses the structure and OUTCAR files for the core level 
         energy. Check the validity of nearest neighbour method on the bulk 
-        structure before using it on slabs."""
+        structure before using it on slabs. Uses CrystalNN by default."""
     )
 
     parser.add_argument('-a', '--atom', dest='core_atom', 
     help='The symbol of atom the core state energy level should be parsed from')
-    parser.add_argument('-b', '--bulknn',  nargs='+', type=str,
+    parser.add_argument('--nn',  nargs='+', type=str,
     help=('The symbols of the nearest neighbours of the core atom ' 
     'e.g. "Ti Ti Y Y"'))
     parser.add_argument('-o', '--orbital', default='1s', 
@@ -66,7 +66,7 @@ def main():
         else: 
             ox_states=None
 
-        core = core_energy(args.core_atom, args.bulk_nn, orbital=args.orbital, 
+        core = core_energy(args.core_atom, args.nn, orbital=args.orbital, 
         ox_states=ox_states, nn_method=CrystalNN(), structure=args.structure)
         print(core)
     
