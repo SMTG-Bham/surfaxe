@@ -11,7 +11,7 @@ import warnings
 
 # surfaxe
 from surfaxe.generation import oxidation_states
-from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
+from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential, _instantiate_structure
 
 def cart_displacements(start, end, max_disp=0.1, save_txt=True,
 txt_fname='cart_displacements.txt'):
@@ -21,9 +21,9 @@ txt_fname='cart_displacements.txt'):
 
     Args:
         start (`str`): Filename of initial structure file in any format 
-            supported by pymatgen.
+            supported by pymatgen or pymatgen structure object.
         end (`str`): Filename of final structure file in any format supported
-            by pymatgen.
+            by pymatgen or pymatgen structure object.
         max_disp (`float`, optional): The maximum displacement shown. Defaults 
             to 0.1 Å.
         save_txt (`bool`, optional): Save the displacements to file. Defaults to 
@@ -35,9 +35,9 @@ txt_fname='cart_displacements.txt'):
        None (default) or DataFrame of displacements of atoms in Cartesian space 
 
     """
-    # Instantiate the structures from files
-    start_struc = Structure.from_file(start)
-    end_struc = Structure.from_file(end)
+    # Instantiate the structures 
+    start_struc = _instantiate_structure(start)
+    end_struc = _instantiate_structure(end)
 
     # Add the site labels to the structure
     els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
@@ -63,9 +63,13 @@ txt_fname='cart_displacements.txt'):
         d = math.sqrt(xdisp + ydisp + zdisp)
         label = site_labels[n]
         if d >= max_disp:
-            disp_list.append({'site': n+1,
-                             'atom': label,
-                             'displacement': f"{d: .3f}"})
+            disp_list.append({
+                'site': n+1,
+                'atom': label,
+                # this makes the displacements round to the same number of 
+                # decimal places as max displacement, for presentation 
+                'displacement': round(d, int(format(max_disp, 'E')[-1])) 
+                             })
     # Save as txt file
     df = pd.DataFrame(disp_list)
 
@@ -83,7 +87,7 @@ plt_fname='bond_analysis.png', **kwargs):
 
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
-            formats.
+            formats, including pmg structure object
         bond (`list`): Bond to analyse e.g. ``['Y', 'O']``
         nn_method (`class`, optional): The coordination number prediction 
             algorithm used. Because the ``nn_method`` is a class, the class 
@@ -116,7 +120,7 @@ plt_fname='bond_analysis.png', **kwargs):
     Returns:
         DataFrame with the c coordinate of the first atom and bond length
     """
-    struc = Structure.from_file(structure)
+    struc = _instantiate_structure(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
     if len(bond) > 2: 
@@ -262,7 +266,7 @@ save_csv=True, csv_fname='nn_data.csv'):
         None (default) or DataFrame containing coordination data 
     """
     # Instantiate start structure object
-    start_struc = Structure.from_file(start)
+    start_struc = _instantiate_structure(start)
 
     # Add atom site labels to the structure
     els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
@@ -279,7 +283,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     bonded_start = nn_method.get_bonded_structure(start_struc)
 
     if end: 
-        end_struc = Structure.from_file(end)
+        end_struc = _instantiate_structure(end)
         end_struc = oxidation_states(end_struc, ox_states)
         bonded_end = nn_method.get_bonded_structure(end_struc)
     

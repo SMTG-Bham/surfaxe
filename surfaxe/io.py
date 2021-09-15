@@ -93,8 +93,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
     Returns: 
         None, saves surface slabs to file
     """
-    struc = Structure.from_file(structure)
-    bulk_name = struc.formula.replace(" ", "")
+    bulk_name = structure.formula.replace(" ", "")
 
     if make_fols or make_input_files: 
         for slab in list_of_slabs:
@@ -248,6 +247,17 @@ def _check_psp_dir():
             if 'PMG_VASP_PSP_DIR' in SETTINGS: 
                 potcar = True
     return potcar
+
+def _instantiate_structure(structure): 
+    """Helper function for instatiating structure files correctly """
+    if type(structure) == str:
+        struc = Structure.from_file(structure)
+    elif type(structure) == Structure: 
+        struc = structure
+    else: 
+        raise TypeError('structure should either be a file or pmg object')
+    
+    return struc
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'): 

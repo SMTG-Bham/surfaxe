@@ -10,14 +10,16 @@ import functools
 import multiprocessing
 import math
 import numpy as np 
+import json
+from copy import deepcopy
 
 # surfaxe
-from surfaxe.io import slabs_to_file, _custom_formatwarning
+from surfaxe.io import slabs_to_file, _custom_formatwarning, _instantiate_structure
 
-def generate_slabs(structure, hkl, thicknesses, vacuums, make_fols=False, 
-make_input_files=False, max_size=500, center_slab=True, ox_states=None, 
-save_slabs=True, is_symmetric=True, layers_to_relax = None, fmt='poscar', 
-name='POSCAR', config_dict=None, user_incar_settings=None, 
+def generate_slabs(structure, hkl, thicknesses, vacuums, save_slabs=True, 
+save_metadata=True, make_fols=False, make_input_files=False, max_size=500, 
+center_slab=True, ox_states=None, is_symmetric=True, layers_to_relax = None, 
+fmt='poscar', name='POSCAR', config_dict=None, user_incar_settings=None, 
 user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwargs): 
     """
     Generates all unique slabs for a specified Miller indices or up to a maximum 
@@ -40,7 +42,12 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
             indices or a maximum index up to which the search should be 
             performed. E.g. if searching for slabs up to (2,2,2) ``hkl=2``
         thicknesses (`list`): The minimum size of the slab in Angstroms. 
-        vacuums (`list`): The minimum size of the vacuum in Angstroms. 
+        vacuums (`list`): The minimum size of the vacuum in Angstroms.
+        save_slabs (`bool`, optional): Whether to save the slabs to file. 
+            Defaults to ``True``.
+        save_metadata (`bool`, optional): Whether to save the slabs' metadata to 
+            file. Saves the entire slab object to a json file 
+            Defaults to ``True``. 
         make_fols (`bool`, optional): Makes folders for each termination 
             and slab/vacuum thickness combinations containing structure files. 
             
@@ -94,9 +101,6 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
             * if ``None``: The oxidation states are added by guess. 
               
             Defaults to ``None``. 
-
-        save_slabs (`bool`, optional): Whether to save the slabs to file. 
-            Defaults to ``True``.
         is_symmetric (`bool`, optional): Whether the slabs cleaved should 
             have inversion symmetry. If bulk is non-centrosymmetric, 
             ``is_symmetric`` needs to be ``False`` - the function will return no
@@ -158,19 +162,19 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
 
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
-    if type(structure) == str:
-        struc = Structure.from_file(structure)
-    elif type(structure) == Structure: 
-        struc = structure
-    else: 
-        raise TypeError('structure should either be a file (string) or '
-            'pmg object')
+    struc = _instantiate_structure(structure)
+
+    # Check structure is conventional standard and warn if not 
+    sga = SpacegroupAnalyzer(struc)
+    cs = sga.get_conventional_standard_structure()
+    if cs.lattice != struc.lattice: 
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('Lattice of the structure provided does not match the '
+        'conventional standard structure. Miller indices are lattice dependent,'
+        ' make sure you are using the correct bulk structure ')
     
     # Check if oxidation states were added to the bulk already 
-    try: 
-        struc.species[0].oxi_state 
-    except AttributeError: 
-        struc = oxidation_states(struc, ox_states=ox_states)
+    struc = oxidation_states(struc, ox_states)
     
     # Check if hkl provided as tuple or int, find all available hkl if
     # provided as int; make into a list to iterate over
@@ -266,8 +270,7 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
             ' Slabs with no selective dynamics applied are: ' + 
             ', '.join(map(str, small)))
 
-    # Warnings for too large, too small, repeated and no slabs; small needs to 
-    # be within the layers to relax if 
+    # Warnings for too large, too small, repeated and no slabs; 
     if repeat:
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Not all combinations of hkl or slab/vac thicknesses '
@@ -280,12 +283,20 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
     
     if len(unique_list_of_dicts) == 0: 
-        warnings.formatwarning = _custom_formatwarning
-        warnings.warn('No zero dipole slabs found for specified Miller index')
+        raise ValueError('No zero dipole slabs found for specified Miller index')
 
-    # Save the slabs to file or return the list of dicts 
+    # Save the metadata or slabs to file or return the list of dicts 
+    if save_metadata: 
+        bulk_name = struc.formula.replace(" ", "")
+        filename = '{}_metadata.json'.format(bulk_name)
+        unique_list_of_dicts_copy = deepcopy(unique_list_of_dicts)
+        for i in unique_list_of_dicts_copy: 
+            i['slab'] = i['slab'].as_dict() 
+        with open(filename, 'w') as f: 
+            json.dump(unique_list_of_dicts_copy, f)
+
     if save_slabs: 
-        slabs_to_file(list_of_slabs=unique_list_of_dicts, structure=structure, 
+        slabs_to_file(list_of_slabs=unique_list_of_dicts, structure=struc, 
         make_fols=make_fols, make_input_files=make_input_files, 
         config_dict=config_dict, fmt=fmt, name=name, **save_slabs_kwargs)
     
@@ -294,10 +305,10 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
 
 def oxidation_states(structure, ox_states=None):
     ''' 
-    Adds oxidation states to the structure object 
+    Adds oxidation states to the structure object if not already present
     
     Args: 
-        structure (`obj`, required): Pymatgen structure object
+        structure (`obj`): Pymatgen structure object
         ox_states (``None``, `list` or  `dict`, optional): Add oxidation states 
             to the structure. Different types of oxidation states specified will 
             result in different pymatgen functions used. The options are: 
@@ -315,12 +326,16 @@ def oxidation_states(structure, ox_states=None):
     Returns: 
         Structure decorated with oxidation states 
     ''' 
-    if type(ox_states) is dict:
-        structure.add_oxidation_state_by_element(ox_states)
-    elif type(ox_states) is list:
-        structure.add_oxidation_state_by_site(ox_states)
-    else:
-        structure.add_oxidation_state_by_guess(max_sites=-1)
+    try: 
+        structure.species[0].oxi_state
+    
+    except AttributeError: 
+        if type(ox_states) is dict:
+            structure.add_oxidation_state_by_element(ox_states)
+        elif type(ox_states) is list:
+            structure.add_oxidation_state_by_site(ox_states)
+        else:
+            structure.add_oxidation_state_by_guess(max_sites=-1)
 
     return structure
 
