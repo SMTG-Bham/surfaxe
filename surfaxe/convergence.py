@@ -1,26 +1,29 @@
 # Pymatgen
+from re import S
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
 
 # Misc
 import os
 import pandas as pd
+import numpy as np
 import warnings
 import functools
 import itertools
 import multiprocessing
 import copy
+from sklearn.linear_model import LinearRegression
 
 # surfaxe
 from surfaxe.io import plot_enatom, plot_surfen, slab_from_file,\
  _custom_formatwarning
 from surfaxe.vasp_data import vacuum, core_energy
+from surfaxe.analysis import bond_analysis
 
-def parse_fols(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
-core_atom=None, bulk_nn=None, parse_vacuum=False, plt_enatom=True, 
-plt_enatom_fname='energy_per_atom.png', plt_surfen=True, 
-plt_surfen_fname='surface_energy.png', save_csv=True, csv_fname=None, 
-verbose=False, **kwargs):
+def parse_energies(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
+core_atom=None, bulk_nn=None, parse_vacuum=False, remove_first_energy=False,
+plt_surfen=True, plt_surfen_fname='surface_energy.png', save_csv=True,
+csv_fname=None, verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
@@ -47,10 +50,9 @@ verbose=False, **kwargs):
             to parse LOCPOT using analysis.electrostatic_potential to use the 
             maximum value of planar potential as the vacuum energy level. 
             Defaults to ``False``. 
-        plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
-            ``True``.
-        plt_enatom_fname (`str`, optional): The name of the energy per atom plot. 
-            Defaults to ``energy_per_atom.png``.
+        remove_first_energy (`bool`, optional): Remove the first data point in 
+            calculation of Fiorentini-Metfessel and Boettger surface energy. 
+            Use if the first energy is somewhat of an outlier.
         plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 
             ``True``.
         plt_surfen_fname (`str`, optional): The name of the surface energy plot.
@@ -71,10 +73,10 @@ verbose=False, **kwargs):
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
-    get_core=False
+    get_core = False
     if parse_core_energy: 
         if core_atom is not None and bulk_nn is not None:
-            get_core=True 
+            get_core = True 
         else: 
             warnings.formatwarning = _custom_formatwarning
             warnings.warn(('Core atom or bulk nearest neighbours were not '
@@ -112,8 +114,8 @@ verbose=False, **kwargs):
     if multiprocessing.cpu_count() > 1: 
         with multiprocessing.Pool() as pool: 
             mp_list = pool.starmap(
-                functools.partial(_mp_helper, parse_vacuum, parse_core_energy, 
-                hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
+                functools.partial(_mp_helper_energy, parse_vacuum, 
+                get_core, hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
                 **get_core_energy_kwargs), list_of_paths)
 
         # len(mp_list) == len(list_of_paths), mp_list[0][0] the is main data
@@ -179,19 +181,84 @@ verbose=False, **kwargs):
     if core_energy_list: 
         df['core_energy'] = core_energy_list
 
-    # Plot energy per atom and surface energy
+    # Add Fiorentini-Methfessel and Boettger methods for calculating 
+    # surface energies 
+    dfs = []
+    for group in df.groupby('vac_thickness'): 
+        df2 = group[1].sort_values('slab_thickness')
+        
+        # Fiorentini-methfessel
+        # remove first data point if it's too much of an outlier and there are 
+        # more than three data points 
+        if remove_first_energy and len(df2['atoms']) >= 3: 
+            x = np.delete(df2['atoms'].to_numpy(), 0).reshape(-1,1)
+            y = np.delete(df2['slab_energy'].to_numpy(), 0) 
+        else: 
+            x = df2['atoms'].to_numpy().reshape(-1,1)
+            y = df2['slab_energy'].to_numpy()
+        
+        model = LinearRegression().fit(x,y)
+        df2['surface_energy_fm'] = (
+        (df2['slab_energy'] - model.coef_ * df2['atoms'])/(2*df2['area'])*16.02)
+        
+        # Boettger
+        if remove_first_energy and len(df2['atoms']) >= 3: 
+            # big energy = M+1 layers energy, small energy = M layers, 
+            # calculating bulk energy for M layers
+            # remove first two from M+1 energy, add a nan in place of one and 
+            # at the end; also replace the first from the M energies with nan; 
+            # same with atoms
+            big_energy = df2['slab_energy'].iloc[2:].to_numpy()
+            big_energy = np.append(big_energy, np.nan)
+            big_energy = np.insert(big_energy, 0, np.nan)
+            
+            small_energy = df2['slab_energy'].iloc[1:].to_numpy()
+            small_energy = np.insert(small_energy, 0, np.nan)
+            
+            big_atoms = df2['atoms'].iloc[2:].to_numpy()
+            big_atoms = np.append(big_atoms, np.nan)
+            big_atoms = np.insert(big_atoms, 0, np.nan)
+            small_atoms = df2['atoms'].astype('float').iloc[1:].to_numpy()
+            small_atoms = np.insert(small_atoms, 0, np.nan) 
+        
+        else: 
+            # need to remove the first from big energy and add a nan at the end 
+            big_energy = df2['slab_energy'].iloc[1:].to_numpy()
+            big_energy = np.append(big_energy, np.nan)
+            
+            small_energy = df2['slab_energy'].to_numpy()
+            
+            big_atoms = df2['atoms'].iloc[1:].to_numpy()
+            big_atoms = np.append(big_atoms, np.nan)
+            small_atoms = df2['atoms'].to_numpy()
+        
+        # difference M+1 - M, get bulk energy from E(M+1)-E(M) / (M+1)-M        
+        diff_energy = big_energy-small_energy
+        diff_atoms = big_atoms-small_atoms
+        bulk_energies = diff_energy/diff_atoms
+        # make last energy a nan to get a nan surface energy 
+        small_energy[-1] = np.nan
+    
+        df2['surface_energy_boettger'] = (
+        (small_energy - df2['atoms']* bulk_energies) / (2*df2['area']) * 16.02)
+
+        dfs.append(df2)
+    
+    # Concat list back to one dataframe
+    df = pd.concat(dfs)
+
+    if remove_first_energy and len(df2['atoms']) < 3:
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('First data point was not removed - less than three '
+        'data points were present in dataset') 
+
+    # Plot surface energy
     plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
     'heatmap': False, 'colors': None, 'width': 6, 'height': 5, 'joules': True}
     plt_kwargs.update((k, kwargs[k]) for k in plt_kwargs.keys() & kwargs.keys())
 
     if plt_surfen: 
         plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
-    
-    if plt_enatom: 
-        # Redefine kwargs and delete joules kwarg from the copy
-        enatom_kwargs = copy.deepcopy(plt_kwargs) 
-        del enatom_kwargs['joules']
-        plot_enatom(df, plt_fname=plt_enatom_fname, **enatom_kwargs)
 
     # Save the csv or return the dataframe
     if save_csv:
@@ -206,7 +273,7 @@ verbose=False, **kwargs):
         return df
 
 
-def _mp_helper(parse_vacuum, parse_core_energy, hkl, path, slab_thickness,
+def _mp_helper_energy(parse_vacuum, get_core, hkl, path, slab_thickness,
 vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs): 
     """
     Helper function for multiprocessing, returns a list of lists of the main 
@@ -245,7 +312,7 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
                 vacuum(path)
             )
                                     
-    if parse_core_energy: 
+    if get_core: 
         core_energy_list.append(
             core_energy(core_atom, bulk_nn, outcar=otc_path, 
             structure=slab, **kwargs)

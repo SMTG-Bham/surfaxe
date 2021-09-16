@@ -5,7 +5,7 @@ import os
 from ruamel.yaml.main import YAML
 
 # Surfaxe 
-from surfaxe.convergence import parse_fols
+from surfaxe.convergence import parse_energies
 
 def _get_parser(): 
     parser = ArgumentParser(
@@ -23,6 +23,9 @@ def _get_parser():
     'calculation in eV per atom'))
     parser.add_argument('-p', '--path', default=None, type=str, 
     help='Relative path to the convergence folders (default: cwd)')
+    parser.add_argument('--remove-energy', default=False, action='store_true', 
+    dest='remove', help=('Remove the first data point in calculation of '
+    'Fiorentini-Metfessel and Boettger surface energy (default: False)'))
     parser.add_argument('--parse-core', default=False, action='store_true', 
     dest='parse_core', help=('Attempts to parse core energies from a supplied '
     'OUTCAR (default: False)'))
@@ -33,9 +36,6 @@ def _get_parser():
     parser.add_argument('--parse-vacuum', default=False, action='store_true', 
     dest='parse_vacuum', help=('Attempts to get the maximum value of planar '
     'potential from a LOCPOT (default: False)'))
-    parser.add_argument('--plot-enatom', default=False, action='store_true', 
-    dest='plt_enatom', 
-    help='Plot basic energy per atom vs slab thickness figure (default: False)')
     parser.add_argument('--plot-surfen', default=False, action='store_true', 
     dest='plt_surfen', 
     help='Plot basic surface energy vs slab thickness figure (default: False)')
@@ -58,7 +58,7 @@ def main():
             yaml = YAML(typ='safe', pure=True)
             yaml_args = yaml.load(y)
         
-        parse_fols(**yaml_args)
+        parse_energies(**yaml_args)
 
     else: 
         if not args.hkl or not args.bulk_per_atom: 
@@ -70,11 +70,11 @@ def main():
         if args.path is not None: 
             path = args.path
 
-        parse_fols(hkl, args.bulk_per_atom, path_to_fols=path, 
+        parse_energies(hkl, args.bulk_per_atom, path_to_fols=path, 
         parse_core_energy=args.parse_core, core_atom=args.core, bulk_nn=args.nn, 
         parse_vacuum=args.parse_vacuum, plt_enatom=args.plt_enatom, 
         plt_surfen=args.plt_surfen, save_csv=True, csv_fname=args.csv_fname, 
-        verbose=args.verbose)
+        verbose=args.verbose, remove_first_energy=args.remove)
 
 if __name__ == "__main__":
     main()
