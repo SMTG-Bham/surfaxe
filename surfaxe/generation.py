@@ -17,10 +17,11 @@ from copy import deepcopy
 from surfaxe.io import slabs_to_file, _custom_formatwarning, _instantiate_structure
 
 def generate_slabs(structure, hkl, thicknesses, vacuums, save_slabs=True, 
-save_metadata=True, make_fols=False, make_input_files=False, max_size=500, 
-center_slab=True, ox_states=None, is_symmetric=True, layers_to_relax = None, 
-fmt='poscar', name='POSCAR', config_dict=None, user_incar_settings=None, 
-user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwargs): 
+save_metadata=True, json_fname=None, make_fols=False, make_input_files=False, 
+max_size=500, center_slab=True, ox_states=None, is_symmetric=True, 
+layers_to_relax = None, fmt='poscar', name='POSCAR', config_dict=None, 
+user_incar_settings=None, user_kpoints_settings=None, user_potcar_settings=None, 
+parallelise=True, **kwargs): 
     """
     Generates all unique slabs for a specified Miller indices or up to a maximum 
     Miller index with minimum slab and vacuum thicknesses. It includes all 
@@ -48,6 +49,8 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
         save_metadata (`bool`, optional): Whether to save the slabs' metadata to 
             file. Saves the entire slab object to a json file 
             Defaults to ``True``. 
+        json_fname (`str`, optional): Filename of json metadata file. Defaults to
+            bulk_formula_metadata.json
         make_fols (`bool`, optional): Makes folders for each termination 
             and slab/vacuum thickness combinations containing structure files. 
             
@@ -287,12 +290,13 @@ user_kpoints_settings=None, user_potcar_settings=None, parallelise=True, **kwarg
 
     # Save the metadata or slabs to file or return the list of dicts 
     if save_metadata: 
-        bulk_name = struc.formula.replace(" ", "")
-        filename = '{}_metadata.json'.format(bulk_name)
+        bulk_name = struc.composition.reduced_formula
+        if json_fname is None: 
+            json_fname = '{}_metadata.json'.format(bulk_name)
         unique_list_of_dicts_copy = deepcopy(unique_list_of_dicts)
         for i in unique_list_of_dicts_copy: 
             i['slab'] = i['slab'].as_dict() 
-        with open(filename, 'w') as f: 
+        with open(json_fname, 'w') as f: 
             json.dump(unique_list_of_dicts_copy, f)
 
     if save_slabs: 
