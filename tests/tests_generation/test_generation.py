@@ -112,10 +112,10 @@ class GenerateSlabsTestCase(unittest.TestCase):
         self.assertIsNotNone(ytos_slabs)
         
         # Check the files created 
-        self.assertIn('Y4Ti4S4O10_metadata.json', os.listdir(os.getcwd()))
+        self.assertIn('Y2Ti2S2O5_metadata.json', os.listdir(os.getcwd()))
 
-        if os.path.isfile('Y4Ti4S4O10_metadata.json'): 
-            os.remove('Y4Ti4S4O10_metadata.json')
+        if os.path.isfile('Y2Ti2S2O5_metadata.json'): 
+            os.remove('Y2Ti2S2O5_metadata.json')
 
     def test_selective_dynamics(self): 
         ytos_slabs = generate_slabs(structure=self.ytos, 

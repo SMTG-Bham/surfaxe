@@ -93,7 +93,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
     Returns: 
         None, saves surface slabs to file
     """
-    bulk_name = structure.formula.replace(" ", "")
+    bulk_name = structure.composition.reduced_formula
 
     if make_fols or make_input_files: 
         for slab in list_of_slabs:
@@ -252,7 +252,7 @@ def _instantiate_structure(structure):
     """Helper function for instatiating structure files correctly """
     if type(structure) == str:
         struc = Structure.from_file(structure)
-    elif type(structure) == Structure: 
+    elif type(structure) == Structure or type(structure) == Slab: 
         struc = structure
     else: 
         raise TypeError('structure should either be a file or pmg object')
