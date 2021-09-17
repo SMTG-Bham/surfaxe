@@ -13,12 +13,18 @@ import itertools
 import multiprocessing
 import copy
 from sklearn.linear_model import LinearRegression
+import json
 
 # surfaxe
-from surfaxe.io import plot_enatom, plot_surfen, slab_from_file,\
- _custom_formatwarning
+from surfaxe.io import plot_surfen, slab_from_file, _custom_formatwarning
 from surfaxe.vasp_data import vacuum, core_energy
 from surfaxe.analysis import bond_analysis
+
+# todo: 
+# - add a script that takes json from here and generate and does cart disp 
+# between the two them 
+# - add docs for parse_structures 
+# - add test for parse_structures
 
 def parse_energies(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
 core_atom=None, bulk_nn=None, parse_vacuum=False, remove_first_energy=False,
@@ -27,7 +33,8 @@ csv_fname=None, verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
-    combination. It can optionally parse vacuum and core level energies.
+    combination. Calculates surface energies using Fiorentini-Methfessel and 
+    Boettger methods. It can optionally parse vacuum and core level energies.
 
     ``path_to_fols`` specifies the parent directory containing subdirectories 
     that must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there 
@@ -240,7 +247,7 @@ csv_fname=None, verbose=False, **kwargs):
         small_energy[-1] = np.nan
     
         df2['surface_energy_boettger'] = (
-        (small_energy - df2['atoms']* bulk_energies) / (2*df2['area']) * 16.02)
+        (small_energy - df2['atoms']*bulk_energies) / (2*df2['area']) * 16.02)
 
         dfs.append(df2)
     
@@ -271,6 +278,63 @@ csv_fname=None, verbose=False, **kwargs):
     
     else: 
         return df
+
+def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=CrystalNN(), 
+ path_to_fols=None, verbose=False, json_fname=None,  **kwargs): 
+    # collect the relaxed structures & put them in a json file 
+    # has to be same format as the input (-layers) 
+
+    # Set directory 
+    cwd = os.getcwd() if path_to_fols is None else path_to_fols
+
+    # Get all paths to slab_vac_index folders, list=[[path,slab,vac,index],..]
+    list_of_paths=[]
+    for root, fols, files in os.walk(cwd):
+        for fol in fols:
+            # Perform a loose check that we are looking in the right place, 
+            # also avoid .ipynb_checkpoint files 
+            if ''.join(map(str,hkl)) in root.split('/') and '.' not in fol:
+                if len(fol.split('_')) == 3:
+                    list_of_paths.append([
+                        os.path.join(root, fol),
+                        fol.split('_')[0], 
+                        fol.split('_')[1], 
+                        fol.split('_')[2]
+                    ])
+                    if verbose:
+                        print(root, fol)
+
+    lst = []
+    for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
+        struc_path = '{}/{}'.format(path, structure_file)
+        slab = slab_from_file(struc_path, hkl)
+        lst.append({
+            'hkl': hkl, 
+            'slab_thickness': slab_thickness, 
+            'vac_thickness': vac_thickness, 
+            'slab_index': slab_index,
+            'slab': slab.as_dict()
+        })
+        # if bond is set, do bond analysis; single bond
+        if bond is not None and type(bond[0]) == str: 
+            csv_fname = '{}/bond_analysis_{}.csv'.format(path, ''.join(bond))
+            bond_analysis(slab, bond, nn_method=nn_method, 
+            csv_fname=csv_fname, **kwargs)
+            
+        # multiple bonds 
+        elif bond is not None and type(bond[0]) == list: 
+            for b in bond: 
+                csv_fname = '{}/bond_analysis_{}.csv'.format(path, ''.join(b))
+                bond_analysis(slab, b, nn_method=nn_method, 
+                csv_fname=csv_fname, **kwargs)
+
+    if json_fname is None: 
+        bulk_name = slab.composition.reduced_formula
+        json_fname = '{}_parsed_metadata.json'.format(bulk_name)
+    
+    with open(json_fname, 'w') as f: 
+        json.dump(lst, f)
+
 
 
 def _mp_helper_energy(parse_vacuum, get_core, hkl, path, slab_thickness,
