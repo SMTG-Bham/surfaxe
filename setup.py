@@ -37,6 +37,7 @@ if __name__ == "__main__":
       entry_points={
         'console_scripts': [
           'surfaxe-parse-energy = surfaxe.cli.parseenergy:main', 
+          'surfaxe-parse-structures = surfaxe.cli.parsestructures:main', 
           'surfaxe-bonds = surfaxe.cli.bonds:main', 
           'surfaxe-simplenn = surfaxe.cli.simplenn:main', 
           'surfaxe-complexnn = surfaxe.cli.complexnn:main', 
