@@ -24,7 +24,6 @@ from surfaxe.analysis import bond_analysis
 # - add a script that takes json from here and generate and does cart disp 
 # between the two them 
 # - add docs for parse_structures 
-# - add test for parse_structures
 
 def parse_energies(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
 core_atom=None, bulk_nn=None, parse_vacuum=False, remove_first_energy=False,
@@ -191,65 +190,67 @@ csv_fname=None, verbose=False, **kwargs):
     # Add Fiorentini-Methfessel and Boettger methods for calculating 
     # surface energies 
     dfs = []
-    for group in df.groupby('vac_thickness'): 
-        df2 = group[1].sort_values('slab_thickness')
-        
-        # Fiorentini-methfessel
-        # remove first data point if it's too much of an outlier and there are 
-        # more than three data points 
-        if remove_first_energy and len(df2['atoms']) >= 3: 
-            x = np.delete(df2['atoms'].to_numpy(), 0).reshape(-1,1)
-            y = np.delete(df2['slab_energy'].to_numpy(), 0) 
-        else: 
-            x = df2['atoms'].to_numpy().reshape(-1,1)
-            y = df2['slab_energy'].to_numpy()
-        
-        model = LinearRegression().fit(x,y)
-        df2['surface_energy_fm'] = (
-        (df2['slab_energy'] - model.coef_ * df2['atoms'])/(2*df2['area'])*16.02)
-        
-        # Boettger
-        if remove_first_energy and len(df2['atoms']) >= 3: 
-            # big energy = M+1 layers energy, small energy = M layers, 
-            # calculating bulk energy for M layers
-            # remove first two from M+1 energy, add a nan in place of one and 
-            # at the end; also replace the first from the M energies with nan; 
-            # same with atoms
-            big_energy = df2['slab_energy'].iloc[2:].to_numpy()
-            big_energy = np.append(big_energy, np.nan)
-            big_energy = np.insert(big_energy, 0, np.nan)
+    for index in df.groupby('slab_index'): 
+        df_index = index[1].sort_values('vac_thickness')
+        for group in df_index.groupby('vac_thickness'): 
+            df2 = group[1].sort_values('slab_thickness')
             
-            small_energy = df2['slab_energy'].iloc[1:].to_numpy()
-            small_energy = np.insert(small_energy, 0, np.nan)
+            # Fiorentini-methfessel
+            # remove first data point if it's too much of an outlier and there are 
+            # more than three data points 
+            if remove_first_energy and len(df2['atoms']) >= 3: 
+                x = np.delete(df2['atoms'].to_numpy(), 0).reshape(-1,1)
+                y = np.delete(df2['slab_energy'].to_numpy(), 0) 
+            else: 
+                x = df2['atoms'].to_numpy().reshape(-1,1)
+                y = df2['slab_energy'].to_numpy()
             
-            big_atoms = df2['atoms'].iloc[2:].to_numpy()
-            big_atoms = np.append(big_atoms, np.nan)
-            big_atoms = np.insert(big_atoms, 0, np.nan)
-            small_atoms = df2['atoms'].astype('float').iloc[1:].to_numpy()
-            small_atoms = np.insert(small_atoms, 0, np.nan) 
+            model = LinearRegression().fit(x,y)
+            df2['surface_energy_fm'] = (
+            (df2['slab_energy'] - model.coef_ * df2['atoms'])/(2*df2['area'])*16.02)
+            
+            # Boettger
+            if remove_first_energy and len(df2['atoms']) >= 3: 
+                # big energy = M+1 layers energy, small energy = M layers, 
+                # calculating bulk energy for M layers
+                # remove first two from M+1 energy, add a nan in place of one and 
+                # at the end; also replace the first from the M energies with nan; 
+                # same with atoms
+                big_energy = df2['slab_energy'].iloc[2:].to_numpy()
+                big_energy = np.append(big_energy, np.nan)
+                big_energy = np.insert(big_energy, 0, np.nan)
+                
+                small_energy = df2['slab_energy'].iloc[1:].to_numpy()
+                small_energy = np.insert(small_energy, 0, np.nan)
+                
+                big_atoms = df2['atoms'].iloc[2:].to_numpy()
+                big_atoms = np.append(big_atoms, np.nan)
+                big_atoms = np.insert(big_atoms, 0, np.nan)
+                small_atoms = df2['atoms'].astype('float').iloc[1:].to_numpy()
+                small_atoms = np.insert(small_atoms, 0, np.nan) 
+            
+            else: 
+                # need to remove the first from big energy and add a nan at the end 
+                big_energy = df2['slab_energy'].iloc[1:].to_numpy()
+                big_energy = np.append(big_energy, np.nan)
+                
+                small_energy = df2['slab_energy'].to_numpy()
+                
+                big_atoms = df2['atoms'].iloc[1:].to_numpy()
+                big_atoms = np.append(big_atoms, np.nan)
+                small_atoms = df2['atoms'].to_numpy()
+            
+            # difference M+1 - M, get bulk energy from E(M+1)-E(M) / (M+1)-M        
+            diff_energy = big_energy-small_energy
+            diff_atoms = big_atoms-small_atoms
+            bulk_energies = diff_energy/diff_atoms
+            # make last energy a nan to get a nan surface energy 
+            small_energy[-1] = np.nan
         
-        else: 
-            # need to remove the first from big energy and add a nan at the end 
-            big_energy = df2['slab_energy'].iloc[1:].to_numpy()
-            big_energy = np.append(big_energy, np.nan)
-            
-            small_energy = df2['slab_energy'].to_numpy()
-            
-            big_atoms = df2['atoms'].iloc[1:].to_numpy()
-            big_atoms = np.append(big_atoms, np.nan)
-            small_atoms = df2['atoms'].to_numpy()
-        
-        # difference M+1 - M, get bulk energy from E(M+1)-E(M) / (M+1)-M        
-        diff_energy = big_energy-small_energy
-        diff_atoms = big_atoms-small_atoms
-        bulk_energies = diff_energy/diff_atoms
-        # make last energy a nan to get a nan surface energy 
-        small_energy[-1] = np.nan
-    
-        df2['surface_energy_boettger'] = (
-        (small_energy - df2['atoms']*bulk_energies) / (2*df2['area']) * 16.02)
+            df2['surface_energy_boettger'] = (
+            (small_energy - df2['atoms']*bulk_energies) / (2*df2['area']) * 16.02)
 
-        dfs.append(df2)
+            dfs.append(df2)
     
     # Concat list back to one dataframe
     df = pd.concat(dfs)
@@ -260,8 +261,7 @@ csv_fname=None, verbose=False, **kwargs):
         'data points were present in dataset') 
 
     # Plot surface energy
-    plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
-    'heatmap': False, 'colors': None, 'width': 6, 'height': 5, 'joules': True}
+    plt_kwargs = {'colors': None, 'width': 6, 'height': 5}
     plt_kwargs.update((k, kwargs[k]) for k in plt_kwargs.keys() & kwargs.keys())
 
     if plt_surfen: 
