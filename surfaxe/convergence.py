@@ -18,7 +18,7 @@ import json
 # surfaxe
 from surfaxe.io import plot_surfen, slab_from_file, _custom_formatwarning
 from surfaxe.vasp_data import vacuum, core_energy
-from surfaxe.analysis import bond_analysis
+from surfaxe.analysis import bond_analysis, electrostatic_potential
 
 # todo: 
 # - add a script that takes json from here and generate and does cart disp 
@@ -54,8 +54,8 @@ csv_fname=None, verbose=False, **kwargs):
             `core_atom`. Defaults to ``None``. 
         parse_vacuum (`bool`, optional): if ``True`` the script attempts 
             to parse LOCPOT using analysis.electrostatic_potential to use the 
-            maximum value of planar potential as the vacuum energy level. 
-            Defaults to ``False``. 
+            max value of planar potential as the vacuum energy level (eV). 
+            It also calculates the average gradient of the vacuum region (meV). Defaults to ``False``. 
         remove_first_energy (`bool`, optional): Remove the first data point in 
             calculation of Fiorentini-Metfessel and Boettger surface energy. 
             Use if the first energy is somewhat of an outlier.
@@ -132,9 +132,11 @@ csv_fname=None, verbose=False, **kwargs):
             [i[1] for i in mp_list]))
         core_energy_list = list(itertools.chain.from_iterable(
             [i[2] for i in mp_list]))
+        gradient_list = list(itertools.chain.from_iterable(
+            [i[3] for i in mp_list]))
     
     else: 
-        df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+        df_list, electrostatic_list, core_energy_list, gradient_list = ([] for i in range(4))
         for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
             vsp_path = '{}/vasprun.xml'.format(path)
             otc_path = '{}/OUTCAR'.format(path)
@@ -162,10 +164,34 @@ csv_fname=None, verbose=False, **kwargs):
                 'time_taken': otc_times['Elapsed time (sec)']})
 
             if parse_vacuum: 
-                    electrostatic_list.append(
-                        vacuum(path)
-                    )
-                                            
+                # get value of potential in vacuum
+                electrostatic_list.append(vacuum(path))
+
+                lpt = '{}/LOCPOT'.format(path) 
+                p = electrostatic_potential(lpt, save_plt=False, save_csv=False)
+                # gradient in eV 
+                g = p['gradient'].to_numpy()
+                ratio = int(vac_thickness)/(int(vac_thickness)+int(slab_thickness))
+                # check if slab is centred so can get the gradient
+                if 0.45 < slab.center_of_mass[2] < 0.55:
+                    # divide by 2 bc two regions, 0.75 is a scaling factor that 
+                    # should hopefully work to avoid any charge from dangling 
+                    # bonds? 
+                    # mean is in meV 
+                    a = int(len(g)*ratio/2*0.75)
+                    gradient_list.append(np.mean(g[:a]) * 1000) 
+
+                else: 
+                    a = int(len(g)*ratio*0.75)
+                    # if atoms are more towards the end of the slab, the start 
+                    # should be vacuum
+                    if slab.center_of_mass[2] > 0.5: 
+                        gradient_list.append(np.mean(g[:a]) * 1000)  # meV 
+                    # and then if atoms are at the start, the vacuum is at
+                    # the end
+                    else: 
+                        gradient_list.append(np.mean(g[(len(g)-a):]) * 1000) 
+
             if get_core: 
                 core_energy_list.append(
                     core_energy(core_atom, bulk_nn, outcar=otc_path, 
@@ -173,20 +199,20 @@ csv_fname=None, verbose=False, **kwargs):
                     ) 
 
     df = pd.DataFrame(df_list)
-    df['surface_energy'] = (
-        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
-        ) 
-    
-    df['surface_energy_ev'] = (
-        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area'])
-    )
 
     if electrostatic_list: 
         df['vacuum_potential'] = electrostatic_list
     
+    if gradient_list: 
+        df['vacuum_gradient'] = gradient_list # in meV
+    
     if core_energy_list: 
         df['core_energy'] = core_energy_list
-
+        
+    df['surface_energy'] = (
+        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
+        ) 
+    
     # Add Fiorentini-Methfessel and Boettger methods for calculating 
     # surface energies 
     dfs = []
@@ -345,7 +371,7 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
     Same args as for parse_fols, only that path is the path to the folder in 
     which the vasprun and OUTCAR for the specific slab/vacuum/index slab are. 
     """
-    df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+    df_list, electrostatic_list, core_energy_list, gradient_list = ([] for i in range(4))
 
     # instantiate structure, slab, vasprun and outcar objects
     vsp_path = '{}/vasprun.xml'.format(path)
@@ -372,9 +398,31 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
         'time_taken': otc_times['Elapsed time (sec)']})
 
     if parse_vacuum: 
-            electrostatic_list.append(
-                vacuum(path)
-            )
+        electrostatic_list.append(vacuum(path))
+
+        lpt = '{}/LOCPOT'.format(path) 
+        p = electrostatic_potential(lpt, save_plt=False, save_csv=False)
+        # gradient in eV 
+        g = p['gradient'].to_numpy()
+        ratio = int(vac_thickness)/(int(vac_thickness)+int(slab_thickness))
+        # check if slab is centred so can get the gradient
+        if 0.45 < slab.center_of_mass[2] < 0.55:
+            # divide by 2 bc two regions, 0.75 is a scaling factor that 
+            # should hopefully work to avoid any charge from dangling 
+            # bonds? 
+            a = int(len(g)*ratio/2*0.75)
+            gradient_list.append(np.mean(g[:a])* 1000) 
+
+        else: 
+            a = int(len(g)*ratio*0.75)
+            # if atoms are more towards the end of the slab, the start 
+            # should be vacuum
+            if slab.center_of_mass[2] > 0.5: 
+                gradient_list.append(np.mean(g[:a])* 1000)  
+            # and then if atoms are at the start, the vacuum is at
+            # the end
+            else: 
+                gradient_list.append(np.mean(g[(len(g)-a):]) * 1000)  
                                     
     if get_core: 
         core_energy_list.append(
@@ -382,4 +430,4 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
             structure=slab, **kwargs)
             ) 
 
-    return [df_list, electrostatic_list, core_energy_list]
+    return [df_list, electrostatic_list, core_energy_list, gradient_list]
