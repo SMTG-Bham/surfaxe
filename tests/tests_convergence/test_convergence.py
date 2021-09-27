@@ -51,14 +51,14 @@ class ParseEnergiesTestCase(unittest.TestCase):
         parse_structures((0,0,1), structure_file='POSCAR', path_to_fols=self.fols, 
         bond=['Y', 'O'])
 
-        df = pd.read_csv('{}/20_20_15/bond_analysis_YO.csv'.format(self.fols))
+        df = pd.read_csv('{}/20_20_15_bond_analysis_YO.csv'.format(self.fols))
         self.assertEqual(df['Y_c_coord'][0], 0.708615)
         self.assertEqual(df['Y-O_bond_distance'][3], 2.4095195472222635)    
 
-        for fol in os.listdir(self.fols): 
-            if not fol.startswith('.'):
-                path = os.path.join(self.fols, fol)
-                os.remove('{}/bond_analysis_YO.csv'.format(path))
+        for file in os.listdir(self.fols): 
+            if 'bond_analysis' in file:
+                path = os.path.join(self.fols, file)
+                os.remove(str(path))
 
         if os.path.isfile('Y2Ti2S2O5_parsed_metadata.json'): 
             os.remove('Y2Ti2S2O5_parsed_metadata.json')
@@ -67,20 +67,19 @@ class ParseEnergiesTestCase(unittest.TestCase):
         parse_structures((0,0,1), structure_file='POSCAR', path_to_fols=self.fols, 
         bond=[['Y', 'O'], ['Ti', 'O']])
 
-        df = pd.read_csv('{}/20_20_15/bond_analysis_YO.csv'.format(self.fols))
+        df = pd.read_csv('{}/20_20_15_bond_analysis_YO.csv'.format(self.fols))
         self.assertEqual(df['Y_c_coord'][0], 0.708615)
         self.assertEqual(df['Y-O_bond_distance'][3], 2.4095195472222635)
 
-        df2 = pd.read_csv('{}/20_20_15/bond_analysis_TiO.csv'.format(self.fols))    
+        df2 = pd.read_csv('{}/20_20_15_bond_analysis_TiO.csv'.format(self.fols))    
         self.assertEqual(len(df2['Ti_c_coord']), 4)
         self.assertAlmostEqual(df2['Ti-O_bond_distance'][1], 1.9193156521064114)
         self.assertEqual(df2['Ti_c_coord'][3], 0.415056)
 
-        for fol in os.listdir(self.fols): 
-            if not fol.startswith('.'):
-                path = os.path.join(self.fols, fol)
-                os.remove('{}/bond_analysis_YO.csv'.format(path))
-                os.remove('{}/bond_analysis_TiO.csv'.format(path))
+        for file in os.listdir(self.fols): 
+            if 'bond_analysis' in file:
+                path = os.path.join(self.fols, file)
+                os.remove(str(path))
 
         if os.path.isfile('Y2Ti2S2O5_parsed_metadata.json'): 
             os.remove('Y2Ti2S2O5_parsed_metadata.json')

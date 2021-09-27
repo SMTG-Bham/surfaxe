@@ -111,14 +111,21 @@ config_dict, fmt, name, **save_slabs_kwargs):
                     cd = _load_config_dict(config_dict)
                     vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                     vis.write_input(
-                        r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
-                        slab['slab_t'], slab['vac_t'],slab['s_index'])
+                        r'{}/{}/{}_{}_{}'.format(bulk_name, 
+                            slab['hkl'], 
+                            slab['slab_thickness'], 
+                            slab['vac_thickness'],
+                            slab['slab_index'])
                         )
                 # only make the folders with structure files in them
                 else: 
                     slab['slab'].to(fmt=fmt,
-                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, slab['hkl'],
-                slab['slab_t'], slab['vac_t'], slab['s_index'], name))
+                filename=r'{}/{}/{}_{}_{}/{}'.format(bulk_name, 
+                    slab['hkl'],
+                    slab['slab_thickness'], 
+                    slab['vac_thickness'], 
+                    slab['slab_index'], 
+                    name))
                 warnings.formatwarning = _custom_formatwarning
                 warnings.warn('POTCAR directory not set up in pymatgen, only ' 
                 'POSCARs were generated ')

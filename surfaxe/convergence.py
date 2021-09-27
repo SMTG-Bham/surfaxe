@@ -1,5 +1,4 @@
 # Pymatgen
-from re import S
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
 
@@ -220,7 +219,8 @@ csv_fname=None, verbose=False, **kwargs):
         df_index = index[1].sort_values('vac_thickness')
         for group in df_index.groupby('vac_thickness'): 
             df2 = group[1].sort_values('slab_thickness')
-            
+            # deepcopy to keep it fresh 
+            df3 = copy.deepcopy(df2)
             # Fiorentini-methfessel
             # remove first data point if it's too much of an outlier and there are 
             # more than three data points 
@@ -232,51 +232,54 @@ csv_fname=None, verbose=False, **kwargs):
                 y = df2['slab_energy'].to_numpy()
             
             model = LinearRegression().fit(x,y)
-            df2['surface_energy_fm'] = (
-            (df2['slab_energy'] - model.coef_ * df2['atoms'])/(2*df2['area'])*16.02)
+            df3['surface_energy_fm'] = (
+            (df3['slab_energy'] - model.coef_ * df3['atoms'])/(2*df3['area'])*16.02)
             
             # Boettger
-            if remove_first_energy and len(df2['atoms']) >= 3: 
+            # new dataframe, just in case 
+            df4 = group[1].sort_values('slab_thickness')
+            if remove_first_energy and len(df4['atoms']) >= 3: 
                 # big energy = M+1 layers energy, small energy = M layers, 
                 # calculating bulk energy for M layers
                 # remove first two from M+1 energy, add a nan in place of one and 
                 # at the end; also replace the first from the M energies with nan; 
                 # same with atoms
-                big_energy = df2['slab_energy'].iloc[2:].to_numpy()
+                big_energy = df4['slab_energy'].iloc[2:].to_numpy()
                 big_energy = np.append(big_energy, np.nan)
                 big_energy = np.insert(big_energy, 0, np.nan)
                 
-                small_energy = df2['slab_energy'].iloc[1:].to_numpy()
+                small_energy = df4['slab_energy'].iloc[1:].to_numpy()
                 small_energy = np.insert(small_energy, 0, np.nan)
                 
-                big_atoms = df2['atoms'].iloc[2:].to_numpy()
+                big_atoms = df4['atoms'].iloc[2:].to_numpy()
                 big_atoms = np.append(big_atoms, np.nan)
                 big_atoms = np.insert(big_atoms, 0, np.nan)
-                small_atoms = df2['atoms'].astype('float').iloc[1:].to_numpy()
+                small_atoms = df4['atoms'].astype('float').iloc[1:].to_numpy()
                 small_atoms = np.insert(small_atoms, 0, np.nan) 
             
             else: 
                 # need to remove the first from big energy and add a nan at the end 
-                big_energy = df2['slab_energy'].iloc[1:].to_numpy()
+                big_energy = df4['slab_energy'].iloc[1:].to_numpy()
                 big_energy = np.append(big_energy, np.nan)
                 
-                small_energy = df2['slab_energy'].to_numpy()
+                small_energy = df4['slab_energy'].to_numpy()
                 
-                big_atoms = df2['atoms'].iloc[1:].to_numpy()
+                big_atoms = df4['atoms'].iloc[1:].to_numpy()
                 big_atoms = np.append(big_atoms, np.nan)
-                small_atoms = df2['atoms'].to_numpy()
+                small_atoms = df4['atoms'].to_numpy()
             
             # difference M+1 - M, get bulk energy from E(M+1)-E(M) / (M+1)-M        
             diff_energy = big_energy-small_energy
             diff_atoms = big_atoms-small_atoms
             bulk_energies = diff_energy/diff_atoms
             # make last energy a nan to get a nan surface energy 
+
             small_energy[-1] = np.nan
         
-            df2['surface_energy_boettger'] = (
-            (small_energy - df2['atoms']*bulk_energies) / (2*df2['area']) * 16.02)
+            df3['surface_energy_boettger'] = (
+            (small_energy - df3['atoms']*bulk_energies) / (2*df3['area']) * 16.02)
 
-            dfs.append(df2)
+            dfs.append(df3)
     
     # Concat list back to one dataframe
     df = pd.concat(dfs)
@@ -343,14 +346,14 @@ def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=Crystal
         })
         # if bond is set, do bond analysis; single bond
         if bond is not None and type(bond[0]) == str: 
-            csv_fname = '{}/bond_analysis_{}.csv'.format(path, ''.join(bond))
+            csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(bond))
             bond_analysis(slab, bond, nn_method=nn_method, 
             csv_fname=csv_fname, **kwargs)
             
         # multiple bonds 
         elif bond is not None and type(bond[0]) == list: 
             for b in bond: 
-                csv_fname = '{}/bond_analysis_{}.csv'.format(path, ''.join(b))
+                csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(b))
                 bond_analysis(slab, b, nn_method=nn_method, 
                 csv_fname=csv_fname, **kwargs)
 
