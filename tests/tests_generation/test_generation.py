@@ -55,12 +55,15 @@ class GenerateSlabsTestCase(unittest.TestCase):
         '001_10_10_4'))
 
     def test_get_none(self): 
-        ytos_no_slab = generate_slabs(structure=self.ytos, hkl=(0,3,5), 
+        with self.assertRaises(ValueError) as cm: 
+            slabs = generate_slabs(structure=self.ytos, hkl=(0,3,5), 
         thicknesses=[10], vacuums=[10,20], save_slabs=False, save_metadata=False)
+        
+        ex = cm.exception
+        self.assertEqual(str(ex),'No zero dipole slabs found for specified '
+        'Miller index')
+            
 
-        self.assertEqual(ytos_no_slab, [])
-        self.assertWarnsRegex(UserWarning, 'No zero dipole slabs found for '
-        'specified Miller index')
 
     def test_no_structure(self):
         self.assertRaises(FileNotFoundError, generate_slabs, structure='waa', 
@@ -99,11 +102,11 @@ class GenerateSlabsTestCase(unittest.TestCase):
         self.assertIsNone(ytos_slabs)
         
         # Check the files created 
-        self.assertEqual(len(os.listdir('Y4Ti4S4O10')), 1)
-        self.assertIn('POSCAR_001_10_10_4.vasp', os.listdir('Y4Ti4S4O10'))
+        self.assertEqual(len(os.listdir('Y2Ti2S2O5')), 1)
+        self.assertIn('POSCAR_001_10_10_4.vasp', os.listdir('Y2Ti2S2O5'))
 
         # Clean up - get rid of directory created 
-        shutil.rmtree('Y4Ti4S4O10') 
+        shutil.rmtree('Y2Ti2S2O5') 
     
     def test_save_metadata(self):
         ytos_slabs = generate_slabs(structure=self.ytos, 
@@ -130,3 +133,6 @@ class GenerateSlabsTestCase(unittest.TestCase):
         'centre of the slab. Slabs with no selective dynamics applied '
         'are: 001_30_20_4')
         self.assertEqual(type(ytos_slabs[0]['slab']), Slab)
+         
+        if os.path.isfile('Y2Ti2S2O5_metadata.json'): 
+            os.remove('Y2Ti2S2O5_metadata.json')
