@@ -16,9 +16,9 @@ class ParseEnergiesTestCase(unittest.TestCase):
         path_to_fols=self.fols, plt_surfen=False, save_csv=False)
         b=df[(df['vac_thickness'].astype(int)==30)&(df['slab_thickness'].astype(int)==20)]
         self.assertEqual(df.shape, (6,14))
-        self.assertEqual(b['surface_energy_boettger'][0], 0.41701338602378163)
-        self.assertEqual(b['surface_energy_fm'][0], 0.4170133860237656)
-        self.assertEqual(b['surface_energy'][0], 0.4119406752267468)
+        self.assertEqual(b['surface_energy_boettger'].values[0], 0.41701338602378163)
+        self.assertEqual(b['surface_energy_fm'].values[0], 0.4170133860237656)
+        self.assertEqual(b['surface_energy'].values[0], 0.4119406752267468)
 
     def test_no_pwd(self): 
         self.assertRaises(FileNotFoundError, parse_energies, hkl=(0,0,1), 
