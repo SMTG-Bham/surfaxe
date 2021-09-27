@@ -43,7 +43,8 @@ def slab_from_file(structure, hkl):
                 slab_input.species_and_occu,
                 slab_input.frac_coords,
                 hkl,
-                Structure.from_sites(slab_input, to_unit_cell=True),
+                Structure.from_sites(slab_input, to_unit_cell=True), 
+                # this OUC is not correct, need to get it from slabgenerator
                 shift=0,
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)

@@ -79,7 +79,7 @@ txt_fname='cart_displacements.txt'):
         return df
 
 def bond_analysis(structure, bond, nn_method=CrystalNN(), ox_states=None, 
-save_csv=True, csv_fname='bond_analysis.csv', save_plt=True, 
+save_csv=True, csv_fname='bond_analysis.csv', save_plt=False, 
 plt_fname='bond_analysis.png', **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
@@ -113,7 +113,7 @@ plt_fname='bond_analysis.png', **kwargs):
         csv_fname (`str`, optional): Filename of the csv file. Defaults to 
             ``'bond_analysis.csv'``.
         save_plt (`bool`, optional): Make and save the bond analysis plot. 
-            Defaults to ``True``. 
+            Defaults to ``False``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'bond_analysis.png'``. 
 
@@ -159,21 +159,19 @@ plt_fname='bond_analysis.png', **kwargs):
         return df
 
 
-def electrostatic_potential(lattice_vector, locpot='./LOCPOT', axis=2,
+def electrostatic_potential(locpot='./LOCPOT', lattice_vector=None,
 save_csv=True, csv_fname='potential.csv', save_plt=True, 
 plt_fname='potential.png', **kwargs):
     """
-    Reads LOCPOT to get the planar and macroscopic potential in specified 
-    direction. 
+    Reads LOCPOT to get the planar and optionally macroscopic potential in 
+    c direction. 
 
     Args:
-        lattice_vector (`float`): The periodicity of the slab. 
         locpot (`str`, optional): The path to the LOCPOT file. Defaults to 
             ``'./LOCPOT'``
-        axis (`int`, optional): The direction in which the potential is 
-            investigated; a=0, b=1, c=2. Defaults to `2`. 
-        save_csv (`bool`, optional): Saves a csv file with planar and macroscopic 
-            potential. Defaults to ``True``.
+        lattice_vector (`float`, optional): The periodicity of the slab, 
+            calculates macroscopic potential with that periodicity 
+        save_csv (`bool`, optional): Saves to csv. Defaults to ``True``.
         csv_fname (`str`, optional): Filename of the csv file. Defaults 
             to ``'potential.csv'``.
         save_plt (`bool`, optional): Make and save the plot of electrostatic 
@@ -189,29 +187,34 @@ plt_fname='potential.png', **kwargs):
     struc = Structure.from_file(locpot)
 
     # Planar potential
-    planar = lpt.get_average_along_axis(axis)
+    planar = lpt.get_average_along_axis(2)
+    df = pd.DataFrame(data=planar, columns=['planar']) 
+    
+    # Calculate macroscopic potential
+    if lattice_vector is not None: 
+        # Divide lattice parameter by no. of grid points in the direction
+        resolution = struc.lattice.abc[2]/lpt.dim[2]
 
-    # Divide lattice parameter by no. of grid points in the direction
-    resolution = struc.lattice.abc[axis]/lpt.dim[axis]
+        # Get number of points over which the rolling average is evaluated
+        points = int(lattice_vector/resolution)
 
-    # Get number of points over which the rolling average is evaluated
-    points = int(lattice_vector/resolution)
+        # Need extra points at the start and end of planar potential to evaluate the
+        # macroscopic potential this makes use of the PBC where the end of one unit
+        # cell coincides with start of the next one
+        add_to_start = planar[(len(planar) - points): ]
+        add_to_end = planar[0:points]
+        pfm_data = np.concatenate((add_to_start,planar,add_to_end))
+        pfm = pd.DataFrame(data=pfm_data, columns=['y'])
 
-    # Need extra points at the start and end of planar potential to evaluate the
-    # macroscopic potential this makes use of the PBC where the end of one unit
-    # cell coincides with start of the next one
-    add_to_start = planar[(len(planar) - points): ]
-    add_to_end = planar[0:points]
-    pfm_data = np.concatenate((add_to_start,planar,add_to_end))
-    pfm = pd.DataFrame(data=pfm_data, columns=['y'])
+        # Macroscopic potential
+        m_data = pfm.y.rolling(window=points, center=True).mean()
+        macroscopic = m_data.iloc[points:(len(planar)+points)]
+        macroscopic.reset_index(drop=True,inplace=True)
+        df['macroscopic'] = macroscopic
 
-    # Macroscopic potential
-    m_data = pfm.y.rolling(window=points, center=True).mean()
-    macroscopic = m_data.iloc[points:(len(planar)+points)]
-    macroscopic.reset_index(drop=True,inplace=True)
-
-    df = pd.DataFrame(data=planar, columns=['planar'])
-    df['macroscopic'] = macroscopic
+    # Get gradient of the plot - this is used for convergence testing, to make 
+    # sure the potential is actually flat
+    df['gradient'] = np.gradient(df['planar'])
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
