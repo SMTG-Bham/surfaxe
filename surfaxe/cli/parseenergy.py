@@ -35,7 +35,7 @@ def _get_parser():
     help='The symbols of the core atom nearest neighbours e.g. Y Y Ti Ti' )
     parser.add_argument('--parse-vacuum', default=False, action='store_true', 
     dest='parse_vacuum', help=('Attempts to get the maximum value of planar '
-    'potential from a LOCPOT (default: False)'))
+    'potential from a LOCPOT and the average vacuum gradient (default: False)'))
     parser.add_argument('--plot-surfen', default=False, action='store_true', 
     dest='plt_surfen', 
     help='Plot basic surface energy vs slab thickness figure (default: False)')
