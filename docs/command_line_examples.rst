@@ -105,16 +105,21 @@ minimum vacuum thickness of 30 Å.
 Post-processing commands
 ========================
 
-**surfaxe-parsefols**: Parses data produced by electronic structure codes once calculations
+**surfaxe-parse-energies**: Parses data produced by electronic structure codes once calculations
 have been run in then directory structures produced by the pre-processing commands. 
+Can optionally collect vacuum and core energies. 
 
-Example: :mod:`surfaxe-parsefols --hkl 0,0,1 -b 8.83099` saves a csv file of surface energies
-and energies per atom for each slab-vacuum combination, as well as plots for each. See the 
-Tutorials directory for examples. 
+Example: :mod:`surfaxe-parse-energies --hkl 0,0,1 -b 8.83099` saves a csv file of surface energies
+and energies per atom for each slab-vacuum combination. See the Tutorials directory for examples. 
 
 **surfaxe-plot-surfen** and **surfaxe-plot-enatom** can be used to customise the surface 
 energy and energy per atom plots independetnly based on the data already collated 
-with **surfaxe-parsefols**. 
+with **surfaxe-parse-energies**. 
+
+**surfaxe-parse-structures**: Parses the (relaxed) structures from convergence calculations
+and collates them into the same json format as is created when surface slabs are generated. Can 
+optionally perform bond analysis for multiple specified bonds. Useful for comparison of relaxed 
+and unrelaxed surfaces slabs and determination of convergence.
 
 =================
 Analysis commands

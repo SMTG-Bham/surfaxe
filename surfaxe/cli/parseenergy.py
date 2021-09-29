@@ -72,9 +72,9 @@ def main():
 
         parse_energies(hkl, args.bulk_per_atom, path_to_fols=path, 
         parse_core_energy=args.parse_core, core_atom=args.core, bulk_nn=args.nn, 
-        parse_vacuum=args.parse_vacuum, plt_enatom=args.plt_enatom, 
-        plt_surfen=args.plt_surfen, save_csv=True, csv_fname=args.csv_fname, 
-        verbose=args.verbose, remove_first_energy=args.remove)
+        parse_vacuum=args.parse_vacuum,plt_surfen=args.plt_surfen, save_csv=True, 
+        csv_fname=args.csv_fname, verbose=args.verbose, 
+        remove_first_energy=args.remove)
 
 if __name__ == "__main__":
     main()

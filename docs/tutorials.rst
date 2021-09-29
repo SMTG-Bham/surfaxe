@@ -48,9 +48,12 @@ on SnO2 slabs, we could set up the config dict as follows:
     }
     }
 
-Alternatively, one of the ready-made :mod:`surfaxe` config dicts (:mod:`PBEsol_config.json`, 
-:mod:`PBE_config.json` or :mod:`HSE06_config.json`) can be used and further modified 
-using :mod:`user_incar_settings`, :mod:`user_kpoints_settings` and :mod:`user_potcar_settings`
+Alternatively, one of the ready-made :mod:`surfaxe` config dicts (:mod:`PBEsol.json`, 
+:mod:`PBEsol_relax.json`, :mod:`PBE.json`, :mod:`PBE_relax.json` or :mod:`HSE06.json`) 
+can be used and further modified using :mod:`user_incar_settings`, 
+:mod:`user_kpoints_settings` and :mod:`user_potcar_settings`. The :mod:`relax` config dicts 
+contain additional parameters necessary for geometric relaxations of slabs. 
+The POTCAR functional (i.e. PBE, PBE_54) can be chosen with :mod:`user_potcar_functional`.  
 
 `Pymatgen documentation <https://pymatgen.org/pymatgen.io.vasp.sets.html#pymatgen.io.vasp.sets.DictSet>`_ 
 covers exact behaviour of the :mod:`user_incar_settings`, :mod:`user_kpoints_settings` and :mod:`user_potcar_settings` 
