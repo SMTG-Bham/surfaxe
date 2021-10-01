@@ -384,8 +384,8 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
     """
     # Make the colour cycler with custom colours
     if colors is None:
-        custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
-            '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
+        custom_cycler = (cycler(color=['#FE7B88','#E6505F',
+            '#9A323C','#CC4755','#802D35','#64232A', '#40161A']))
     else: 
         custom_cycler = (cycler(color=colors))
     
@@ -507,8 +507,8 @@ plt_fname='energy_per_atom.png'):
     
     # Make the colour cycler with custom colours
     if colors is None:
-        custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
-            '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
+        custom_cycler = (cycler(color=['#FE7B88','#E6505F','#9A323C', '#CC4755',
+        '#802D35','#64232A', '#40161A']))
     else: 
         custom_cycler = (cycler(color=colors))
     
