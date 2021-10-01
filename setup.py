@@ -25,7 +25,7 @@ if __name__ == "__main__":
       license='MIT',
       packages=['surfaxe'],
       zip_safe=False,
-      install_requires=['scipy', 'numpy', 'spglib', 'pymatgen','pandas'],
+      install_requires=['scipy', 'numpy', 'spglib', 'pymatgen','pandas','scikit-learn'],
       python_requires='>=3.7',
       classifiers=[
         'Programming Language :: Python',
@@ -36,7 +36,8 @@ if __name__ == "__main__":
       ],
       entry_points={
         'console_scripts': [
-          'surfaxe-parsefols = surfaxe.cli.parsefols:main', 
+          'surfaxe-parse-energy = surfaxe.cli.parseenergy:main', 
+          'surfaxe-parse-structures = surfaxe.cli.parsestructures:main', 
           'surfaxe-bonds = surfaxe.cli.bonds:main', 
           'surfaxe-simplenn = surfaxe.cli.simplenn:main', 
           'surfaxe-complexnn = surfaxe.cli.complexnn:main', 

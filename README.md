@@ -38,7 +38,7 @@ Surfaxe primarily supports the [VASP](https://www.vasp.at/) DFT code, however mo
 ![Bond analysis example](example_data/figures/bond_analysis_plot.png)
 
 **Surface energy convergence checks with respect to vacuum and slab thickness**
-![Surface energy convergence example](example_data/figures/110_surface_energy.png)
+![Surface energy convergence example](example_data/figures/010_surface_energy.png)
 
 See the [tutorials directory](tutorials/) for more examples.
 
@@ -78,21 +78,22 @@ Generation:
 
 Convergence:
 
-* `surfaxe-parsefols`: Parses the convergence folders set up with `surfaxe-generate` where calculations were run with VASP. Extracts the relevant data and plots convergence graphs of the variation of surface energy and energy per atom with respect to slab and vacuum thickness.
+* `surfaxe-parse-energies`: Extracts the relevant data from the convergence folders set up with `surfaxe-generate` where calculations were run with VASP. Plots convergence graphs of the variation of surface energy with respect to slab and vacuum thickness. Can optionally parse core atom and vacuum energies as well.
+* `surfaxe-parse-structures`: Collects the structures' metadata into a json file and optionally performs bond analysis as in `surfaxe-bonds`.
 
 Analysis:
 
 * `surfaxe-bonds`: Parses the structure, looking for bonds between specified atoms.
 * `surfaxe-simplenn`: Predicts the coordination environment of atoms for simple structures.
 * `surfaxe-complexnn`: Predcts the coordination environment of atoms in more complex structures where the default prediction algorithm fails.
-* `surfaxe-potential`: Calculates and optionally plots the planar and macroscopic potential of the slab along c-axis.
+* `surfaxe-potential`: Calculates the planar potential of the slab along c-axis, the gradient of the planar potential and optionally macroscopic potential.
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
 
 Plotting:
 
 * `surfaxe-plot-surfen` and `surfaxe-plot-enatom`: Plot the surface energy and energy per atom based on data from `surfaxe-parsefols` with individual customisability
 * `surfaxe-plot-bonds`: Plots the bond distance with respect to fractional coordinate, based on `surfaxe-bonds`
-* `surfaxe-plot-potential`: Plots the planar and macroscopic potential based on data already analysed with `surfaxe-potential`
+* `surfaxe-plot-potential`: Plots the planar (and macroscopic) potential based on data already analysed with `surfaxe-potential`
 
 Data:
 
@@ -142,6 +143,7 @@ Surfaxe is compatible with python 3.7+ and requires the following packages:
 * [Pandas](https://pandas.pydata.org/)
 * [Matplotlib](https://matplotlib.org/)
 * [Numpy](https://numpy.org/)
+* [Scikit-learn](https://scikit-learn.org/stable/)
 
 ## Contributors
 

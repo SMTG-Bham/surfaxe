@@ -11,7 +11,7 @@ import warnings
 
 # surfaxe
 from surfaxe.generation import oxidation_states
-from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential
+from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential, _instantiate_structure
 
 def cart_displacements(start, end, max_disp=0.1, save_txt=True,
 txt_fname='cart_displacements.txt'):
@@ -21,9 +21,9 @@ txt_fname='cart_displacements.txt'):
 
     Args:
         start (`str`): Filename of initial structure file in any format 
-            supported by pymatgen.
+            supported by pymatgen or pymatgen structure object.
         end (`str`): Filename of final structure file in any format supported
-            by pymatgen.
+            by pymatgen or pymatgen structure object.
         max_disp (`float`, optional): The maximum displacement shown. Defaults 
             to 0.1 Å.
         save_txt (`bool`, optional): Save the displacements to file. Defaults to 
@@ -35,9 +35,9 @@ txt_fname='cart_displacements.txt'):
        None (default) or DataFrame of displacements of atoms in Cartesian space 
 
     """
-    # Instantiate the structures from files
-    start_struc = Structure.from_file(start)
-    end_struc = Structure.from_file(end)
+    # Instantiate the structures 
+    start_struc = _instantiate_structure(start)
+    end_struc = _instantiate_structure(end)
 
     # Add the site labels to the structure
     els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
@@ -63,9 +63,13 @@ txt_fname='cart_displacements.txt'):
         d = math.sqrt(xdisp + ydisp + zdisp)
         label = site_labels[n]
         if d >= max_disp:
-            disp_list.append({'site': n+1,
-                             'atom': label,
-                             'displacement': f"{d: .3f}"})
+            disp_list.append({
+                'site': n+1,
+                'atom': label,
+                # this makes the displacements round to the same number of 
+                # decimal places as max displacement, for presentation 
+                'displacement': round(d, int(format(max_disp, 'E')[-1])) 
+                             })
     # Save as txt file
     df = pd.DataFrame(disp_list)
 
@@ -75,7 +79,7 @@ txt_fname='cart_displacements.txt'):
         return df
 
 def bond_analysis(structure, bond, nn_method=CrystalNN(), ox_states=None, 
-save_csv=True, csv_fname='bond_analysis.csv', save_plt=True, 
+save_csv=True, csv_fname='bond_analysis.csv', save_plt=False, 
 plt_fname='bond_analysis.png', **kwargs):
     """
     Parses the structure looking for bonds between atoms. Check the validity of
@@ -83,7 +87,7 @@ plt_fname='bond_analysis.png', **kwargs):
 
     Args:
         structure (`str`): filename of structure, takes all pymatgen-supported 
-            formats.
+            formats, including pmg structure object
         bond (`list`): Bond to analyse e.g. ``['Y', 'O']``
         nn_method (`class`, optional): The coordination number prediction 
             algorithm used. Because the ``nn_method`` is a class, the class 
@@ -109,14 +113,14 @@ plt_fname='bond_analysis.png', **kwargs):
         csv_fname (`str`, optional): Filename of the csv file. Defaults to 
             ``'bond_analysis.csv'``.
         save_plt (`bool`, optional): Make and save the bond analysis plot. 
-            Defaults to ``True``. 
+            Defaults to ``False``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'bond_analysis.png'``. 
 
     Returns:
         DataFrame with the c coordinate of the first atom and bond length
     """
-    struc = Structure.from_file(structure)
+    struc = _instantiate_structure(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
     if len(bond) > 2: 
@@ -155,21 +159,19 @@ plt_fname='bond_analysis.png', **kwargs):
         return df
 
 
-def electrostatic_potential(lattice_vector, locpot='./LOCPOT', axis=2,
+def electrostatic_potential(locpot='./LOCPOT', lattice_vector=None,
 save_csv=True, csv_fname='potential.csv', save_plt=True, 
 plt_fname='potential.png', **kwargs):
     """
-    Reads LOCPOT to get the planar and macroscopic potential in specified 
-    direction. 
+    Reads LOCPOT to get the planar and optionally macroscopic potential in 
+    c direction. 
 
     Args:
-        lattice_vector (`float`): The periodicity of the slab. 
         locpot (`str`, optional): The path to the LOCPOT file. Defaults to 
             ``'./LOCPOT'``
-        axis (`int`, optional): The direction in which the potential is 
-            investigated; a=0, b=1, c=2. Defaults to `2`. 
-        save_csv (`bool`, optional): Saves a csv file with planar and macroscopic 
-            potential. Defaults to ``True``.
+        lattice_vector (`float`, optional): The periodicity of the slab, 
+            calculates macroscopic potential with that periodicity 
+        save_csv (`bool`, optional): Saves to csv. Defaults to ``True``.
         csv_fname (`str`, optional): Filename of the csv file. Defaults 
             to ``'potential.csv'``.
         save_plt (`bool`, optional): Make and save the plot of electrostatic 
@@ -185,29 +187,34 @@ plt_fname='potential.png', **kwargs):
     struc = Structure.from_file(locpot)
 
     # Planar potential
-    planar = lpt.get_average_along_axis(axis)
+    planar = lpt.get_average_along_axis(2)
+    df = pd.DataFrame(data=planar, columns=['planar']) 
+    
+    # Calculate macroscopic potential
+    if lattice_vector is not None: 
+        # Divide lattice parameter by no. of grid points in the direction
+        resolution = struc.lattice.abc[2]/lpt.dim[2]
 
-    # Divide lattice parameter by no. of grid points in the direction
-    resolution = struc.lattice.abc[axis]/lpt.dim[axis]
+        # Get number of points over which the rolling average is evaluated
+        points = int(lattice_vector/resolution)
 
-    # Get number of points over which the rolling average is evaluated
-    points = int(lattice_vector/resolution)
+        # Need extra points at the start and end of planar potential to evaluate the
+        # macroscopic potential this makes use of the PBC where the end of one unit
+        # cell coincides with start of the next one
+        add_to_start = planar[(len(planar) - points): ]
+        add_to_end = planar[0:points]
+        pfm_data = np.concatenate((add_to_start,planar,add_to_end))
+        pfm = pd.DataFrame(data=pfm_data, columns=['y'])
 
-    # Need extra points at the start and end of planar potential to evaluate the
-    # macroscopic potential this makes use of the PBC where the end of one unit
-    # cell coincides with start of the next one
-    add_to_start = planar[(len(planar) - points): ]
-    add_to_end = planar[0:points]
-    pfm_data = np.concatenate((add_to_start,planar,add_to_end))
-    pfm = pd.DataFrame(data=pfm_data, columns=['y'])
+        # Macroscopic potential
+        m_data = pfm.y.rolling(window=points, center=True).mean()
+        macroscopic = m_data.iloc[points:(len(planar)+points)]
+        macroscopic.reset_index(drop=True,inplace=True)
+        df['macroscopic'] = macroscopic
 
-    # Macroscopic potential
-    m_data = pfm.y.rolling(window=points, center=True).mean()
-    macroscopic = m_data.iloc[points:(len(planar)+points)]
-    macroscopic.reset_index(drop=True,inplace=True)
-
-    df = pd.DataFrame(data=planar, columns=['planar'])
-    df['macroscopic'] = macroscopic
+    # Get gradient of the plot - this is used for convergence testing, to make 
+    # sure the potential is actually flat
+    df['gradient'] = np.gradient(df['planar'])
 
     # Plot and save the graph, save the csv or return the dataframe
     if save_plt: 
@@ -262,7 +269,7 @@ save_csv=True, csv_fname='nn_data.csv'):
         None (default) or DataFrame containing coordination data 
     """
     # Instantiate start structure object
-    start_struc = Structure.from_file(start)
+    start_struc = _instantiate_structure(start)
 
     # Add atom site labels to the structure
     els = ''.join([i for i in start_struc.formula if not i.isdigit()]).split(' ')
@@ -279,7 +286,7 @@ save_csv=True, csv_fname='nn_data.csv'):
     bonded_start = nn_method.get_bonded_structure(start_struc)
 
     if end: 
-        end_struc = Structure.from_file(end)
+        end_struc = _instantiate_structure(end)
         end_struc = oxidation_states(end_struc, ox_states)
         bonded_end = nn_method.get_bonded_structure(end_struc)
     

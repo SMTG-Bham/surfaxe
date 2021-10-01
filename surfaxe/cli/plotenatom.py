@@ -12,9 +12,6 @@ def _get_parser():
     )
     parser.add_argument('-f', '--filename', 
     help='Path to the csv file from parsefols with data')
-    parser.add_argument('--no-time', default=True, action='store_false',
-    dest='time_taken', help=('Do not show time taken for calculations to '
-    'complete (default: True)')) 
     parser.add_argument('--plt-fname', default='energy_per_atom.png', type=str,
     dest='plt_fname', help='Filename of the plot (default: energy_per_atom.png)')
     parser.add_argument('--dpi', default=300, type=int, 
@@ -27,10 +24,6 @@ def _get_parser():
     help='Width of the figure in inches (default: 6)')
     parser.add_argument('--height', default=5, type=float, 
     help='Height of the figure in inches (default: 5)')
-    parser.add_argument('--heatmap', default=False, action='store_true', 
-    help='If True, plots a heatmap of surface energies (default: False)')
-    parser.add_argument('--cmap', default='Wistia', type=str, 
-    help='Matplotlib colourmap for heatmap (default: Wistia)')
     parser.add_argument('--yaml', default=None, type=str,
     help=('Read all args from a yaml config file. Completely overrides any '
     'other flags set '))
@@ -50,9 +43,8 @@ def main():
 
     else: 
         df = pd.read_csv(args.filename)
-        plot_enatom(df, time_taken=args.time_taken, colors=args.colors, 
-        dpi=args.dpi, width=args.width, height=args.height, 
-        heatmap=args.heatmap, cmap=args.cmap, plt_fname=args.plt_fname)
+        plot_enatom(df, colors=args.colors, dpi=args.dpi, width=args.width, 
+        height=args.height, plt_fname=args.plt_fname)
 
 if __name__ == "__main__":
     main()

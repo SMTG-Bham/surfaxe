@@ -5,26 +5,34 @@ from pymatgen.analysis.local_env import CrystalNN
 # Misc
 import os
 import pandas as pd
+import numpy as np
 import warnings
 import functools
 import itertools
 import multiprocessing
 import copy
+from sklearn.linear_model import LinearRegression
+import json
 
 # surfaxe
-from surfaxe.io import plot_enatom, plot_surfen, slab_from_file,\
- _custom_formatwarning
+from surfaxe.io import plot_surfen, slab_from_file, _custom_formatwarning
 from surfaxe.vasp_data import vacuum, core_energy
+from surfaxe.analysis import bond_analysis, electrostatic_potential
 
-def parse_fols(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
-core_atom=None, bulk_nn=None, parse_vacuum=False, plt_enatom=True, 
-plt_enatom_fname='energy_per_atom.png', plt_surfen=True, 
-plt_surfen_fname='surface_energy.png', save_csv=True, csv_fname=None, 
-verbose=False, **kwargs):
+# todo: 
+# - add a script that takes json from here and generate and does cart disp 
+# between the two them 
+# - add docs for parse_structures 
+
+def parse_energies(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
+core_atom=None, bulk_nn=None, parse_vacuum=False, remove_first_energy=False,
+plt_surfen=True, plt_surfen_fname='surface_energy.png', save_csv=True,
+csv_fname=None, verbose=False, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
-    combination. It can optionally parse vacuum and core level energies.
+    combination. Calculates surface energies using Fiorentini-Methfessel and 
+    Boettger methods. It can optionally parse vacuum and core level energies.
 
     ``path_to_fols`` specifies the parent directory containing subdirectories 
     that must include the miller index specified. e.g. if ``hkl=(0,0,1)`` there 
@@ -45,12 +53,11 @@ verbose=False, **kwargs):
             `core_atom`. Defaults to ``None``. 
         parse_vacuum (`bool`, optional): if ``True`` the script attempts 
             to parse LOCPOT using analysis.electrostatic_potential to use the 
-            maximum value of planar potential as the vacuum energy level. 
-            Defaults to ``False``. 
-        plt_enatom (`bool`, optional): Plots the energy per atom. Defaults to 
-            ``True``.
-        plt_enatom_fname (`str`, optional): The name of the energy per atom plot. 
-            Defaults to ``energy_per_atom.png``.
+            max value of planar potential as the vacuum energy level (eV). 
+            It also calculates the average gradient of the vacuum region (meV). Defaults to ``False``. 
+        remove_first_energy (`bool`, optional): Remove the first data point in 
+            calculation of Fiorentini-Metfessel and Boettger surface energy. 
+            Use if the first energy is somewhat of an outlier.
         plt_surfen (`bool`, optional): Plots the surface energy. Defaults to 
             ``True``.
         plt_surfen_fname (`str`, optional): The name of the surface energy plot.
@@ -71,10 +78,10 @@ verbose=False, **kwargs):
     get_core_energy_kwargs.update(
         (k, kwargs[k]) for k in get_core_energy_kwargs.keys() & kwargs.keys()
     )
-    get_core=False
+    get_core = False
     if parse_core_energy: 
         if core_atom is not None and bulk_nn is not None:
-            get_core=True 
+            get_core = True 
         else: 
             warnings.formatwarning = _custom_formatwarning
             warnings.warn(('Core atom or bulk nearest neighbours were not '
@@ -112,8 +119,8 @@ verbose=False, **kwargs):
     if multiprocessing.cpu_count() > 1: 
         with multiprocessing.Pool() as pool: 
             mp_list = pool.starmap(
-                functools.partial(_mp_helper, parse_vacuum, parse_core_energy, 
-                hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
+                functools.partial(_mp_helper_energy, parse_vacuum, 
+                get_core, hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
                 **get_core_energy_kwargs), list_of_paths)
 
         # len(mp_list) == len(list_of_paths), mp_list[0][0] the is main data
@@ -124,9 +131,11 @@ verbose=False, **kwargs):
             [i[1] for i in mp_list]))
         core_energy_list = list(itertools.chain.from_iterable(
             [i[2] for i in mp_list]))
+        gradient_list = list(itertools.chain.from_iterable(
+            [i[3] for i in mp_list]))
     
     else: 
-        df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+        df_list, electrostatic_list, core_energy_list, gradient_list = ([] for i in range(4))
         for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
             vsp_path = '{}/vasprun.xml'.format(path)
             otc_path = '{}/OUTCAR'.format(path)
@@ -154,10 +163,34 @@ verbose=False, **kwargs):
                 'time_taken': otc_times['Elapsed time (sec)']})
 
             if parse_vacuum: 
-                    electrostatic_list.append(
-                        vacuum(path)
-                    )
-                                            
+                # get value of potential in vacuum
+                electrostatic_list.append(vacuum(path))
+
+                lpt = '{}/LOCPOT'.format(path) 
+                p = electrostatic_potential(lpt, save_plt=False, save_csv=False)
+                # gradient in eV 
+                g = p['gradient'].to_numpy()
+                ratio = int(vac_thickness)/(int(vac_thickness)+int(slab_thickness))
+                # check if slab is centred so can get the gradient
+                if 0.45 < slab.center_of_mass[2] < 0.55:
+                    # divide by 2 bc two regions, 0.75 is a scaling factor that 
+                    # should hopefully work to avoid any charge from dangling 
+                    # bonds? 
+                    # mean is in meV 
+                    a = int(len(g)*ratio/2*0.75)
+                    gradient_list.append(np.mean(g[:a]) * 1000) 
+
+                else: 
+                    a = int(len(g)*ratio*0.75)
+                    # if atoms are more towards the end of the slab, the start 
+                    # should be vacuum
+                    if slab.center_of_mass[2] > 0.5: 
+                        gradient_list.append(np.mean(g[:a]) * 1000)  # meV 
+                    # and then if atoms are at the start, the vacuum is at
+                    # the end
+                    else: 
+                        gradient_list.append(np.mean(g[(len(g)-a):]) * 1000) 
+
             if get_core: 
                 core_energy_list.append(
                     core_energy(core_atom, bulk_nn, outcar=otc_path, 
@@ -165,33 +198,103 @@ verbose=False, **kwargs):
                     ) 
 
     df = pd.DataFrame(df_list)
-    df['surface_energy'] = (
-        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
-        ) 
-    
-    df['surface_energy_ev'] = (
-        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area'])
-    )
 
     if electrostatic_list: 
         df['vacuum_potential'] = electrostatic_list
     
+    if gradient_list: 
+        df['vacuum_gradient'] = gradient_list # in meV
+    
     if core_energy_list: 
         df['core_energy'] = core_energy_list
+        
+    df['surface_energy'] = (
+        (df['slab_energy'] - bulk_per_atom * df['atoms'])/(2*df['area']) * 16.02
+        ) 
+    
+    # Add Fiorentini-Methfessel and Boettger methods for calculating 
+    # surface energies 
+    dfs = []
+    for index in df.groupby('slab_index'): 
+        df_index = index[1].sort_values('vac_thickness')
+        for group in df_index.groupby('vac_thickness'): 
+            df2 = group[1].sort_values('slab_thickness')
+            # deepcopy to keep it fresh 
+            df3 = copy.deepcopy(df2)
+            # Fiorentini-methfessel
+            # remove first data point if it's too much of an outlier and there are 
+            # more than three data points 
+            if remove_first_energy and len(df2['atoms']) >= 3: 
+                x = np.delete(df2['atoms'].to_numpy(), 0).reshape(-1,1)
+                y = np.delete(df2['slab_energy'].to_numpy(), 0) 
+            else: 
+                x = df2['atoms'].to_numpy().reshape(-1,1)
+                y = df2['slab_energy'].to_numpy()
+            
+            model = LinearRegression().fit(x,y)
+            df3['surface_energy_fm'] = (
+            (df3['slab_energy'] - model.coef_ * df3['atoms'])/(2*df3['area'])*16.02)
+            
+            # Boettger
+            # new dataframe, just in case 
+            df4 = group[1].sort_values('slab_thickness')
+            if remove_first_energy and len(df4['atoms']) >= 3: 
+                # big energy = M+1 layers energy, small energy = M layers, 
+                # calculating bulk energy for M layers
+                # remove first two from M+1 energy, add a nan in place of one and 
+                # at the end; also replace the first from the M energies with nan; 
+                # same with atoms
+                big_energy = df4['slab_energy'].iloc[2:].to_numpy()
+                big_energy = np.append(big_energy, np.nan)
+                big_energy = np.insert(big_energy, 0, np.nan)
+                
+                small_energy = df4['slab_energy'].iloc[1:].to_numpy()
+                small_energy = np.insert(small_energy, 0, np.nan)
+                
+                big_atoms = df4['atoms'].iloc[2:].to_numpy()
+                big_atoms = np.append(big_atoms, np.nan)
+                big_atoms = np.insert(big_atoms, 0, np.nan)
+                small_atoms = df4['atoms'].astype('float').iloc[1:].to_numpy()
+                small_atoms = np.insert(small_atoms, 0, np.nan) 
+            
+            else: 
+                # need to remove the first from big energy and add a nan at the end 
+                big_energy = df4['slab_energy'].iloc[1:].to_numpy()
+                big_energy = np.append(big_energy, np.nan)
+                
+                small_energy = df4['slab_energy'].to_numpy()
+                
+                big_atoms = df4['atoms'].iloc[1:].to_numpy()
+                big_atoms = np.append(big_atoms, np.nan)
+                small_atoms = df4['atoms'].to_numpy()
+            
+            # difference M+1 - M, get bulk energy from E(M+1)-E(M) / (M+1)-M        
+            diff_energy = big_energy-small_energy
+            diff_atoms = big_atoms-small_atoms
+            bulk_energies = diff_energy/diff_atoms
+            # make last energy a nan to get a nan surface energy 
 
-    # Plot energy per atom and surface energy
-    plt_kwargs = {'time_taken': True, 'cmap': 'Wistia', 'dpi': 300, 
-    'heatmap': False, 'colors': None, 'width': 6, 'height': 5, 'joules': True}
+            small_energy[-1] = np.nan
+        
+            df3['surface_energy_boettger'] = (
+            (small_energy - df3['atoms']*bulk_energies) / (2*df3['area']) * 16.02)
+
+            dfs.append(df3)
+    
+    # Concat list back to one dataframe
+    df = pd.concat(dfs)
+
+    if remove_first_energy and len(df2['atoms']) < 3:
+        warnings.formatwarning = _custom_formatwarning
+        warnings.warn('First data point was not removed - less than three '
+        'data points were present in dataset') 
+
+    # Plot surface energy
+    plt_kwargs = {'colors': None, 'width': 6, 'height': 5}
     plt_kwargs.update((k, kwargs[k]) for k in plt_kwargs.keys() & kwargs.keys())
 
     if plt_surfen: 
         plot_surfen(df, plt_fname=plt_surfen_fname, **plt_kwargs)
-    
-    if plt_enatom: 
-        # Redefine kwargs and delete joules kwarg from the copy
-        enatom_kwargs = copy.deepcopy(plt_kwargs) 
-        del enatom_kwargs['joules']
-        plot_enatom(df, plt_fname=plt_enatom_fname, **enatom_kwargs)
 
     # Save the csv or return the dataframe
     if save_csv:
@@ -205,8 +308,65 @@ verbose=False, **kwargs):
     else: 
         return df
 
+def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=CrystalNN(), 
+ path_to_fols=None, verbose=False, json_fname=None,  **kwargs): 
+    # collect the relaxed structures & put them in a json file 
+    # has to be same format as the input (-layers) 
 
-def _mp_helper(parse_vacuum, parse_core_energy, hkl, path, slab_thickness,
+    # Set directory 
+    cwd = os.getcwd() if path_to_fols is None else path_to_fols
+
+    # Get all paths to slab_vac_index folders, list=[[path,slab,vac,index],..]
+    list_of_paths=[]
+    for root, fols, files in os.walk(cwd):
+        for fol in fols:
+            # Perform a loose check that we are looking in the right place, 
+            # also avoid .ipynb_checkpoint files 
+            if ''.join(map(str,hkl)) in root.split('/') and '.' not in fol:
+                if len(fol.split('_')) == 3:
+                    list_of_paths.append([
+                        os.path.join(root, fol),
+                        fol.split('_')[0], 
+                        fol.split('_')[1], 
+                        fol.split('_')[2]
+                    ])
+                    if verbose:
+                        print(root, fol)
+
+    lst = []
+    for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
+        struc_path = '{}/{}'.format(path, structure_file)
+        slab = slab_from_file(struc_path, hkl)
+        lst.append({
+            'hkl': hkl, 
+            'slab_thickness': slab_thickness, 
+            'vac_thickness': vac_thickness, 
+            'slab_index': slab_index,
+            'slab': slab.as_dict()
+        })
+        # if bond is set, do bond analysis; single bond
+        if bond is not None and type(bond[0]) == str: 
+            csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(bond))
+            bond_analysis(slab, bond, nn_method=nn_method, 
+            csv_fname=csv_fname, **kwargs)
+            
+        # multiple bonds 
+        elif bond is not None and type(bond[0]) == list: 
+            for b in bond: 
+                csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(b))
+                bond_analysis(slab, b, nn_method=nn_method, 
+                csv_fname=csv_fname, **kwargs)
+
+    if json_fname is None: 
+        bulk_name = slab.composition.reduced_formula
+        json_fname = '{}_parsed_metadata.json'.format(bulk_name)
+    
+    with open(json_fname, 'w') as f: 
+        json.dump(lst, f)
+
+
+
+def _mp_helper_energy(parse_vacuum, get_core, hkl, path, slab_thickness,
 vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs): 
     """
     Helper function for multiprocessing, returns a list of lists of the main 
@@ -214,7 +374,7 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
     Same args as for parse_fols, only that path is the path to the folder in 
     which the vasprun and OUTCAR for the specific slab/vacuum/index slab are. 
     """
-    df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
+    df_list, electrostatic_list, core_energy_list, gradient_list = ([] for i in range(4))
 
     # instantiate structure, slab, vasprun and outcar objects
     vsp_path = '{}/vasprun.xml'.format(path)
@@ -241,14 +401,36 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
         'time_taken': otc_times['Elapsed time (sec)']})
 
     if parse_vacuum: 
-            electrostatic_list.append(
-                vacuum(path)
-            )
+        electrostatic_list.append(vacuum(path))
+
+        lpt = '{}/LOCPOT'.format(path) 
+        p = electrostatic_potential(lpt, save_plt=False, save_csv=False)
+        # gradient in eV 
+        g = p['gradient'].to_numpy()
+        ratio = int(vac_thickness)/(int(vac_thickness)+int(slab_thickness))
+        # check if slab is centred so can get the gradient
+        if 0.45 < slab.center_of_mass[2] < 0.55:
+            # divide by 2 bc two regions, 0.75 is a scaling factor that 
+            # should hopefully work to avoid any charge from dangling 
+            # bonds? 
+            a = int(len(g)*ratio/2*0.75)
+            gradient_list.append(np.mean(g[:a])* 1000) 
+
+        else: 
+            a = int(len(g)*ratio*0.75)
+            # if atoms are more towards the end of the slab, the start 
+            # should be vacuum
+            if slab.center_of_mass[2] > 0.5: 
+                gradient_list.append(np.mean(g[:a])* 1000)  
+            # and then if atoms are at the start, the vacuum is at
+            # the end
+            else: 
+                gradient_list.append(np.mean(g[(len(g)-a):]) * 1000)  
                                     
-    if parse_core_energy: 
+    if get_core: 
         core_energy_list.append(
             core_energy(core_atom, bulk_nn, outcar=otc_path, 
             structure=slab, **kwargs)
             ) 
 
-    return [df_list, electrostatic_list, core_energy_list]
+    return [df_list, electrostatic_list, core_energy_list, gradient_list]

@@ -11,7 +11,7 @@ import warnings
 
 # surfaxe 
 from surfaxe.generation import oxidation_states
-from surfaxe.io import _custom_formatwarning, slab_from_file
+from surfaxe.io import _custom_formatwarning, slab_from_file, _instantiate_structure
 
 def process_data(bulk_per_atom, parse_hkl=True, path_to_fols=None, hkl_dict=None,
 parse_core_energy=False, core_atom=None, bulk_nn=None, parse_vacuum=False, 
@@ -265,10 +265,7 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     Returns: 
         Core state energy 
     """
-    if type(structure) == str:
-        struc = Structure.from_file(structure)
-    else:
-        struc = structure
+    struc = _instantiate_structure(structure)
     struc = oxidation_states(struc, ox_states)
     bonded_struc = nn_method.get_bonded_structure(struc)
     bulk_nn.sort()

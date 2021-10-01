@@ -43,7 +43,8 @@ def slab_from_file(structure, hkl):
                 slab_input.species_and_occu,
                 slab_input.frac_coords,
                 hkl,
-                Structure.from_sites(slab_input, to_unit_cell=True),
+                Structure.from_sites(slab_input, to_unit_cell=True), 
+                # this OUC is not correct, need to get it from slabgenerator
                 shift=0,
                 scale_factor=np.eye(3, dtype=np.int),
                 site_properties=slab_input.site_properties)
@@ -93,8 +94,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
     Returns:
         None, saves surface slabs to file
     """
-    struc = Structure.from_file(structure)
-    bulk_name = struc.formula.replace(" ", "")
+    bulk_name = structure.composition.reduced_formula
 
     if make_fols or make_input_files:
         for slab in list_of_slabs:
@@ -111,10 +111,11 @@ config_dict, fmt, name, **save_slabs_kwargs):
                     cd = _load_config_dict(config_dict)
                     vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                     vis.write_input(
-                        r'{}/{}/{}_{}_{}'.format(bulk_name, slab['hkl'], 
-                        slab['slab_thickness'], 
-                        slab['vac_thickness'],
-                        slab['slab_index'])
+                        r'{}/{}/{}_{}_{}'.format(bulk_name, 
+                            slab['hkl'], 
+                            slab['slab_thickness'], 
+                            slab['vac_thickness'],
+                            slab['slab_index'])
                         )
                 # only make the folders with structure files in them
                 else: 
@@ -254,6 +255,17 @@ def _check_psp_dir():
                 potcar = True
     return potcar
 
+def _instantiate_structure(structure): 
+    """Helper function for instatiating structure files correctly """
+    if type(structure) == str:
+        struc = Structure.from_file(structure)
+    elif type(structure) == Structure or type(structure) == Slab: 
+        struc = structure
+    else: 
+        raise TypeError('structure should either be a file or pmg object')
+    
+    return struc
+
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
 color=None, plt_fname='bond_analysis.png'):
     """
@@ -295,7 +307,7 @@ color=None, plt_fname='bond_analysis.png'):
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
     x = df['{}_c_coord'.format(bond[0])]
     y = df['{}-{}_bond_distance'.format(bond[0],bond[1])]
-    ax.scatter(x, y, marker='x', c=color)
+    ax.scatter(x, y, marker='x', markersize=8, c=color)
     ax.set_ylabel("Bond distance / Å")
     ax.legend(['{}-{} bond'.format(bond[0], bond[1])])
     plt.xlabel("Fractional coordinate in c")
@@ -334,449 +346,195 @@ height=5, colors=None, plt_fname='potential.png'):
         warnings.formatwarning = _custom_formatwarning
         warnings.warn('Data not supplied')
 
-    if colors==None or len(colors)<2:
-        colors = ['#FE8995', '#9A323C']
+    if colors==None: 
+        colors = ['#FE8995', '#E6505F']
+
     # Plot both planar and macroscopic, save figure
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
     ax.plot(df['planar'], label='Planar', c=colors[0])
-    ax.plot(df['macroscopic'], label='Macroscopic', c=colors[1])
+    if 'macroscopic' in df.columns:
+        ax.plot(df['macroscopic'], label='Macroscopic', c=colors[1])
     ax.axes.xaxis.set_visible(False)
     ax.legend()
     plt.ylabel('Potential / eV')
     fig.savefig(plt_fname, facecolor='w', bbox_inches='tight')
 
-def plot_surfen(df, joules=True, time_taken=True, colors=None, dpi=300, width=6,
-height=5, heatmap=False, cmap='Wistia',  plt_fname='surface_energy.png'):
+def plot_surfen(df, colors=None, dpi=300, width=8, height=8, 
+    plt_fname=None): 
     """
-    Plots the surface energy for all terminations. Based on surfaxe.convergence
-    parse_fols.
+    Plots the surface energy for all terminations. Based on surfaxe.convergence 
+    parse_energies. 
 
-    Args:
-        df (pandas DataFrame): DataFrame from `parse_fols`, or any other
-            Dataframe with headings 'slab_thickness', 'vac_thickness',
-            'surface_energy', 'time_taken', 'index'.
-        joules (`bool`, optional): Whether to plot energy in J/m^2.
-            Defaults to True, if False plots energy in eV/Å^2
-        time_taken (bool`, optional): Show the time taken for calculation to
-            finish on the figure. Defaults to True.
-        colors (`list`, optional): A list of colours for plots of different
-            vacuum thicknesses. Defaults to ``None``, which defaults to
-            surfaxe base style.
+    Args: 
+        df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
+            Dataframe with headings 'slab_thickness', 'vac_thickness', 
+            'surface_energy','surface_energy_boettger', 'surface_energy_fm', 
+            'time_taken', 'index'. 
+        colors (`list`, optional): A list of colours for plots of different 
+            surface energies. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
         dpi (`int`, optional): Dots per inch. Defaults to 300.
-        width (`float`, optional): Width of figure in inches. Defaults to ``6``.
-        height (`float`, optional): Height of figure in inches. Defaults to
-            ``5``.
-        heatmap (`bool`, optional): If True plots a heatmap of surface energies.
-            Defaults to False.
-        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        plt_fname (`str`, optional): The name of the plot. Defaults to
-            ``surface_energy.png``.
-
-    Returns:
-        None, saves surface_energy.png to file
+        width (`float`, optional): Width of figure in inches. Defaults to ``8``. 
+        height (`float`, optional): Height of figure in inches. Defaults to 
+            ``8``.
+        plt_fname (`str`, optional): The name of the plot. Defaults to ``None``
+            which is either ``surface_energy.png`` for one slab index or 
+            ``surface_energy_slab_index.png`` for multiple indices.
     """
+    # Make the colour cycler with custom colours
+    if colors is None:
+        custom_cycler = (cycler(color=['#FE7B88','#E6505F',
+            '#9A323C','#CC4755','#802D35','#64232A', '#40161A']))
+    else: 
+        custom_cycler = (cycler(color=colors))
+    
+    # make separate plots for different indices 
+    for group in df.groupby('slab_index'): 
+        df_by_index = group[1].sort_values('vac_thickness')
 
-    indices, vals, times, dfs, dfs_times = ([] for i in range(5))
-
-    # If plotting
-    energy = 'surface_energy'
-    unit = 'Surface energy / J m$^{-2}$'
-    if not joules:
-        energy = 'surface_energy_ev'
-        unit = 'Surface energy / eV Å$^{-2}$'
-
-    # Group the values by termination slab index, create df for time and
-    # energy values. Converts the energy and time values to np arrays for
-    # plotting
-    for group in df.groupby('slab_index'):
-        df2 = group[1].pivot('slab_thickness', 'vac_thickness', energy)
-        df3 = group[1].pivot('slab_thickness', 'vac_thickness', 'time_taken')
-        indices.append(group[0])
-        vals.append(df2.to_numpy())
-        times.append(df3.to_numpy())
-        dfs.append(df2)
-        dfs_times.append(df3)
-
-    if heatmap:
-        # Plotting has to be separated into plotting for one and more than one
-        # indices mpl won't let you index axes if there's only one set
-        if len(indices) == 1:
-            fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
-
-            for (index, val, time, df) in zip(indices, vals, times, dfs):
-                ax.set_yticks(list(range(len(df.index))))
-                ax.set_ylabel('Slab thickness / Å')
-                ax.set_xticks(list(range(len(df.columns))))
-                ax.set_xticklabels(df.columns)
-                ax.set_xlabel('Vacuum thickness / Å')
-                divider = make_axes_locatable(ax)
-                cax = divider.append_axes("right", size="5%", pad=0.2)
-                im = ax.imshow(val, cmap=cmap)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.set_label(unit)
-                ax.invert_yaxis()
-
-            # Add the surface energy value labels to the plot - the for loops
-            # are needed in this order and they can't be zipped because this
-            # is the only way they display the values correctly
-            for df in dfs:
-                for j in range(len(df.index)):
-                    for k in range(len(df.columns)):
-                        for val in vals:
-                            ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
-                                            va="bottom", color="black")
-
-            # Add the time taken labels to the plot
-            if time_taken:
-                for df in dfs:
-                    for j in range(len(df.index)):
-                        for k in range(len(df.columns)):
-                            for time in times:
-                                ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                ha="center", va="top", color="black")
-
-        # Plotting for multiple indices
-        else:
-            fig, ax = plt.subplots(ncols=len(indices), dpi=dpi,
-            figsize=(width, height))
-
-            # Iterate through the values for plotting, create each plot on a
-            # separate ax, add the colourbar to each ax
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-                ax[i].set_title('{}'.format(index))
-                ax[i].set_yticks(list(range(len(df.index))))
-                ax[i].set_yticklabels(df.index)
-                ax[i].set_ylabel('Slab thickness / Å')
-                ax[i].set_xticks(list(range(len(df.columns))))
-                ax[i].set_xticklabels(df.columns)
-                ax[i].set_xlabel('Vacuum thickness / Å')
-                im = ax[i].imshow(val, cmap=cmap)
-                divider = make_axes_locatable(ax[i])
-                cax = divider.append_axes("right", size="5%", pad=0.2)
-                cbar = plt.colorbar(im, cax=cax)
-                cbar.set_label(unit)
-                ax[i].invert_yaxis()
-            fig.tight_layout()
-
-            # Add the surface energy value labels to the plot
-            for df in dfs:
-                for j in range(len(df.index)):
-                    for k in range(len(df.columns)):
-                        for i, val in enumerate(vals):
-                            ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
-                                            va="bottom", color="black")
-
-            # Add the time taken labels to the plot
-            if time_taken:
-                for df in dfs:
-                    for j in range(len(df.index)):
-                        for k in range(len(df.columns)):
-                            for i, time in enumerate(times):
-                                ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                ha="center", va="top", color="black")
-    # Line plots
-    else:
-        # Make the colour cycler with custom colours
-        if colors is None:
-            custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
-                '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
-        else:
-            custom_cycler = (cycler(color=colors))
-
-        # Get the number of subplots
-        nrows = len(indices)
-        ncols = 1
-        if time_taken:
-            ncols = 2
-
-        # Plot only the surface energy for the only termination present
-        if nrows==1 and ncols==1:
-            fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
-            for index, val, time, df in zip(indices, vals, times, dfs):
+        # make a 2x2 for 4 thicknesses, 2x3 for 6 and 1xnum for all else 
+        num_of_vac = len(df_by_index.groupby('vac_thickness'))
+        
+        if num_of_vac ==1: 
+            fig, ax = plt.subplots(1, 1, dpi=dpi, figsize=(width, height))
+            for gp in df_by_index.groupby('vac_thickness'): 
+                df_by_vac = gp[1].sort_values('slab_thickness')
+                x = df_by_vac['slab_thickness']
                 ax.set_prop_cycle(custom_cycler)
-                ax.set_xticks(list(range(len(df.index))))
-                ax.set_xticklabels(df.index)
+                ax.set_xticks(x)
+                ax.set_xticklabels(x)
                 ax.set_xlabel('Slab thickness / Å')
-                ax.set_ylabel(unit)
-                ax.plot(val, marker='x')
-                ax.legend(df.columns, title='Vacuum / Å')
+                ax.set_ylabel('Surface energy / J m$^{-2}$')
+                ax.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
+                ax.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
+                ax.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                ax.legend()
 
-        # Plot surface energy and time taken for the only termination present
-        elif nrows==1 and ncols==2:
-            fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
-            for index, val, time, df in zip(indices, vals, times, dfs):
-                ax[0].set_prop_cycle(custom_cycler)
-                ax[0].set_xticks(list(range(len(df.index))))
-                ax[0].set_xticklabels(df.index)
-                ax[0].set_xlabel('Slab thickness / Å')
-                ax[0].set_ylabel(unit)
-                ax[0].plot(val, marker='x')
-                ax[0].legend(df.columns, title='Vacuum / Å')
+        elif num_of_vac == 4: 
+            fig, ax = plt.subplots(2, 2, dpi=dpi, figsize=(width, height), 
+            constrained_layout=True)
+            list_of_axes = [ax[0,0], ax[0,1], ax[1,0], ax[1,1]]
+            for axs, gp in zip(list_of_axes, df_by_index.groupby('vac_thickness')): 
+                df_by_vac = gp[1].sort_values('slab_thickness')
+                axs.set_prop_cycle(custom_cycler)
+                x = df_by_vac['slab_thickness']
+                axs.set_xticks(x)
+                axs.set_xticklabels(x)
+                axs.set_xlabel('Slab thickness / Å')
+                axs.set_ylabel('Surface energy / J m$^{-2}$')
+                axs.set_title('Vacuum: {} Å'.format(gp[0]))
+                axs.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
+                axs.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
+                axs.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                axs.legend()
 
-                ax[1].set_prop_cycle(custom_cycler)
-                ax[1].set_xticks(list(range(len(df.index))))
-                ax[1].set_xticklabels(df.index)
-                ax[1].set_xlabel('Slab thickness / Å')
-                ax[1].set_ylabel('Time taken / s')
-                ax[1].plot(time, marker='x')
-                ax[1].legend(df.columns, title='Vacuum / Å')
-                plt.tight_layout()
+        elif num_of_vac == 6: 
+            fig, ax = plt.subplots(2, 3, dpi=dpi, figsize=(width, height), 
+            constrained_layout=True)
+            list_of_axes = [ax[0,0], ax[0,1], ax[0,2], ax[1,0], ax[1,1], ax[1,2]]
+            for axs, gp in zip(list_of_axes, df_by_index.groupby('vac_thickness')): 
+                df_by_vac = gp[1].sort_values('slab_thickness')
+                axs.set_prop_cycle(custom_cycler)
+                x = df_by_vac['slab_thickness']
+                axs.set_xticks(x)
+                axs.set_xticklabels(x)
+                axs.set_xlabel('Slab thickness / Å')
+                axs.set_ylabel('Surface energy / J m$^{-2}$')
+                axs.set_title('Vacuum: {} Å'.format(gp[0]))
+                axs.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
+                axs.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
+                axs.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                axs.legend()
+        else: 
+            fig, ax = plt.subplots(1, num_of_vac, dpi=dpi, 
+                figsize=(width, height), constrained_layout=True)
+            for i, gp in enumerate(df_by_index.groupby('vac_thickness')): 
+                df_by_vac = gp[1].sort_values('slab_thickness')
+                x = df_by_vac['slab_thickness']
+                ax[i].set_prop_cycle(custom_cycler)
+                ax[i].set_xticks(x)
+                ax[i].set_xticklabels(x)
+                ax[i].set_xlabel('Slab thickness / Å')
+                ax[i].set_ylabel('Surface energy / J m$^{-2}$')
+                ax[i].set_title('Vacuum: {} Å'.format(gp[0]))
+                ax[i].plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
+                ax[i].plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
+                ax[i].plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                ax[i].legend()
 
-        # Plot surface energies and or times taken for different terminations
-        else:
-            fig, ax = plt.subplots(nrows=nrows,ncols=ncols, dpi=dpi,
-            figsize=(width, height))
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
+        if len(df.groupby('slab_index')) == 1 and plt_fname is None: 
+            plt_fname = 'surface_energy.png'
+        elif plt_fname is None: 
+            plt_fname = 'surface_energy_{}.png'.format(group[0])
 
-                # Separate plotting of times and energies, energies in the first
-                # column, times in the second. Annoyingly matplotlib doesn't
-                # like ax[i,0] if there isn't a second axis so need to separate
-                # it for time_taken True and False
+        fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
 
-                if time_taken:
-                    ax[i,0].set_prop_cycle(custom_cycler)
-                    ax[i,0].set_xticks(list(range(len(df.index))))
-                    ax[i,0].set_xticklabels(df.index)
-                    ax[i,0].set_xlabel('Slab thickness / Å')
-                    ax[i,0].set_ylabel(unit)
-                    ax[i,0].plot(val, marker='x')
-                    ax[i,0].legend(df.columns, title='Vacuum / Å')
-                    ax[i,0].set_title('{}'.format(indices[i]))
-
-                    ax[i,1].set_prop_cycle(custom_cycler)
-                    ax[i,1].set_xticks(list(range(len(df.index))))
-                    ax[i,1].set_xticklabels(df.index)
-                    ax[i,1].set_xlabel('Slab thickness / Å')
-                    ax[i,1].set_ylabel('Time taken / s')
-                    ax[i,1].plot(time, marker='x')
-                    ax[i,1].legend(df.columns, title='Vacuum / Å')
-                    ax[i,1].set_title('{}'.format(indices[i]))
-
-                else:
-                    ax[i].set_prop_cycle(custom_cycler)
-                    ax[i].set_xticks(list(range(len(df.index))))
-                    ax[i].set_xticklabels(df.index)
-                    ax[i].set_xlabel('Slab thickness / Å')
-                    ax[i].set_ylabel(unit)
-                    ax[i].plot(val, marker='x')
-                    ax[i].legend(df.columns, title='Vacuum / Å')
-                    ax[i].set_title('{}'.format(indices[i]))
-
-            plt.tight_layout()
-
-    fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
-
-
-def plot_enatom(df, time_taken=True, colors=None, dpi=300, width=6, height=5,
-heatmap=False, cmap='Wistia', plt_fname='energy_per_atom.png'):
+def plot_enatom(df, colors=None, dpi=300, width=6, height=5, 
+plt_fname='energy_per_atom.png'):
     """
-    Plots the energy per atom for all terminations. Based on surfaxe.convergence
-    parse_fols.
+    Plots the energy per atom for all terminations. Based on surfaxe.convergence 
+    parse_energies.
 
     Args:
-        df (pandas DataFrame): DataFrame from `parse_fols`, or any other
-            Dataframe with headings 'slab_thickness, 'vac_thickness',
-            'slab_per_atom', 'time_taken', 'index'.
-        time_taken (bool): Show the time taken for calculation to finish on the
-            figure. Defaults to True.
-        colors (`list`, optional): A list of colours for plots of different
-            vacuum thicknesses. Defaults to ``None``, which defaults to
-            surfaxe base style.
+        df (pandas DataFrame): DataFrame from `parse_fols`, or any other 
+            Dataframe with headings 'slab_thickness, 'vac_thickness', 
+            'slab_per_atom', 'time_taken', 'index'. 
+        colors (`list`, optional): A list of colours for plots of different  
+            vacuum thicknesses. Defaults to ``None``, which defaults to 
+            surfaxe base style. 
         dpi (`int`, optional): Dots per inch. Defaults to 300.
-        width (`float`, optional): Width of figure in inches. Defaults to ``6``.
-        height (`float`, optional): Height of figure in inches. Defaults to
-            ``5``.
-        heatmap (`bool`, optional): If True plots a heatmap of surface energies.
-            Defaults to False.
-        cmap (`str`, optional): Matplotlib colourmap. Defaults to 'Wistia'
-        plt_fname (`str`, optional): The name of the plot. Defaults to
-            ``energy_per_atom.png``.
+        width (`float`, optional): Width of figure in inches. Defaults to ``6``. 
+        height (`float`, optional): Height of figure in inches. Defaults to 
+            ``5``. 
+        plt_fname (`str`, optional): The name of the plot. Defaults to 
+            ``energy_per_atom.png``. If name with no format suffix is supplied,  
+            the format defaults to png.
 
     Returns:
         None, saves energy_per_atom.png
     """
-    indices, vals, times, dfs, dfs_times = ([] for i in range(5))
+    indices, vals, dfs = ([] for i in range(3))
 
     # Group the values by termination slab index, create df for time and
     # energy values. Converts the energy and time values to np arrays for
     # plotting
     for group in df.groupby('slab_index'):
         df2 = group[1].pivot('slab_thickness', 'vac_thickness', 'slab_per_atom')
-        df3 = group[1].pivot('slab_thickness', 'vac_thickness', 'time_taken')
         indices.append(group[0])
         vals.append(df2.to_numpy())
-        times.append(df3.to_numpy())
         dfs.append(df2)
-        dfs_times.append(df3)
+    
+    # Make the colour cycler with custom colours
+    if colors is None:
+        custom_cycler = (cycler(color=['#FE7B88','#E6505F','#9A323C', '#CC4755',
+        '#802D35','#64232A', '#40161A']))
+    else: 
+        custom_cycler = (cycler(color=colors))
+    
+    # Plot only the energy per atom for the only termination present 
+    if len(indices)==1: 
+        fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
+        for val, df in zip(vals, dfs):
+            ax.set_prop_cycle(custom_cycler)
+            ax.set_xticks(list(range(len(df.index))))
+            ax.set_xticklabels(df.index)
+            ax.set_xlabel('Slab thickness / Å')
+            ax.set_ylabel('Energy per atom / eV')
+            ax.plot(val, marker='x', markersize=8)
+            ax.legend(df.columns, title='Vacuum / Å')
 
-    # Plots the heatmap
-    if heatmap:
-        if len(indices) == 1:
-            fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
-
-            # Iterate through the values for plotting, create each plot on a
-            # separate ax, add the colourbar to each ax
-            for index, val, time, df in zip(indices, vals, times, dfs):
-                ax.set_yticks(list(range(len(df.index))))
-                ax.set_ylabel('Slab thickness / Å')
-                ax.set_xticks(list(range(len(df.columns))))
-                ax.set_xticklabels(df.columns)
-                ax.set_xlabel('Vacuum thickness / Å')
-                im = ax.imshow(val, cmap=cmap)
-                divider = make_axes_locatable(ax)
-                cax = divider.append_axes("right", size="5%", pad=0.2)
-                cbar = plt.colorbar(im, cax=cax)
-                cbar.set_label('Energy per atom / eV')
-                ax.invert_yaxis()
-
-            # Add the surface energy value labels to the plot, the for loop have
-            # to be in this order becuase it breaks the text if i and val are in
-            # the first loop, also j and k can't be zipped
-            for df in dfs:
-                for j in range(len(df.index)):
-                    for k in range(len(df.columns)):
-                        for val in vals:
-                            ax.text(k, j, f"{val[j, k]: .3f}", ha="center",
-                            va="bottom", color="black")
-
-            # Add the time taken labels to the plot, same loop comment as above
-            if time_taken:
-                for df in dfs:
-                    for j in range(len(df.index)):
-                        for k in range(len(df.columns)):
-                            for time in times:
-                                ax.text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                ha="center", va="top", color="black")
-
-        # Plotting for multiple indices
-        else:
-            fig, ax = plt.subplots(ncols=len(indices), dpi=dpi,
-            figsize=(width, height))
-
-            # Iterate through the values for plotting, create each plot on a
-            # separate ax, add the colourbar to each ax
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-                ax[i].set_title('{}'.format(index))
-                ax[i].set_yticks(list(range(len(df.index))))
-                ax[i].set_yticklabels(df.index)
-                ax[i].set_ylabel('Slab thickness / Å')
-                ax[i].set_xticks(list(range(len(df.columns))))
-                ax[i].set_xticklabels(df.columns)
-                ax[i].set_xlabel('Vacuum thickness / Å')
-                im = ax[i].imshow(val, cmap=cmap)
-                divider = make_axes_locatable(ax[i])
-                cax = divider.append_axes("right", size="5%", pad=0.2)
-                cbar = plt.colorbar(im, cax=cax)
-                cbar.set_label('Energy per atom / eV')
-                ax[i].invert_yaxis()
-            fig.tight_layout()
-
-            # Add the surface energy value labels to the plot, the for loop have
-            # to be in this order becuase it breaks the text if i and val are in
-            # the first loop, also j and k can't be zipped
-            for df in dfs:
-                for j in range(len(df.index)):
-                    for k in range(len(df.columns)):
-                        for i, val in enumerate(vals):
-                            ax[i].text(k, j, f"{val[j, k]: .3f}", ha="center",
-                            va="bottom", color="black")
-
-            # Add the time taken labels to the plot, same loop comment as above
-            if time_taken:
-                for df in dfs:
-                    for j in range(len(df.index)):
-                        for k in range(len(df.columns)):
-                            for i, time in enumerate(times):
-                                ax[i].text(k, j, (f"{time[j, k]: .0f}"+' s'),
-                                ha="center", va="top", color="black")
-
-    # Line plots
-    else:
-        # Get the number of subplots
-        nrows = len(indices)
-        ncols = 1
-        if time_taken:
-            ncols = 2
-
-        # Make the colour cycler with custom colours
-        if colors is None:
-            custom_cycler = (cycler(color=['#FE8995','#FE7B88','#E6505F',
-                '#CC4755','#9A323C','#802D35','#64232A', '#40161A']))
-        else:
-            custom_cycler = (cycler(color=colors))
-
-        # Plot only the energy per atom for the only termination present
-        if nrows==1 and ncols==1:
-            fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
-            for index, val, time, df in zip(indices, vals, times, dfs):
-                ax.set_prop_cycle(custom_cycler)
-                ax.set_xticks(list(range(len(df.index))))
-                ax.set_xticklabels(df.index)
-                ax.set_xlabel('Slab thickness / Å')
-                ax.set_ylabel('Energy per atom / eV')
-                ax.plot(val, marker='x')
-                ax.legend(df.columns, title='Vacuum / Å')
-
-        # Plot energy per atom and time taken for the only termination present
-        elif nrows==1 and ncols==2:
-            fig, ax = plt.subplots(1, 2, dpi=dpi, figsize=(width, height))
-            for index, val, time, df in zip(indices, vals, times, dfs):
-                ax[0].set_prop_cycle(custom_cycler)
-                ax[0].set_xticks(list(range(len(df.index))))
-                ax[0].set_xticklabels(df.index)
-                ax[0].set_xlabel('Slab thickness / Å')
-                ax[0].set_ylabel('Energy per atom / eV')
-                ax[0].plot(val, marker='x')
-                ax[0].legend(df.columns, title='Vacuum / Å')
-
-                ax[1].set_prop_cycle(custom_cycler)
-                ax[1].set_xticks(list(range(len(df.index))))
-                ax[1].set_xticklabels(df.index)
-                ax[1].set_xlabel('Slab thickness / Å')
-                ax[1].set_ylabel('Time taken / s')
-                ax[1].plot(time, marker='x')
-                ax[1].legend(df.columns, title='Vacuum / Å')
-                plt.tight_layout()
-
-        # Plot energy per atom and time taken for different terminations
-        else:
-            fig, ax = plt.subplots(nrows=nrows,ncols=ncols, dpi=dpi,
-            figsize=(width, height))
-            for i, (index, val, time, df) in enumerate(zip(indices, vals, times, dfs)):
-                # Separate plotting of times and energies, energies in the first
-                # column, times in the second. Annoyingly matplotlib doesn't
-                # like ax[i,0] if there isn't a second axis so need to separate
-                # it for time_taken True and False
-
-                if time_taken:
-                    ax[i,0].set_prop_cycle(custom_cycler)
-                    ax[i,0].set_xticks(list(range(len(df.index))))
-                    ax[i,0].set_xticklabels(df.index)
-                    ax[i,0].set_xlabel('Slab thickness / Å')
-                    ax[i,0].set_ylabel('Energy per atom / eV')
-                    ax[i,0].plot(val, marker='x')
-                    ax[i,0].legend(df.columns, title='Vacuum / Å')
-                    ax[i,0].set_title('{}'.format(indices[i]))
-
-                    ax[i,1].set_prop_cycle(custom_cycler)
-                    ax[i,1].set_xticks(list(range(len(df.index))))
-                    ax[i,1].set_xticklabels(df.index)
-                    ax[i,1].set_xlabel('Slab thickness/ Å')
-                    ax[i,1].set_ylabel('Time taken / s')
-                    ax[i,1].plot(time, marker='x')
-                    ax[i,1].legend(df.columns, title='Vacuum / Å')
-                    ax[i,1].set_title('{}'.format(indices[i]))
-
-                else:
-                    ax[i].set_prop_cycle(custom_cycler)
-                    ax[i].set_xticks(list(range(len(df.index))))
-                    ax[i].set_xticklabels(df.index)
-                    ax[i].set_xlabel('Slab thickness / Å')
-                    ax[i].set_ylabel('Energy per atom / eV')
-                    ax[i].plot(val, marker='x')
-                    ax[i].legend(df.columns, title='Vacuum / Å')
-                    ax[i].set_title('{}'.format(indices[i]))
-
-            plt.tight_layout()
-
+    # Plot energy per atom and time taken for different terminations 
+    else: 
+        fig, ax = plt.subplots(nrows=1, ncols=len(indices), dpi=dpi, 
+            figsize=(width, height), constrained_layout=True)
+        for i, (index, val, df) in enumerate(zip(indices, vals, dfs)):
+            ax[i].set_prop_cycle(custom_cycler)
+            ax[i].set_xticks(list(range(len(df.index))))
+            ax[i].set_xticklabels(df.index)
+            ax[i].set_xlabel('Slab thickness / Å')
+            ax[i].set_ylabel('Energy per atom / eV')
+            ax[i].plot(val, marker='x', markersize=8)
+            ax[i].legend(df.columns, title='Vacuum / Å')
+            ax[i].set_title('{}'.format(index))
+        
     fig.savefig(plt_fname, bbox_inches='tight', facecolor='w')
