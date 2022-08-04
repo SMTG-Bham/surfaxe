@@ -401,7 +401,7 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 df_by_vac = gp[1].sort_values('slab_thickness')
                 x = df_by_vac['slab_thickness']
                 ax.set_prop_cycle(custom_cycler)
-                ax.set_xticks(x)
+                ax.set_xticks(pd.to_numeric(x, downcast='float'))
                 ax.set_xticklabels(x)
                 ax.set_xlabel('Slab thickness / Å')
                 ax.set_ylabel('Surface energy / J m$^{-2}$')
@@ -418,7 +418,7 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 df_by_vac = gp[1].sort_values('slab_thickness')
                 axs.set_prop_cycle(custom_cycler)
                 x = df_by_vac['slab_thickness']
-                axs.set_xticks(x)
+                axs.set_xticks(pd.to_numeric(x, downcast='float'))
                 axs.set_xticklabels(x)
                 axs.set_xlabel('Slab thickness / Å')
                 axs.set_ylabel('Surface energy / J m$^{-2}$')
@@ -436,7 +436,7 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 df_by_vac = gp[1].sort_values('slab_thickness')
                 axs.set_prop_cycle(custom_cycler)
                 x = df_by_vac['slab_thickness']
-                axs.set_xticks(x)
+                axs.set_xticks(pd.to_numeric(x, downcast='float'))
                 axs.set_xticklabels(x)
                 axs.set_xlabel('Slab thickness / Å')
                 axs.set_ylabel('Surface energy / J m$^{-2}$')
@@ -452,7 +452,7 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 df_by_vac = gp[1].sort_values('slab_thickness')
                 x = df_by_vac['slab_thickness']
                 ax[i].set_prop_cycle(custom_cycler)
-                ax[i].set_xticks(x)
+                ax[i].set_xticks(pd.to_numeric(x, downcast='float'))
                 ax[i].set_xticklabels(x)
                 ax[i].set_xlabel('Slab thickness / Å')
                 ax[i].set_ylabel('Surface energy / J m$^{-2}$')
