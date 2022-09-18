@@ -402,12 +402,14 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 x = df_by_vac['slab_thickness']
                 ax.set_prop_cycle(custom_cycler)
                 ax.set_xticks(pd.to_numeric(x, downcast='float'))
-                ax.set_xticklabels(x)
+                ax.set_xticklabels(pd.to_numeric(x, downcast='float'))
                 ax.set_xlabel('Slab thickness / Å')
                 ax.set_ylabel('Surface energy / J m$^{-2}$')
-                ax.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
-                ax.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
-                ax.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                ax.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
+                        marker='^', label='Conventional')
+                ax.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_fm'],
+                        marker='o', label='Fiorentini-Methfessel')
+                ax.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
                 ax.legend()
 
         elif num_of_vac == 4: 
@@ -419,13 +421,16 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 axs.set_prop_cycle(custom_cycler)
                 x = df_by_vac['slab_thickness']
                 axs.set_xticks(pd.to_numeric(x, downcast='float'))
-                axs.set_xticklabels(x)
+                axs.set_xticklabels(pd.to_numeric(x, downcast='float'))
                 axs.set_xlabel('Slab thickness / Å')
                 axs.set_ylabel('Surface energy / J m$^{-2}$')
                 axs.set_title('Vacuum: {} Å'.format(gp[0]))
-                axs.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
-                axs.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
-                axs.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
+                         marker='^', label='Conventional')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_fm'],
+                         marker='o', label='Fiorentini-Methfessel')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac[
+                    'surface_energy_boettger'], marker='s', label='Boettger')
                 axs.legend()
 
         elif num_of_vac == 6: 
@@ -437,13 +442,16 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 axs.set_prop_cycle(custom_cycler)
                 x = df_by_vac['slab_thickness']
                 axs.set_xticks(pd.to_numeric(x, downcast='float'))
-                axs.set_xticklabels(x)
+                axs.set_xticklabels(pd.to_numeric(x, downcast='float'))
                 axs.set_xlabel('Slab thickness / Å')
                 axs.set_ylabel('Surface energy / J m$^{-2}$')
                 axs.set_title('Vacuum: {} Å'.format(gp[0]))
-                axs.plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
-                axs.plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
-                axs.plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
+                         marker='^', label='Conventional')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_fm'],
+                         marker='o', label='Fiorentini-Methfessel')
+                axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac[
+                    'surface_energy_boettger'], marker='s', label='Boettger')
                 axs.legend()
         else: 
             fig, ax = plt.subplots(1, num_of_vac, dpi=dpi, 
@@ -453,13 +461,16 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 x = df_by_vac['slab_thickness']
                 ax[i].set_prop_cycle(custom_cycler)
                 ax[i].set_xticks(pd.to_numeric(x, downcast='float'))
-                ax[i].set_xticklabels(x)
+                ax[i].set_xticklabels(pd.to_numeric(x, downcast='float'))
                 ax[i].set_xlabel('Slab thickness / Å')
                 ax[i].set_ylabel('Surface energy / J m$^{-2}$')
                 ax[i].set_title('Vacuum: {} Å'.format(gp[0]))
-                ax[i].plot(x, df_by_vac['surface_energy'], marker='^', label='Conventional')
-                ax[i].plot(x, df_by_vac['surface_energy_fm'], marker='o', label='Fiorentini-Methfessel')
-                ax[i].plot(x, df_by_vac['surface_energy_boettger'], marker='s', label='Boettger')
+                ax[i].plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
+                           marker='^', label='Conventional')
+                ax[i].plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_fm'],
+                           marker='o', label='Fiorentini-Methfessel')
+                ax[i].plot(pd.to_numeric(x, downcast='float'), df_by_vac[
+                    'surface_energy_boettger'], marker='s', label='Boettger')
                 ax[i].legend()
 
         if len(df.groupby('slab_index')) == 1 and plt_fname is None: 
