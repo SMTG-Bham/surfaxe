@@ -6,7 +6,7 @@
         "EDIFFG": -0.01,
         "ENCUT": 500,
         "GGA": "PE",
-        "HFSCREEN": 0.207,
+        "HFSCREEN": 0.2,
         "ISIF": 2,
         "ISMEAR": 0,
         "ISYM": 3,
