@@ -201,11 +201,8 @@ def vacuum(path=None):
     elif type(path)==str and 'LOCPOT' in path:
         if os.path.exists(path):
             lpt = Locpot.from_file(path)
-        elif os.path.exists(path + ".gz"):
+        else:  # should give error if neither LOCPOT(.gz) able to be parsed
             lpt = Locpot.from_file(path + ".gz")
-        else:
-            raise FileNotFoundError(
-                f"""No LOCPOT(.gz) found at {path}(.gz)""")
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
     
@@ -222,6 +219,11 @@ def vacuum(path=None):
 
         elif os.path.isfile('{}/LOCPOT'.format(cwd)): 
             lpt = Locpot.from_file('{}/LOCPOT'.format(cwd))
+            planar = lpt.get_average_along_axis(2)
+            max_potential = float(f"{np.max(planar): .3f}")
+
+        elif os.path.isfile('{}/LOCPOT.gz'.format(cwd)):
+            lpt = Locpot.from_file('{}/LOCPOT.gz'.format(cwd))
             planar = lpt.get_average_along_axis(2)
             max_potential = float(f"{np.max(planar): .3f}")
 

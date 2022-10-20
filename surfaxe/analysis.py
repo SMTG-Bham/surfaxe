@@ -3,7 +3,8 @@ from pymatgen.core import Structure
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
 from pymatgen.io.vasp.outputs import Locpot
 
-# Misc 
+# Misc
+import os
 import math
 import numpy as np
 import pandas as pd
@@ -191,7 +192,7 @@ plt_fname='potential.png', **kwargs):
         structure = lpt.structure
     else:
         raise FileNotFoundError(
-            f"""No LOCPOT(.gz) found at {locpot_path}(.gz)""")
+            f"""No LOCPOT(.gz) found at {locpot}(.gz)""")
 
     # Planar potential
     planar = lpt.get_average_along_axis(2)
