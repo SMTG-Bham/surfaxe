@@ -186,10 +186,10 @@ plt_fname='potential.png', **kwargs):
     # Read potential and structure data
     if os.path.exists(locpot):
         lpt = Locpot.from_file(locpot)
-        structure = lpt.structure
+        struc = lpt.structure
     elif os.path.exists(locpot + ".gz"):
         lpt = Locpot.from_file(locpot + ".gz")
-        structure = lpt.structure
+        struc = lpt.structure
     else:
         raise FileNotFoundError(
             f"""No LOCPOT(.gz) found at {locpot}(.gz)""")

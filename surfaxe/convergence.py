@@ -115,9 +115,9 @@ csv_fname=None, verbose=False, **kwargs):
 
 
     # Check if multiple cores are available, iterate through paths to folders 
-    # and parse folders 
-    if multiprocessing.cpu_count() > 1: 
-        with multiprocessing.Pool() as pool: 
+    # and parse folders
+    if multiprocessing.cpu_count() > 1:
+        with multiprocessing.Pool() as pool:
             mp_list = pool.starmap(
                 functools.partial(_mp_helper_energy, parse_vacuum, 
                 get_core, hkl, core_atom=core_atom, bulk_nn=bulk_nn, 
@@ -134,7 +134,7 @@ csv_fname=None, verbose=False, **kwargs):
         gradient_list = list(itertools.chain.from_iterable(
             [i[3] for i in mp_list]))
     
-    else: 
+    else:
         df_list, electrostatic_list, core_energy_list, gradient_list = ([] for i in range(4))
         for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
             vsp_path = '{}/vasprun.xml'.format(path)
@@ -143,11 +143,11 @@ csv_fname=None, verbose=False, **kwargs):
             # instantiate structure, slab, vasprun and outcar objects
             if os.path.exists(vsp_path):
                 vsp = Vasprun(vsp_path, parse_potcar_file=False)
-            elif os.path.exists(vsp_path + '.gz'):
+            else:  # should give error if neither vasprun.xml(.gz) able to be parsed
                 vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
             if os.path.exists(otc_path):
                 otc = Outcar(otc_path)
-            elif os.path.exists(otc_path + '.gz'):
+            else:  # should give error if neither OUTCAR(.gz) able to be parsed
                 otc = Outcar(otc_path + '.gz')
 
             slab = slab_from_file(vsp.final_structure, hkl)
@@ -388,11 +388,11 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
     otc_path = '{}/OUTCAR'.format(path)
     if os.path.exists(vsp_path):
         vsp = Vasprun(vsp_path, parse_potcar_file=False)
-    elif os.path.exists(vsp_path + '.gz'):
+    else:  # should give error if neither vasprun.xml(.gz) able to be parsed
         vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
     if os.path.exists(otc_path):
         otc = Outcar(otc_path)
-    elif os.path.exists(otc_path + '.gz'):
+    else:  # should give error if neither OUTCAR(.gz) able to be parsed
         otc = Outcar(otc_path + '.gz')
 
     slab = slab_from_file(vsp.final_structure, hkl)

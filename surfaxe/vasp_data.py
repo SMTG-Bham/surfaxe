@@ -119,7 +119,7 @@ save_csv=True, csv_fname='data.csv', **kwargs):
         vsp_path = '{}/vasprun.xml'.format(path)
         if os.path.exists(vsp_path):
             vsp = Vasprun(vsp_path, parse_potcar_file=False)
-        elif os.path.exists(vsp_path + '.gz'):
+        else:  # should give error if neither vasprun.xml(.gz) able to be parsed
             vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
 
         psc_path = '{}/POSCAR'.format(path)
@@ -318,7 +318,7 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
         # Read OUTCAR, get the core state energy
         if os.path.exists(outcar):
             otc = Outcar(outcar)
-        elif os.path.exists(outcar + '.gz'):
+        else:  # should give error if neither OUTCAR(.gz) able to be parsed
             otc = Outcar(outcar + '.gz')
 
         core_energy_dict = otc.read_core_state_eigen()
