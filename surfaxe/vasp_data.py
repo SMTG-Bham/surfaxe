@@ -115,11 +115,15 @@ save_csv=True, csv_fname='data.csv', **kwargs):
     # parse them for data
     df_list, electrostatic_list, core_energy_list = ([] for i in range(3))
 
-    for hkl_tuple, path in hkl_dict.items(): 
+    for hkl_tuple, path in hkl_dict.items():
         vsp_path = '{}/vasprun.xml'.format(path)
+        if os.path.exists(vsp_path):
+            vsp = Vasprun(vsp_path, parse_potcar_file=False)
+        elif os.path.exists(vsp_path + '.gz'):
+            vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
+
         psc_path = '{}/POSCAR'.format(path)
-        vsp = Vasprun(vsp_path, parse_potcar_file=False)
-        slab = slab_from_file(psc_path,hkl_tuple)
+        slab = slab_from_file(psc_path, hkl_tuple)
         vsp_dict = vsp.as_dict()
         
         df_list.append({
@@ -194,8 +198,11 @@ def vacuum(path=None):
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
     
-    elif type(path)==str and 'LOCPOT' in path: 
-        lpt = Locpot.from_file(path)
+    elif type(path)==str and 'LOCPOT' in path:
+        if os.path.exists(path):
+            lpt = Locpot.from_file(path)
+        else:  # should give error if neither LOCPOT(.gz) able to be parsed
+            lpt = Locpot.from_file(path + ".gz")
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
     
@@ -212,6 +219,11 @@ def vacuum(path=None):
 
         elif os.path.isfile('{}/LOCPOT'.format(cwd)): 
             lpt = Locpot.from_file('{}/LOCPOT'.format(cwd))
+            planar = lpt.get_average_along_axis(2)
+            max_potential = float(f"{np.max(planar): .3f}")
+
+        elif os.path.isfile('{}/LOCPOT.gz'.format(cwd)):
+            lpt = Locpot.from_file('{}/LOCPOT.gz'.format(cwd))
             planar = lpt.get_average_along_axis(2)
             max_potential = float(f"{np.max(planar): .3f}")
 
@@ -303,8 +315,12 @@ nn_method=CrystalNN(), outcar='OUTCAR', structure='POSCAR'):
     if type(atom) is np.float64: 
         core_energy = np.nan 
     else:       
-        # Read OUTCAR, get the core state energy 
-        otc = Outcar(outcar)
+        # Read OUTCAR, get the core state energy
+        if os.path.exists(outcar):
+            otc = Outcar(outcar)
+        elif os.path.exists(outcar + '.gz'):
+            otc = Outcar(outcar + '.gz')
+
         core_energy_dict = otc.read_core_state_eigen()
         try: 
             core_energy = core_energy_dict[atom][orbital][-1]

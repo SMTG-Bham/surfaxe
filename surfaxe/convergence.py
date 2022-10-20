@@ -141,8 +141,15 @@ csv_fname=None, verbose=False, **kwargs):
             otc_path = '{}/OUTCAR'.format(path)
 
             # instantiate structure, slab, vasprun and outcar objects
-            vsp = Vasprun(vsp_path, parse_potcar_file=False)
-            otc = Outcar(otc_path)
+            if os.path.exists(vsp_path):
+                vsp = Vasprun(vsp_path, parse_potcar_file=False)
+            elif os.path.exists(vsp_path + '.gz'):
+                vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
+            if os.path.exists(otc_path):
+                otc = Outcar(otc_path)
+            elif os.path.exists(otc_path + '.gz'):
+                otc = Outcar(otc_path + '.gz')
+
             slab = slab_from_file(vsp.final_structure, hkl)
             vsp_dict = vsp.as_dict()
 
@@ -379,8 +386,15 @@ vac_thickness, slab_index, core_atom=None, bulk_nn=None, **kwargs):
     # instantiate structure, slab, vasprun and outcar objects
     vsp_path = '{}/vasprun.xml'.format(path)
     otc_path = '{}/OUTCAR'.format(path)
-    vsp = Vasprun(vsp_path, parse_potcar_file=False)
-    otc = Outcar(otc_path)
+    if os.path.exists(vsp_path):
+        vsp = Vasprun(vsp_path, parse_potcar_file=False)
+    elif os.path.exists(vsp_path + '.gz'):
+        vsp = Vasprun(vsp_path + '.gz', parse_potcar_file=False)
+    if os.path.exists(otc_path):
+        otc = Outcar(otc_path)
+    elif os.path.exists(otc_path + '.gz'):
+        otc = Outcar(otc_path + '.gz')
+
     slab = slab_from_file(vsp.final_structure, hkl)
     vsp_dict = vsp.as_dict()
 
