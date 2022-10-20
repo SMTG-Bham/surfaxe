@@ -183,8 +183,15 @@ plt_fname='potential.png', **kwargs):
         DataFrame
     """
     # Read potential and structure data
-    lpt = Locpot.from_file(locpot)
-    struc = Structure.from_file(locpot)
+    if os.path.exists(locpot):
+        lpt = Locpot.from_file(locpot)
+        structure = lpt.structure
+    elif os.path.exists(locpot + ".gz"):
+        lpt = Locpot.from_file(locpot + ".gz")
+        structure = lpt.structure
+    else:
+        raise FileNotFoundError(
+            f"""No LOCPOT(.gz) found at {locpot_path}(.gz)""")
 
     # Planar potential
     planar = lpt.get_average_along_axis(2)

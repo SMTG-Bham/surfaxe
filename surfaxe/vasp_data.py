@@ -194,8 +194,14 @@ def vacuum(path=None):
         max_potential = df['planar'].max()
         max_potential = round(max_potential, 3)
     
-    elif type(path)==str and 'LOCPOT' in path: 
-        lpt = Locpot.from_file(path)
+    elif type(path)==str and 'LOCPOT' in path:
+        if os.path.exists(path):
+            lpt = Locpot.from_file(path)
+        elif os.path.exists(path + ".gz"):
+            lpt = Locpot.from_file(path + ".gz")
+        else:
+            raise FileNotFoundError(
+                f"""No LOCPOT(.gz) found at {path}(.gz)""")
         planar = lpt.get_average_along_axis(2)
         max_potential = float(f"{np.max(planar): .3f}")
     
