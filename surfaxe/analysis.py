@@ -160,7 +160,7 @@ plt_fname='bond_analysis.png', **kwargs):
 
 
 def electrostatic_potential(locpot='./LOCPOT', lattice_vector=None,
-save_csv=True, csv_fname='potential.csv', save_plt=True, 
+axis='c', save_csv=True, csv_fname='potential.csv', save_plt=True, 
 plt_fname='potential.png', **kwargs):
     """
     Reads LOCPOT to get the planar and optionally macroscopic potential in 
@@ -171,6 +171,8 @@ plt_fname='potential.png', **kwargs):
             ``'./LOCPOT'``
         lattice_vector (`float`, optional): The periodicity of the slab, 
             calculates macroscopic potential with that periodicity 
+        axis (`str`, optional): Axis along which the potential is calculated. 
+            Takes a,b,c or x,y,z. 
         save_csv (`bool`, optional): Saves to csv. Defaults to ``True``.
         csv_fname (`str`, optional): Filename of the csv file. Defaults 
             to ``'potential.csv'``.
@@ -182,18 +184,28 @@ plt_fname='potential.png', **kwargs):
     Returns:
         DataFrame
     """
+    # set up axis 
+    if axis in ['a', 'x']: 
+        ax = 0 
+    elif axis in ['b', 'y']: 
+        ax = 1
+    elif axis in ['c', 'z']: 
+        ax = 2
+    else: 
+        raise ValueError('axis can only be set to a,b,c or x,y,z')
+
     # Read potential and structure data
     lpt = Locpot.from_file(locpot)
     struc = Structure.from_file(locpot)
 
     # Planar potential
-    planar = lpt.get_average_along_axis(2)
+    planar = lpt.get_average_along_axis(ax)
     df = pd.DataFrame(data=planar, columns=['planar']) 
     
     # Calculate macroscopic potential
     if lattice_vector is not None: 
         # Divide lattice parameter by no. of grid points in the direction
-        resolution = struc.lattice.abc[2]/lpt.dim[2]
+        resolution = struc.lattice.abc[ax]/lpt.dim[ax]
 
         # Get number of points over which the rolling average is evaluated
         points = int(lattice_vector/resolution)

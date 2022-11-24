@@ -80,3 +80,9 @@ class ElectrostaticPotentialTestCase(unittest.TestCase):
         save_csv=False, save_plt=False)
         self.assertEqual(potential_data.shape, (1372,2))
         self.assertEqual(potential_data['planar'][394], -10.668138966414821)
+    
+    def test_axes(self): 
+        potential_data = electrostatic_potential(locpot=self.locpot, 
+        save_csv=False, save_plt=False, axis='b')
+        self.assertEqual(potential_data.shape, (56,2))
+        self.assertEqual(potential_data['planar'][52], -1.219205363366681)
