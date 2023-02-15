@@ -25,7 +25,7 @@ if __name__ == "__main__":
       license='MIT',
       packages=['surfaxe'],
       zip_safe=False,
-      install_requires=['scipy', 'numpy', 'spglib', 'pymatgen','pandas','scikit-learn'],
+      install_requires=['scipy', 'numpy>1.20', 'spglib', 'pymatgen','pandas','scikit-learn'],
       python_requires='>=3.7',
       classifiers=[
         'Programming Language :: Python',

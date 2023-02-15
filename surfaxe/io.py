@@ -46,7 +46,7 @@ def slab_from_file(structure, hkl):
                 Structure.from_sites(slab_input, to_unit_cell=True), 
                 # this OUC is not correct, need to get it from slabgenerator
                 shift=0,
-                scale_factor=np.eye(3, dtype=np.int),
+                scale_factor=np.eye(3, dtype=int),
                 site_properties=slab_input.site_properties)
 
 def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files,
