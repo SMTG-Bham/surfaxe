@@ -117,6 +117,8 @@ plt_fname='bond_analysis.png', **kwargs):
             Defaults to ``False``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'bond_analysis.png'``. 
+        kwargs (`dict`, optional): Additional keyword arguments to pass to 
+            plot_bond_analysis(). Defaults to ``{}``.
 
     Returns:
         DataFrame with the c coordinate of the first atom and bond length

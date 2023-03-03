@@ -267,7 +267,7 @@ def _instantiate_structure(structure):
     return struc
 
 def plot_bond_analysis(bond, df=None, filename=None, width=6, height=5, dpi=300,
-color=None, plt_fname='bond_analysis.png'):
+color=None, plt_fname='bond_analysis.png', markersize=8, marker='x'):
     """
     Plots the bond distance with respect to fractional coordinate. Used in
     conjunction with surfaxe.analysis.bond_analysis.
@@ -307,7 +307,7 @@ color=None, plt_fname='bond_analysis.png'):
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
     x = df['{}_c_coord'.format(bond[0])]
     y = df['{}-{}_bond_distance'.format(bond[0],bond[1])]
-    ax.scatter(x, y, marker='x', markersize=8, c=color)
+    ax.scatter(x, y, marker=marker, s=markersize, c=color)
     ax.set_ylabel("Bond distance / Å")
     ax.legend(['{}-{} bond'.format(bond[0], bond[1])])
     plt.xlabel("Fractional coordinate in c")

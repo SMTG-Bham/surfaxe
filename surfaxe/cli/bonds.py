@@ -45,6 +45,8 @@ def _get_parser():
     parser.add_argument('-c', '--color', default=None, type=str, 
     help=('Color of the marker in any format supported by mpl e.g. "#eeefff" ' 
     ' hex colours starting with # need to be surrounded with quotation marks' ))
+    parser.add_argument('--marker', default='x', type=str, help=('Marker style'))
+    parser.add_argument('--markersize', default=5, type=int,help=('Marker size'))
     parser.add_argument('--width', default=6, type=float, 
     help='Width of the figure in inches (default: 6)')
     parser.add_argument('--height', default=5, type=float, 
@@ -81,7 +83,8 @@ def main():
         ba = bond_analysis(args.structure, args.bond, nn_method=CrystalNN(),
         ox_states=ox_states, save_csv=args.save_csv, csv_fname=args.csv_fname, 
         save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi, 
-        color=args.color, width=args.width, height=args.height)
+        color=args.color, width=args.width, height=args.height, 
+        marker=args.marker, markersize=args.markersize)
         
         if not args.save_csv: 
             print(ba)
