@@ -308,7 +308,7 @@ color=None, plt_fname='bond_analysis.png', markersize=8, marker='x'):
     x = df['{}_c_coord'.format(bond[0])]
     y = df['{}-{}_bond_distance'.format(bond[0],bond[1])]
     ax.scatter(x, y, marker=marker, s=markersize, c=color)
-    ax.set_ylabel("Bond distance / Å")
+    ax.set_ylabel("Bond distance (Å) ")
     ax.legend(['{}-{} bond'.format(bond[0], bond[1])])
     plt.xlabel("Fractional coordinate in c")
     fig.savefig(plt_fname, facecolor='w', bbox_inches='tight')
@@ -347,7 +347,7 @@ height=5, colors=None, plt_fname='potential.png'):
         warnings.warn('Data not supplied')
 
     if colors==None: 
-        colors = ['#FE8995', '#E6505F']
+        colors = ['#FE8995', '#9A323C']
 
     # Plot both planar and macroscopic, save figure
     fig, ax = plt.subplots(1,1, dpi=dpi, figsize=(width, height))
@@ -356,7 +356,7 @@ height=5, colors=None, plt_fname='potential.png'):
         ax.plot(df['macroscopic'], label='Macroscopic', c=colors[1])
     ax.axes.xaxis.set_visible(False)
     ax.legend()
-    plt.ylabel('Potential / eV')
+    plt.ylabel('Potential (eV)')
     fig.savefig(plt_fname, facecolor='w', bbox_inches='tight')
 
 def plot_surfen(df, colors=None, dpi=300, width=8, height=8, 
@@ -403,8 +403,8 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 ax.set_prop_cycle(custom_cycler)
                 ax.set_xticks(pd.to_numeric(x, downcast='float'))
                 ax.set_xticklabels(pd.to_numeric(x, downcast='float'))
-                ax.set_xlabel('Slab thickness / Å')
-                ax.set_ylabel('Surface energy / J m$^{-2}$')
+                ax.set_xlabel('Slab thickness (Å)')
+                ax.set_ylabel('Surface energy (J m$^{-2}$)')
                 ax.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
                         marker='^', label='Conventional')
                 ax.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy_fm'],
@@ -422,8 +422,8 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 x = df_by_vac['slab_thickness']
                 axs.set_xticks(pd.to_numeric(x, downcast='float'))
                 axs.set_xticklabels(pd.to_numeric(x, downcast='float'))
-                axs.set_xlabel('Slab thickness / Å')
-                axs.set_ylabel('Surface energy / J m$^{-2}$')
+                axs.set_xlabel('Slab thickness (Å)')
+                axs.set_ylabel('Surface energy (J m$^{-2}$)')
                 axs.set_title('Vacuum: {} Å'.format(gp[0]))
                 axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
                          marker='^', label='Conventional')
@@ -443,8 +443,8 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 x = df_by_vac['slab_thickness']
                 axs.set_xticks(pd.to_numeric(x, downcast='float'))
                 axs.set_xticklabels(pd.to_numeric(x, downcast='float'))
-                axs.set_xlabel('Slab thickness / Å')
-                axs.set_ylabel('Surface energy / J m$^{-2}$')
+                axs.set_xlabel('Slab thickness (Å)')
+                axs.set_ylabel('Surface energy (J m$^{-2}$)')
                 axs.set_title('Vacuum: {} Å'.format(gp[0]))
                 axs.plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
                          marker='^', label='Conventional')
@@ -462,8 +462,8 @@ def plot_surfen(df, colors=None, dpi=300, width=8, height=8,
                 ax[i].set_prop_cycle(custom_cycler)
                 ax[i].set_xticks(pd.to_numeric(x, downcast='float'))
                 ax[i].set_xticklabels(pd.to_numeric(x, downcast='float'))
-                ax[i].set_xlabel('Slab thickness / Å')
-                ax[i].set_ylabel('Surface energy / J m$^{-2}$')
+                ax[i].set_xlabel('Slab thickness (Å)')
+                ax[i].set_ylabel('Surface energy (J m$^{-2}$)')
                 ax[i].set_title('Vacuum: {} Å'.format(gp[0]))
                 ax[i].plot(pd.to_numeric(x, downcast='float'), df_by_vac['surface_energy'],
                            marker='^', label='Conventional')
