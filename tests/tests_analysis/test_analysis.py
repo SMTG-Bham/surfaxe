@@ -70,19 +70,21 @@ class ElectrostaticPotentialTestCase(unittest.TestCase):
         self.locpot = os.path.join(data_dir, 'LOCPOT')
 
     def test_electrostatic_potential(self): 
+        potential_data = electrostatic_potential(locpot=self.locpot, 
+        save_csv=False, save_plt=False, prim_to_conv=2)
+        self.assertEqual(potential_data.shape, (1372,3))
+        self.assertEqual(potential_data['planar'][394], -10.668138966414821)
+        self.assertEqual(potential_data['macroscopic'][394], -1.6166242526840253)
+
+    def test_lattice_vector(self): 
         potential_data = electrostatic_potential(lattice_vector=10, 
         locpot=self.locpot, save_csv=False, save_plt=False)
         self.assertEqual(potential_data.shape, (1372,3))
         self.assertEqual(potential_data['planar'][394], -10.668138966414821)
-    
-    def test_no_macroscopic(self): 
-        potential_data = electrostatic_potential(locpot=self.locpot, 
-        save_csv=False, save_plt=False)
-        self.assertEqual(potential_data.shape, (1372,2))
-        self.assertEqual(potential_data['planar'][394], -10.668138966414821)
+        self.assertEqual(potential_data['macroscopic'][394], -2.787523767529875)
     
     def test_axes(self): 
         potential_data = electrostatic_potential(locpot=self.locpot, 
         save_csv=False, save_plt=False, axis='b')
-        self.assertEqual(potential_data.shape, (56,2))
+        self.assertEqual(potential_data.shape, (56,3))
         self.assertEqual(potential_data['planar'][52], -1.219205363366681)
