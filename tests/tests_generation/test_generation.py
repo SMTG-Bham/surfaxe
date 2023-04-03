@@ -60,7 +60,7 @@ class GenerateSlabsTestCase(unittest.TestCase):
         thicknesses=[10], vacuums=[10,20], save_slabs=False, save_metadata=False)
         
         ex = cm.exception
-        self.assertEqual(str(ex),'No zero dipole slabs found for specified '
+        self.assertEqual(str(ex),'No zero dipole (Tasker I or II) slabs found for specified '
         'Miller index')
             
 

@@ -286,7 +286,7 @@ parallelise=True, **kwargs):
         ' Slabs that exceed the max size are: ' + ', '.join(map(str, large)))
     
     if len(unique_list_of_dicts) == 0: 
-        raise ValueError('No zero dipole slabs found for specified Miller index')
+        raise ValueError('No zero dipole (Tasker I or II) slabs found for specified Miller index')
 
     # Save the metadata or slabs to file or return the list of dicts 
     if save_metadata: 
