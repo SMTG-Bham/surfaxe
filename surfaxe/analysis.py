@@ -162,18 +162,17 @@ plt_fname='bond_analysis.png', **kwargs):
         return df
 
 
-def electrostatic_potential(locpot='./LOCPOT', lattice_vector=None,
+def electrostatic_potential(locpot='./LOCPOT', prim_to_conv=1,
 axis='c', save_csv=True, csv_fname='potential.csv', save_plt=True, 
-plt_fname='potential.png', **kwargs):
+plt_fname='potential.png', lattice_vector=None, **kwargs):
     """
-    Reads LOCPOT to get the planar and optionally macroscopic potential in 
-    c direction. 
+    Reads LOCPOT to get the planar and macroscopic potential in a, b or c direction 
 
     Args:
         locpot (`str`, optional): The path to the LOCPOT file. Defaults to 
             ``'./LOCPOT'``
-        lattice_vector (`float`, optional): The periodicity of the slab, 
-            calculates macroscopic potential with that periodicity 
+        prim_to_conv (`int`, optional): The number of primitive cells in the 
+            conventional cell. Defaults to ``1``.
         axis (`str`, optional): Axis along which the potential is calculated. 
             Takes a,b,c or x,y,z. 
         save_csv (`bool`, optional): Saves to csv. Defaults to ``True``.
@@ -183,6 +182,7 @@ plt_fname='potential.png', **kwargs):
             potential. Defaults to ``True``. 
         plt_fname (`str`, optional): Filename of the plot. Defaults to 
             ``'potential.png'``.
+        lattice_vector (`float`, optional): Manually set the periodicity of the slab
 
     Returns:
         DataFrame
@@ -213,26 +213,34 @@ plt_fname='potential.png', **kwargs):
     df = pd.DataFrame(data=planar, columns=['planar']) 
     
     # Calculate macroscopic potential
-    if lattice_vector is not None: 
-        # Divide lattice parameter by no. of grid points in the direction
-        resolution = struc.lattice.abc[ax]/lpt.dim[ax]
+    if lattice_vector is None:
+        # Calculate lattice vector
+        arr = np.array([i.coords for i in struc.sites])
+        comp, factor = struc.composition.get_reduced_composition_and_factor()
+        argmin = arr[:, ax].argmin() 
+        specie_min = str(struc[argmin].specie)
+        argmax = int(comp.as_dict()[specie_min] * prim_to_conv + argmin)
+        lattice_vector = arr[:, ax][argmax] - arr[:, ax][argmin]
 
-        # Get number of points over which the rolling average is evaluated
-        points = int(lattice_vector/resolution)
+    # Divide lattice parameter by no. of grid points in the direction
+    resolution = struc.lattice.abc[ax]/lpt.dim[ax]
 
-        # Need extra points at the start and end of planar potential to evaluate the
-        # macroscopic potential this makes use of the PBC where the end of one unit
-        # cell coincides with start of the next one
-        add_to_start = planar[(len(planar) - points): ]
-        add_to_end = planar[0:points]
-        pfm_data = np.concatenate((add_to_start,planar,add_to_end))
-        pfm = pd.DataFrame(data=pfm_data, columns=['y'])
+    # Get number of points over which the rolling average is evaluated
+    points = int(lattice_vector/resolution)
 
-        # Macroscopic potential
-        m_data = pfm.y.rolling(window=points, center=True).mean()
-        macroscopic = m_data.iloc[points:(len(planar)+points)]
-        macroscopic.reset_index(drop=True,inplace=True)
-        df['macroscopic'] = macroscopic
+    # Need extra points at the start and end of planar potential to evaluate the
+    # macroscopic potential this makes use of the PBC where the end of one unit
+    # cell coincides with start of the next one
+    add_to_start = planar[(len(planar) - points): ]
+    add_to_end = planar[0:points]
+    pfm_data = np.concatenate((add_to_start,planar,add_to_end))
+    pfm = pd.DataFrame(data=pfm_data, columns=['y'])
+
+    # Macroscopic potential
+    m_data = pfm.y.rolling(window=points, center=True).mean()
+    macroscopic = m_data.iloc[points:(len(planar)+points)]
+    macroscopic.reset_index(drop=True,inplace=True)
+    df['macroscopic'] = macroscopic
 
     # Get gradient of the plot - this is used for convergence testing, to make 
     # sure the potential is actually flat
@@ -247,6 +255,30 @@ plt_fname='potential.png', **kwargs):
         df.to_csv(csv_fname, header=True, index=False)
     else: 
         return df
+
+def surface_dipole(filename, **kwargs): 
+    """
+    Calculates surface dipole for a slab. Useful for band alignments 
+
+    Args:
+        filename (`str`): The path to the LOCPOT or the csv file with 
+            macroscopic potential
+        kwargs: Keyword arguments for ``electrostatic_potential``
+    Returns:
+        float: The surface dipole in eV
+    """
+    if 'LOCPOT' in filename: 
+        pt = electrostatic_potential(filename, save_csv=False, **kwargs) 
+    elif filename.endswith('csv'): 
+        pt = pd.read_csv(filename) 
+        if 'macroscopic' not in pt.columns: 
+            raise ValueError('csv should contain macroscopic potential') 
+    else: 
+        raise ValueError('filename should be a LOCPOT or a csv file')
+    
+    # Get the surface dipole 
+    dipole = pt['macroscopic'].max() - pt['macroscopic'].iloc[int(len(pt)/2)]
+    return round(dipole, 3)
 
 def simple_nn(start, end=None, ox_states=None, nn_method=CrystalNN(), 
 save_csv=True, csv_fname='nn_data.csv'):
