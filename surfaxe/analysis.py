@@ -258,7 +258,7 @@ plt_fname='potential.png', lattice_vector=None, **kwargs):
 
 def surface_dipole(filename, **kwargs): 
     """
-    Calculates surface dipole for a slab. Useful for band alignments 
+    Calculates surface dipole for a slab. Useful for band alignments. 
 
     Args:
         filename (`str`): The path to the LOCPOT or the csv file with 
@@ -268,7 +268,7 @@ def surface_dipole(filename, **kwargs):
         float: The surface dipole in eV
     """
     if 'LOCPOT' in filename: 
-        pt = electrostatic_potential(filename, save_csv=False, **kwargs) 
+        pt = electrostatic_potential(filename, **kwargs) 
     elif filename.endswith('csv'): 
         pt = pd.read_csv(filename) 
         if 'macroscopic' not in pt.columns: 

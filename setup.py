@@ -49,7 +49,8 @@ if __name__ == "__main__":
           'surfaxe-plot-enatom = surfaxe.cli.plotenatom:main', 
           'surfaxe-plot-bonds = surfaxe.cli.plotbonds:main', 
           'surfaxe-plot-potential = surfaxe.cli.plotpotential:main', 
-          'surfaxe-generate = surfaxe.cli.generateslabs:main'
+          'surfaxe-generate = surfaxe.cli.generateslabs:main', 
+          'surfaxe-surface-dipole = surfaxe.cli.surfacedipole:main',
         ]
       }
     )
