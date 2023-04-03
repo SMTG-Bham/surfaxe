@@ -2,7 +2,7 @@ import unittest
 import os
 from pathlib import Path
 from surfaxe.analysis import simple_nn, complex_nn, cart_displacements, \
-bond_analysis, electrostatic_potential
+bond_analysis, electrostatic_potential, surface_dipole
 
 data_dir = str(Path(__file__).parents[2].joinpath('example_data/analysis'))
 
@@ -88,3 +88,23 @@ class ElectrostaticPotentialTestCase(unittest.TestCase):
         save_csv=False, save_plt=False, axis='b')
         self.assertEqual(potential_data.shape, (56,3))
         self.assertEqual(potential_data['planar'][52], -1.219205363366681)
+    
+    def test_no_file(self): 
+        with self.assertRaises(FileNotFoundError) as e:
+            electrostatic_potential(locpot='waa', 
+            save_csv=False, save_plt=False, prim_to_conv=2)
+
+class SurfaceDipoleTestCase(unittest.TestCase): 
+
+    def setUp(self): 
+        self.locpot = os.path.join(data_dir, 'LOCPOT')
+
+    def test_surface_dipole(self):
+        dipole = surface_dipole(self.locpot, prim_to_conv=2, 
+                                save_csv=False, save_plt=False) 
+        self.assertEqual(dipole, 9.06)
+    
+    def test_errors(self): 
+        with self.assertRaises(ValueError) as e:
+            surface_dipole('waa', prim_to_conv=2, 
+                           save_csv=False, save_plt=False, axis='c')
