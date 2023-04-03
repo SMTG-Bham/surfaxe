@@ -14,16 +14,16 @@ def _get_parser():
 
     parser.add_argument('-l', '--locpot', type=str, default='LOCPOT', 
     help='The path to the LOCPOT file (default: ./LOCPOT)')
-    parser.add_argument('-v', '--lattice-vector', type=float, default=None,
-    dest='lattice_vector', help='The periodicity of the slab')
+    parser.add_argument('-p', '--prim-to-conv', type=int, default=1, dest='prim_to_conv',
+    help='The number of primitive cells in the conventional cell (default: 1)')
     parser.add_argument('-a', '--axis', type=str, default='c',
     dest='axis', help='Axis of interest; takes abc or xyz (default: c)')
-    parser.add_argument('--no-csv', default=True, action='store_false', 
-    dest='save_csv', help='Turns off saving data to csv file' )
     parser.add_argument('--csv-fname', default='potential.csv', type=str,
     dest='csv_fname', help='Filename of the csv file (default: potential.csv)')
     parser.add_argument('--no-plot', default=True, action='store_false', 
     dest='save_plt', help='Turns off plotting')
+    parser.add_argument('-v', '--lattice-vector', type=float, default=None,
+    dest='lattice_vector', help='Manually set the periodicity of the slab')
     parser.add_argument('--plt-fname', default='potential.png', type=str,
     dest='plt_fname', help='Filename of the plot (default: potential.png)')
     parser.add_argument('--dpi', default=300, type=int, 
@@ -50,19 +50,15 @@ def main():
             yaml = YAML(typ='safe', pure=True)
             yaml_args = yaml.load(y)
 
-        ep = electrostatic_potential(**yaml_args)
-        if ('save_csv', False) in yaml_args.items(): 
-            print(ep)
+        electrostatic_potential(**yaml_args)
         
     else: 
-        ep = electrostatic_potential(locpot=args.locpot, 
+        electrostatic_potential(locpot=args.locpot, prim_to_conv=args.prim_to_conv,
         lattice_vector=args.lattice_vector, axis=args.axis,
-        save_csv=args.save_csv, csv_fname=args.csv_fname, 
+        save_csv=True, csv_fname=args.csv_fname, 
         save_plt=args.save_plt, plt_fname=args.plt_fname, dpi=args.dpi, 
         colors=args.colors, width=args.width, height=args.height)
 
-        if not args.save_csv: 
-            print(ep)
 
 if __name__ == "__main__":
     main()
