@@ -2,7 +2,7 @@
 from pymatgen.core import Structure
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN
 from pymatgen.io.vasp.outputs import Locpot
-
+from pymatgen.io.vasp.inputs import UnknownPotcarWarning
 # Misc
 import os
 import math
@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import warnings
 
+warnings.filterwarnings("ignore", category=UnknownPotcarWarning)
+warnings.filterwarnings("ignore", message="No POTCAR file with matching TITEL fields")
 # surfaxe
 from surfaxe.generation import oxidation_states
 from surfaxe.io import plot_bond_analysis, plot_electrostatic_potential, _instantiate_structure
@@ -269,6 +271,10 @@ def surface_dipole(filename, **kwargs):
     """
     if 'LOCPOT' in filename: 
         pt = electrostatic_potential(filename, **kwargs) 
+        # check the csv file wasnt saved 
+        if pt is None: 
+            save = kwargs.pop('save_csv', True)
+            pt = electrostatic_potential(filename, save_csv=False, **kwargs) 
     elif filename.endswith('csv'): 
         pt = pd.read_csv(filename) 
         if 'macroscopic' not in pt.columns: 
