@@ -223,7 +223,7 @@ plt_fname='potential.png', lattice_vector=None, **kwargs):
         specie_min = str(struc[argmin].specie)
         argmax = int(argmin + comp.as_dict()[specie_min] * prim_to_conv)
         # check the argmax is not greater than the number of atoms
-        if argmax > len(arr): 
+        if argmax >= len(arr): 
             argmax = int(argmin - comp.as_dict()[specie_min] * prim_to_conv )
         lattice_vector = arr[:, ax][argmax] - arr[:, ax][argmin]
 
