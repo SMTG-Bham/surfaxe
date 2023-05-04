@@ -219,13 +219,17 @@ plt_fname='potential.png', lattice_vector=None, **kwargs):
         # Calculate lattice vector
         arr = np.array([i.coords for i in struc.sites])
         comp, factor = struc.composition.get_reduced_composition_and_factor()
-        argmin = arr[:, ax].argmin() 
+        # get atom closest to median to avoid edge effects
+        med = np.median(arr[:, ax])
+        diff = np.abs(arr[:, ax] - med)
+        argmin = diff.argmin()
+
         specie_min = str(struc[argmin].specie)
         argmax = int(argmin + comp.as_dict()[specie_min] * prim_to_conv)
         # check the argmax is not greater than the number of atoms
         if argmax >= len(arr): 
             argmax = int(argmin - comp.as_dict()[specie_min] * prim_to_conv )
-        lattice_vector = arr[:, ax][argmax] - arr[:, ax][argmin]
+        lattice_vector = abs(arr[:, ax][argmax] - arr[:, ax][argmin])
 
     # Divide lattice parameter by no. of grid points in the direction
     resolution = struc.lattice.abc[ax]/lpt.dim[ax]
@@ -285,8 +289,12 @@ def surface_dipole(filename, **kwargs):
     else: 
         raise ValueError('filename should be a LOCPOT or a csv file')
     
-    # Get the surface dipole 
-    dipole = pt['macroscopic'].max() - pt['macroscopic'].iloc[int(len(pt)/2)]
+    # Get the surface dipole, add an averaging over the IQR 
+    low, high = np.quantile(pt[pt['macroscopic'] < 0].index, [0.25, 0.75])
+
+
+    dipole = pt['macroscopic'].max() - np.mean(pt.loc[low:high]['macroscopic'])
+
     return round(dipole, 3)
 
 def simple_nn(start, end=None, ox_states=None, nn_method=CrystalNN(), 

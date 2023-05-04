@@ -102,7 +102,7 @@ class SurfaceDipoleTestCase(unittest.TestCase):
     def test_surface_dipole(self):
         dipole = surface_dipole(self.locpot, prim_to_conv=2, 
                                 save_csv=False, save_plt=False) 
-        self.assertEqual(dipole, 9.06)
+        self.assertEqual(dipole, 9.065)
     
     def test_errors(self): 
         with self.assertRaises(ValueError) as e:
