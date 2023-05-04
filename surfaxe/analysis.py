@@ -128,6 +128,9 @@ plt_fname='bond_analysis.png', **kwargs):
     struc = _instantiate_structure(structure)
     struc = oxidation_states(structure=struc, ox_states=ox_states)
 
+    if type(bond) != list:
+        raise TypeError('Bond must be supplied as a list of two elements.')
+    
     if len(bond) > 2: 
         warnings.warn('Bond with more than two elements supplied. '
         'Only the first two elements will be treated as a bond.')

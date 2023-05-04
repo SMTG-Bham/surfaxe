@@ -98,6 +98,11 @@ class ParseStructuresTestCase(unittest.TestCase):
         bond=None)
 
         self.assertNotIn('bonds', d[0].keys())
+    
+    def test_parse_bonds_nonsense(self): 
+        with self.assertRaises(TypeError) as e: 
+            parse_structures((0,0,1), structure_file='POSCAR', path_to_fols=self.fols, save_json=False,
+            bond='nonsense')
 
     
     # should also include separate tests for parse_vacuum but the problem is the 
