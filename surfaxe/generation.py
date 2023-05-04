@@ -223,8 +223,7 @@ parallelise=True, processes=None, **kwargs):
 
     else: 
         # Set up kwargs again 
-        SG_kwargs = {k: mp_kwargs[k] for k in ['in_unit_planes', 'primitive' 
-        'max_normal_search', 'reorient_lattice', 'lll_reduce']}
+        SG_kwargs = {k: mp_kwargs[k] for k in ['in_unit_planes', 'primitive', 'max_normal_search', 'reorient_lattice', 'lll_reduce']}
         gs_kwargs = {k: mp_kwargs[k] for k in ['ftol', 'tol', 'max_broken_bonds', 
         'symmetrize', 'repair', 'bonds']}
 

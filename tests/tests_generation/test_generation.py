@@ -136,3 +136,16 @@ class GenerateSlabsTestCase(unittest.TestCase):
          
         if os.path.isfile('Y2Ti2S2O5_metadata.json'): 
             os.remove('Y2Ti2S2O5_metadata.json')
+        
+    def test_get_single_hkl_no_parallelise(self): 
+        ytos_slab = generate_slabs(structure=self.ytos, hkl=(0,0,1), 
+        thicknesses=[10,20], vacuums=[10,20], save_slabs=False, 
+        save_metadata=False, max_size=20, parallelise=False)
+
+        self.assertEqual(len(ytos_slab), 1)
+        self.assertEqual(ytos_slab[0]['slab_index'], 4)
+        self.assertWarnsRegex(UserWarning, ('Some generated slabs exceed the '
+        'max size specified. Slabs that exceed the max size are: 001_10_10_4'))
+        self.assertWarnsRegex(UserWarning, ('Not all combinations of hkl or '
+        'slab/vac thicknesses were generated because of repeat structures. '
+        'The repeat slabs are: 001_20_10_4, 001_10_20_4, 001_20_20_4'))
