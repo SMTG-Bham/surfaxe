@@ -365,6 +365,7 @@ def parse_structures(hkl, structure_file='CONTCAR', bond='auto', nn_method=Cryst
         struc = Structure.from_file('{}/{}'.format(list_of_paths[0][0], structure_file))
         sg = nn_method.get_bonded_structure(struc)
         all_bonds = list(sg.types_and_weights_of_connections.keys())
+        print('Bonds found automatically: {}'.format(all_bonds))
         for ab in all_bonds: 
             el1 = Element(ab.split('-')[0])
             el2 = Element(ab.split('-')[1])
@@ -375,7 +376,7 @@ def parse_structures(hkl, structure_file='CONTCAR', bond='auto', nn_method=Cryst
 
     if fixed_bonds: 
         bond = fixed_bonds
-    
+
     lst = []
     for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
         struc_path = '{}/{}'.format(path, structure_file)
