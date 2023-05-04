@@ -87,6 +87,7 @@ Analysis:
 * `surfaxe-simplenn`: Predicts the coordination environment of atoms for simple structures.
 * `surfaxe-complexnn`: Predcts the coordination environment of atoms in more complex structures where the default prediction algorithm fails.
 * `surfaxe-potential`: Calculates the planar potential of the slab along c-axis, the gradient of the planar potential and optionally macroscopic potential.
+* `surfaxe-surface-dipole`: Returns the surface dipole needed for macroscopic ionisation potential calculation
 * `surfaxe-cartdisp`: Calculates the Cartesian displacements of atoms during relaxation from intial and final structures.
 
 Plotting:
