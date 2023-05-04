@@ -135,7 +135,7 @@ parallelise=True, processes=None, **kwargs):
         parallelise (`bool`, optional): Use multiprocessing to generate
             slabs. Defaults to ``True``. 
         processes (`int`, optional): Number of cpu processes to use for     
-            multiprocessing. Defauts to ``None``, which is max-1 available.
+            multiprocessing, limited to max-1. Defauts to ``None``, which is max-1 available.
 
     Returns:
         None (default) 
@@ -166,7 +166,7 @@ parallelise=True, processes=None, **kwargs):
         'user_potcar_settings': user_potcar_settings})
     
     # Set up multiprocessing
-    if processes == None:
+    if processes == None or processes > multiprocessing.cpu_count():
         processes = multiprocessing.cpu_count() - 1
 
     # Import bulk relaxed structure, add oxidation states for slab dipole

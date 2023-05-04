@@ -38,6 +38,15 @@ class ParseEnergiesTestCase(unittest.TestCase):
         remove_first_energy=True)
         self.assertWarnsRegex(UserWarning, 'First data point was not removed '
         '- less than three data points were present in dataset')
+    
+    def test_parse_energie_no_parallel(self): 
+        df = parse_energies(hkl=(0,0,1), bulk_per_atom=-8.83099767, 
+        path_to_fols=self.fols, plt_surfen=False, save_csv=False, processes=1)
+        b=df[(df['vac_thickness'].astype(int)==30)&(df['slab_thickness'].astype(int)==20)]
+        self.assertEqual(df.shape, (6,14))
+        self.assertEqual(b['surface_energy_boettger'].values[0], 0.41701338602378163)
+        self.assertEqual(b['surface_energy_fm'].values[0], 0.4170133860237656)
+        self.assertEqual(b['surface_energy'].values[0], 0.4119406752267468)
 
 class ParseStructuresTestCase(unittest.TestCase):
 

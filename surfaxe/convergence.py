@@ -29,7 +29,7 @@ from surfaxe.analysis import bond_analysis, electrostatic_potential
 def parse_energies(hkl, bulk_per_atom, path_to_fols=None, parse_core_energy=False,
 core_atom=None, bulk_nn=None, parse_vacuum=False, remove_first_energy=False,
 plt_surfen=True, plt_surfen_fname='surface_energy.png', save_csv=True,
-csv_fname=None, verbose=False, **kwargs):
+csv_fname=None, verbose=False, processes=None, **kwargs):
     """
     Parses the convergence folders to get the surface energy, total energy,
     energy per atom, band gap and time taken for each slab and vacuum thickness
@@ -69,11 +69,14 @@ csv_fname=None, verbose=False, **kwargs):
             hkl_data.csv, where hkl are the miller indices.
         verbose (`bool`, optional): Whether or not to print extra info about the
             folders being parsed. Defaults to ``False``. 
+        processes (`int`, optional): Number of CPU processes to use, limited to max-1. Defaults to max-1.
 
     Returns:
         DataFrame 
     """
-    
+    if processes == None or processes > multiprocessing.cpu_count():
+        processes = multiprocessing.cpu_count() - 1
+
     # Update kwargs for core energy 
     get_core_energy_kwargs = {'orbital': '1s', 'ox_states': None, 
     'nn_method': CrystalNN()}
@@ -113,13 +116,13 @@ csv_fname=None, verbose=False, **kwargs):
         warnings.formatwarning = _custom_formatwarning
         warnings.warn(('Determining core energies for {} slabs may be slow. ' 
         'Running on {} cores.').format(len(list_of_paths), 
-                                       multiprocessing.cpu_count()))
+                                       processes))
 
 
     # Check if multiple cores are available, iterate through paths to folders 
     # and parse folders
-    if multiprocessing.cpu_count() > 1:
-        with multiprocessing.Pool() as pool:
+    if processes > 1 :
+        with multiprocessing.Pool(processes) as pool:
             mp_list = pool.starmap(
                 functools.partial(_mp_helper_energy, parse_vacuum, 
                 get_core, hkl, core_atom=core_atom, bulk_nn=bulk_nn, 

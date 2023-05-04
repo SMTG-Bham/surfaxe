@@ -44,6 +44,8 @@ def _get_parser():
     parser.add_argument('-v', '--verbose', default=False, action='store_true', 
     help=('Whether or not to print extra info about the folders being parsed.'
     ' (default: False)'))
+    parser.add_argument('--processes', default=None,
+    help='CPU processes to use in multiprocessing, default is max-1')
     parser.add_argument('--yaml', default=None, type=str,
     help=('Read all args from a yaml config file. Completely overrides any '
     'other flags set '))
@@ -74,7 +76,7 @@ def main():
         parse_core_energy=args.parse_core, core_atom=args.core, bulk_nn=args.nn, 
         parse_vacuum=args.parse_vacuum,plt_surfen=args.plt_surfen, save_csv=True, 
         csv_fname=args.csv_fname, verbose=args.verbose, 
-        remove_first_energy=args.remove)
+        remove_first_energy=args.remove, processes=args.processes)
 
 if __name__ == "__main__":
     main()
