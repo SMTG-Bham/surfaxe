@@ -84,6 +84,8 @@ def _get_parser():
     help='Overrides the default KPOINTS settings.')
     parser.add_argument('-p', '--potcar', default=None,
     help='Overrides the default POTCAR settings')
+    parser.add_argument('--processes', default=None,
+    help='CPU processes to use in multiprocessing, default is max-1')
     parser.add_argument('--yaml', default=None, type=str,
     help=('Read all args from surfaxe_config.yaml file. Completely overrides any '
     'other flags set'))
@@ -119,7 +121,7 @@ def main():
         ox_states=ox_states,is_symmetric=args.is_symmetric, fmt=args.fmt, 
         config_dict=args.config_dict, user_incar_settings=args.incar, 
         user_potcar_settings=args.potcar, user_kpoints_settings=args.kpoints, 
-        layers_to_relax=args.sd)
+        layers_to_relax=args.sd, processes=args.processes)
 
 if __name__ == "__main__":
     main()

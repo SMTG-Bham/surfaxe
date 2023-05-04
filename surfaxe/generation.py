@@ -21,7 +21,7 @@ save_metadata=True, json_fname=None, make_fols=False, make_input_files=False,
 max_size=500, center_slab=True, ox_states=None, is_symmetric=True, 
 layers_to_relax = None, fmt='poscar', name='POSCAR', config_dict=None, 
 user_incar_settings=None, user_kpoints_settings=None, user_potcar_settings=None, 
-parallelise=True, **kwargs): 
+parallelise=True, processes=None, **kwargs): 
     """
     Generates all unique slabs for a specified Miller indices or up to a maximum 
     Miller index with minimum slab and vacuum thicknesses. It includes all 
@@ -134,6 +134,8 @@ parallelise=True, **kwargs):
             settings. Defaults to ``None``.
         parallelise (`bool`, optional): Use multiprocessing to generate
             slabs. Defaults to ``True``. 
+        processes (`int`, optional): Number of cpu processes to use for     
+            multiprocessing. Defauts to ``None``, which is max-1 available.
 
     Returns:
         None (default) 
@@ -162,6 +164,10 @@ parallelise=True, **kwargs):
     save_slabs_kwargs.update({'user_incar_settings': user_incar_settings, 
         'user_kpoints_settings': user_kpoints_settings, 
         'user_potcar_settings': user_potcar_settings})
+    
+    # Set up multiprocessing
+    if processes == None:
+        processes = multiprocessing.cpu_count() - 1
 
     # Import bulk relaxed structure, add oxidation states for slab dipole
     # calculations
@@ -207,7 +213,7 @@ parallelise=True, **kwargs):
     # Check if multiple cores are available, then iterate through the slab and 
     # vacuum thicknesses and get all non polar symmetric slabs  
     if multiprocessing.cpu_count() > 1 and parallelise==True:
-        with multiprocessing.Pool() as pool:
+        with multiprocessing.Pool(processes) as pool:
             nested_provisional = pool.starmap(
                     functools.partial(_mp_generate_slabs, struc,
                     is_symmetric=is_symmetric, center_slab=center_slab,
