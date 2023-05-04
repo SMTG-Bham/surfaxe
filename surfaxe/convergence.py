@@ -1,6 +1,8 @@
 # Pymatgen
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.analysis.local_env import CrystalNN
+from pymatgen.core.structure import Structure
+from pymatgen.core.periodic_table import Element
 
 # Misc
 import os
@@ -315,8 +317,26 @@ csv_fname=None, verbose=False, **kwargs):
     else: 
         return df
 
-def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=CrystalNN(), 
- path_to_fols=None, verbose=False, json_fname=None,  **kwargs): 
+def parse_structures(hkl, structure_file='CONTCAR', bond='auto', nn_method=CrystalNN(), path_to_fols=None, save_json=True, json_fname=None,  **kwargs): 
+    """
+    Parses the convergence folders to get the relaxed structures, performs bond analysis and saves the data to a JSON file.
+    Args: 
+        hkl (`tuple`): Miller index of the slab.
+        structure_file (`str`): Name of the structure file to parse. Defaults to 'CONTCAR'.
+        bond (`str`): Bond to analyse. Defaults to 'auto', which guesses 
+            the bonds from the first structure in the list of structures
+        nn_method (`pymatgen.analysis.local_env.NearNeighbors`): The      
+            coordination number prediction algorithm used. Defaults to 
+            CrystalNN().
+        path_to_fols (`str`): Path to the convergence folders. Defaults to 
+            cwd. 
+        save_json (`bool`): Whether to save the data to a JSON file. Defaults to True.
+        json_fname (`str`): Name of the JSON file.
+        kwargs: Keyword arguments to pass to `bond_analysis`.
+
+    Returns:
+        dict or saves to file
+    """
     # collect the relaxed structures & put them in a json file 
     # has to be same format as the input (-layers) 
 
@@ -326,6 +346,7 @@ def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=Crystal
     # Get all paths to slab_vac_index folders, list=[[path,slab,vac,index],..]
     list_of_paths=[]
     for root, fols, files in os.walk(cwd):
+        fols.sort()
         for fol in fols:
             # Perform a loose check that we are looking in the right place, 
             # also avoid .ipynb_checkpoint files 
@@ -337,39 +358,64 @@ def parse_structures(hkl, structure_file='CONTCAR', bond=None, nn_method=Crystal
                         fol.split('_')[1], 
                         fol.split('_')[2]
                     ])
-                    if verbose:
-                        print(root, fol)
+    # Only parse the structures for bonds once, use the first one in the 
+    # list
+    fixed_bonds = []
+    if bond=='auto': 
+        struc = Structure.from_file('{}/{}'.format(list_of_paths[0][0], structure_file))
+        sg = nn_method.get_bonded_structure(struc)
+        all_bonds = list(sg.types_and_weights_of_connections.keys())
+        for ab in all_bonds: 
+            el1 = Element(ab.split('-')[0])
+            el2 = Element(ab.split('-')[1])
+            if el1.X > el2.X: 
+                fixed_bonds.append([str(el2), str(el1)]) 
+            else: 
+                fixed_bonds.append([str(el1), str(el2)])
 
+    if fixed_bonds: 
+        bond = fixed_bonds
+    
     lst = []
     for path, slab_thickness, vac_thickness, slab_index in list_of_paths: 
         struc_path = '{}/{}'.format(path, structure_file)
         slab = slab_from_file(struc_path, hkl)
-        lst.append({
+        lst_dict = {
             'hkl': hkl, 
             'slab_thickness': slab_thickness, 
             'vac_thickness': vac_thickness, 
             'slab_index': slab_index,
             'slab': slab.as_dict()
-        })
+        }
+
         # if bond is set, do bond analysis; single bond
         if bond is not None and type(bond[0]) == str: 
-            csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(bond))
-            bond_analysis(slab, bond, nn_method=nn_method, 
-            csv_fname=csv_fname, **kwargs)
+            df = bond_analysis(slab, bond, nn_method=nn_method, 
+            save_csv=False, **kwargs)
+            lst_dict['bonds'] = {f'{bond[0]}-{bond[1]}': df.to_dict()}
             
         # multiple bonds 
         elif bond is not None and type(bond[0]) == list: 
+            d = {}
             for b in bond: 
-                csv_fname = '{}_bond_analysis_{}.csv'.format(path, ''.join(b))
-                bond_analysis(slab, b, nn_method=nn_method, 
-                csv_fname=csv_fname, **kwargs)
+                df = bond_analysis(slab, b, nn_method=nn_method, 
+                save_csv=False, **kwargs)
+                k = f'{b[0]}-{b[1]}'
+                df.dropna(inplace=True)
+                d[k] = df.to_dict()
+            lst_dict['bonds'] = d
 
-    if json_fname is None: 
-        bulk_name = slab.composition.reduced_formula
-        json_fname = '{}_parsed_metadata.json'.format(bulk_name)
-    
-    with open(json_fname, 'w') as f: 
-        json.dump(lst, f)
+        lst.append(lst_dict)
+
+    if save_json:
+        if json_fname is None: 
+            bulk_name = slab.composition.reduced_formula
+            json_fname = '{}_parsed_metadata.json'.format(bulk_name)
+        
+        with open(json_fname, 'w') as f: 
+            json.dump(lst, f, allow_nan=False, indent=4)
+    else:
+        return lst
 
 
 
