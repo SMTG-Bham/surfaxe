@@ -1,4 +1,4 @@
-[![Build status](https://github.com/smtg-ucl/surfaxe/actions/workflows/tests.yml/badge.svg)](https://github.com/SMTG-UCL/surfaxe/actions)
+[![Build status](https://github.com/smtg-bham/surfaxe/actions/workflows/tests.yml/badge.svg)](https://github.com/SMTG-bham/surfaxe/actions)
 [![Documentation Status](https://readthedocs.org/projects/surfaxe/badge/?version=latest)](https://surfaxe.readthedocs.io/en/latest/?badge=stable) 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.03171/status.svg)](https://doi.org/10.21105/joss.03171)
 
@@ -49,7 +49,7 @@ Surfaxe is a Python 3 package and requires pymatgen and other standard scientifi
 Recommended installation is to git clone and install with `pip` in a stable virtual environment:
 
 ```sh
-git clone https://github.com/SMTG-UCL/surfaxe.git
+git clone https://github.com/SMTG-bham/surfaxe.git
 cd surfaxe
 pip install -e .
 ```
@@ -64,9 +64,9 @@ For the code to generate VASP input files along with the surface slabs, POTCARs 
 
 Surfaxe can be used via the command line and via Python API. [The docs](https://surfaxe.readthedocs.io/en/latest/) include information on both, and the built-in `-h` option is available in the command line interface for each of the scripts.
 
-We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-UCL/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package.
+We recommend starting off by looking at the dedicated [tutorials](https://github.com/SMTG-bham/surfaxe/tree/master/tutorials). These Jupyter notebooks will guide you through most of the functionality of the package.
 
-The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-UCL/surfaxe/HEAD?filepath=tutorials)
+The tutorials can also be run interactively on Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SMTG-bham/surfaxe/HEAD?filepath=tutorials)
 
 ### Command line interface
 
@@ -125,7 +125,7 @@ is also helpful, including a good model for docstrings.
 
 Unit tests are in the `tests` directory and can be run from the top directory using `pytest`. Please run these tests whenever submitting bug fix pull requests and include new tests for new features as appropriate.
 
-We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-UCL/surfaxe/actions).
+We also use CI build and testing using [GitHub Actions](https://github.com/SMTG-bham/surfaxe/actions).
 
 ## License and how to cite
 
