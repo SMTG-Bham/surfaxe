@@ -109,6 +109,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
                 potcars = _check_psp_dir()
                 if potcars:
                     cd = _load_config_dict(config_dict)
+                    save_slabs_kwargs = {'user_potcar_functional' if k == 'potcar_functional' else k: v for k, v in save_slabs_kwargs.items()}
                     vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
                     vis.write_input(
                         r'{}/{}/{}_{}_{}'.format(bulk_name, 
