@@ -1,5 +1,5 @@
 # pymatgen
-from pymatgen.io.vasp.sets import DictSet
+from pymatgen.io.vasp.sets import VaspInputSet 
 from pymatgen.core import Structure
 from pymatgen.core.surface import Slab
 
@@ -53,7 +53,7 @@ def slabs_to_file(list_of_slabs, structure, make_fols, make_input_files,
 config_dict, fmt, name, **save_slabs_kwargs):
     """
     Saves the slabs to file, optionally creates input files. The function can
-    take any relevant keyword argument for DictSet.
+    take any relevant keyword argument for VaspInputSet.
 
     Args:
         list_of_slabs (`list`): a list of slab dictionaries made with either of
@@ -109,7 +109,7 @@ config_dict, fmt, name, **save_slabs_kwargs):
                 potcars = _check_psp_dir()
                 if potcars:
                     cd = _load_config_dict(config_dict)
-                    vis = DictSet(slab['slab'], cd, **save_slabs_kwargs)
+                    vis = VaspInputSet(slab['slab'], cd, **save_slabs_kwargs)
                     vis.write_input(
                         r'{}/{}/{}_{}_{}'.format(bulk_name, 
                             slab['hkl'], 

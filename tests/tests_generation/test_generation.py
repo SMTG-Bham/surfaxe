@@ -66,7 +66,7 @@ class GenerateSlabsTestCase(unittest.TestCase):
 
 
     def test_no_structure(self):
-        self.assertRaises(FileNotFoundError, generate_slabs, structure='waa', 
+        self.assertRaises(FileNotFoundError, generate_slabs, structure='waa.vasp', 
         hkl=(0,3,5), thicknesses=[10], vacuums=[10,20], save_slabs=False)
 
         self.assertRaises(TypeError, generate_slabs, structure=1, 
